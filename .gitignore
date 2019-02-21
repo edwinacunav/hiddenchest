@@ -1,0 +1,18 @@
+*.o
+*.pro.*
+*.bak
+*.vert.xxd
+*.frag.xxd
+*.ttf.xxd
+
+Makefile
+
+mkxp
+xxd+
+
+/build
+
+# Codeblocks
+mkxp.layout
+mkxp.cbp
+

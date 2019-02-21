@@ -1,0 +1,6 @@
+#define WIDTH_MAX 800
+#define HEIGHT_MAX 608
+#define TILE_WIDTH_MAX 26
+#define TILE_HEIGHT_MAX 20
+#define START_WIDTH 800
+#define START_HEIGHT 608
