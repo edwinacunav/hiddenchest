@@ -91,7 +91,7 @@ You might need to use chmod +x do.sh first to make it an executable script.
 
 It will create a build directory where it will run CMake and later execute make to compile the HiddenChest binary. If succeeded it will move the binary executable file to the root directory for you.
 
-Take in consideration that you need Ancurio's SDL_sound fork installed on your system. Your OS package manager, i.e. pacman or apt-get, might offer you to install a default version of SDL_sound. DO NOT INSTALL IT! Both mkxp and mkxpplus will fail for sure if you do not follow my advice!
+Take in consideration that you need Ancurio's SDL_sound fork installed on your system. Your OS package manager, i.e. pacman or apt-get, might offer you to install a default version of SDL_sound. DO NOT INSTALL IT! Both mkxp and HiddenChest will fail for sure if you do not follow my advice!
 
 Search for `set(MRIVERSION` in the CMakeLists.txt file to set a different version of Ruby. Default version is 2.5 now.
 
@@ -163,6 +163,9 @@ To alleviate possible porting of heavily Win32API reliant scripts, we have added
 * They now support additional keys like Return or Enter or LeftShift or RightAlt or NumPadDivide * or KeyH or KeyM or N1 through N0.
 * The `Input` module has two additional functions, `#mouse_x` and `#mouse_y` to query the mouse pointer position relative to the game screen.
 * The `Graphics` module has two additional properties: `fullscreen` represents the current fullscreen mode (`true` = fullscreen, `false` = windowed), `show_cursor` hides the system cursor inside the game window when `false`.
+* Graphics module also lets you take snapshots by calling the save_screenshot method.
+* The Backdrop module lets you create a temporary snapshot of a previous map to use it in any scene class at will. Use keep_bitmap or blur_bitmap to create the bitmap you will need in your (custom) scene. Later you can assign its bitmap to an instance variable of your choice by calling its bitmap method. After freezing the scene, call clear_bitmap to dispose it properly.
+* Use the module_attr_accessor method to create module methods, getters and setters all in one! Example: module_attr_accessor :meow will create the self.meow and self.meow=(value) methods in a single step.
 
 ## List of Bug Fixes for HiddenChest
 
