@@ -26,62 +26,73 @@
 #include "binding-util.h"
 #include "util.h"
 
-#include <iostream>
-
-static VALUE inputUpdate(VALUE self)
+RB_METHOD(inputUpdate)
 {
+  RB_UNUSED_PARAM;
   shState->input().update();
   return Qnil;
 }
 
-static int getButtonArg(VALUE button)
+static int getButtonArg(int argc, VALUE *argv)
 {
-  if (FIXNUM_P(button)) {
-    return NUM2INT(button);
-  } else if (SYMBOL_P(button) && rgssVer >= 3) {
+  int num;
+  rb_check_argc(argc, 1);
+  if (FIXNUM_P(argv[0])) {
+    num = FIX2INT(argv[0]);
+  } else if (SYMBOL_P(argv[0]) && rgssVer >= 3) {
     VALUE symHash = getRbData()->buttoncodeHash;
-    return FIX2INT(rb_hash_lookup2(symHash, button, INT2FIX(Input::None)));
+    num = FIX2INT(rb_hash_lookup2(symHash, argv[0], INT2FIX(Input::None)));
   } else {
-// FIXME: RMXP allows only few more types that don't make sense (symbols in pre 3, floats)
-    return 0;
+    // FIXME: RMXP allows only few more types that
+    // don't make sense (symbols in pre 3, floats)
+    num = 0;
   }
+  return num;
 }
 
-static VALUE inputPress(VALUE self, VALUE rnum)
+RB_METHOD(inputPress)
 {
-  int num = getButtonArg(rnum);
+  RB_UNUSED_PARAM;
+  int num = getButtonArg(argc, argv);
   return rb_bool_new(shState->input().isPressed(num));
 }
 
-static VALUE inputTrigger(VALUE self, VALUE rnum)
+RB_METHOD(inputTrigger)
 {
-  int num = getButtonArg(rnum);
-  return shState->input().isTriggered(num) ? Qtrue : Qfalse;
+  RB_UNUSED_PARAM;
+  int num = getButtonArg(argc, argv);
+  return rb_bool_new(shState->input().isTriggered(num));
 }
 
-static VALUE inputRepeat(VALUE self, VALUE rnum)
+RB_METHOD(inputRepeat)
 {
-  int num = getButtonArg(rnum);
-  return shState->input().isRepeated(num);
+  RB_UNUSED_PARAM;
+  int num = getButtonArg(argc, argv);
+  return rb_bool_new(shState->input().isRepeated(num));
 }
 
-static VALUE inputDir4(VALUE self)
+RB_METHOD(inputDir4)
 {
-  return rb_fix_new(shState->input().dir4_value());
+  RB_UNUSED_PARAM;
+  return rb_fix_new(shState->input().dir4Value());
 }
 
-static VALUE inputDir8(VALUE self)
+RB_METHOD(inputDir8)
 {
-  return rb_fix_new(shState->input().dir8_value());
+  RB_UNUSED_PARAM;
+  return rb_fix_new(shState->input().dir8Value());
 }
-// Non-standard extensions
-static VALUE inputMouseX(VALUE self)
+
+/* Non-standard extensions */
+RB_METHOD(inputMouseX)
 {
+  RB_UNUSED_PARAM;
   return rb_fix_new(shState->input().mouseX());
 }
 
-static VALUE inputMouseY(VALUE self)
+RB_METHOD(inputMouseY)
 {
+  RB_UNUSED_PARAM;
   return rb_fix_new(shState->input().mouseY());
 }
 
@@ -107,9 +118,6 @@ static buttonCodes[] =
   { "SHIFT",          Input::Shift },
   { "CTRL",           Input::Ctrl  },
   { "ALT",            Input::Alt   },
-  { "MOUSELEFT",      Input::MouseLeft      },
-  { "MOUSEMIDDLE",    Input::MouseMiddle    },
-  { "MOUSERIGHT",     Input::MouseRight     },
   { "KeyA",           Input::KeyA  },
   { "KeyB",           Input::KeyB  },
   { "KeyC",           Input::KeyC  },
@@ -172,7 +180,6 @@ static buttonCodes[] =
   { "F10",            Input::F10            },
   { "F11",            Input::F11            },
   { "F12",            Input::F12            },
-  { "PrintScreen",    Input::PrintScreen    },
   { "ScrollLock",     Input::ScrollLock     },
   { "CapsLock",       Input::CapsLock       },
   { "Pause",          Input::Pause          },
@@ -182,10 +189,6 @@ static buttonCodes[] =
   { "Delete",         Input::Delete         },
   { "End",            Input::End            },
   { "PageDown",       Input::PageDown       },
-  { "ArrowRight",     Input::ArrowRight     },
-  { "ArrowLeft",      Input::ArrowLeft      },
-  { "ArrowDown",      Input::ArrowDown      },
-  { "ArrowUp",        Input::ArrowUp        },
   { "NumPadDivide",   Input::NumPadDivide   },
   { "NumPadMultiply", Input::NumPadMultiply },
   { "NumPadMinus",    Input::NumPadMinus    },
@@ -216,7 +219,15 @@ static buttonCodes[] =
   { "Web",            Input::Web            },
   { "Mail",           Input::Mail           },
   { "Calculator",     Input::Calculator     },
-  { "Computer",       Input::Computer       }
+  { "Computer",       Input::Computer       },
+  { "APP1",           Input::APP1           },
+  { "APP2",           Input::APP2           },
+  { "MOUSELEFT",      Input::MouseLeft      },
+  { "MOUSEMIDDLE",    Input::MouseMiddle    },
+  { "MOUSERIGHT",     Input::MouseRight     },
+  { "MouseLeft",      Input::MouseLeft      },
+  { "MouseMiddle",    Input::MouseMiddle    },
+  { "MouseRight",     Input::MouseRight     }
 };
 
 static elementsN(buttonCodes);
@@ -224,15 +235,15 @@ static elementsN(buttonCodes);
 void inputBindingInit()
 {
   VALUE module = rb_define_module("Input");
-  rb_define_module_function(module, "update", RUBY_METHOD_FUNC(inputUpdate), 0);
-  rb_define_module_function(module, "press?", RUBY_METHOD_FUNC(inputPress), 1);
-  rb_define_module_function(module, "trigger?", RUBY_METHOD_FUNC(inputTrigger), 1);
-  rb_define_module_function(module, "repeat?", RUBY_METHOD_FUNC(inputRepeat), 1);
-  rb_define_module_function(module, "dir4", RUBY_METHOD_FUNC(inputDir4), 0);
-  rb_define_module_function(module, "dir8", RUBY_METHOD_FUNC(inputDir8), 0);
-  rb_define_module_function(module, "mouse_x", RUBY_METHOD_FUNC(inputMouseX), 0);
-  rb_define_module_function(module, "mouse_y", RUBY_METHOD_FUNC(inputMouseY), 0);
-  if (rgssVer == 3) {
+  _rb_define_module_function(module, "update", inputUpdate);
+  _rb_define_module_function(module, "press?", inputPress);
+  _rb_define_module_function(module, "trigger?", inputTrigger);
+  _rb_define_module_function(module, "repeat?", inputRepeat);
+  _rb_define_module_function(module, "dir4", inputDir4);
+  _rb_define_module_function(module, "dir8", inputDir8);
+  _rb_define_module_function(module, "mouse_x", inputMouseX);
+  _rb_define_module_function(module, "mouse_y", inputMouseY);
+  if (rgssVer >= 3) {
     VALUE symHash = rb_hash_new();
     for (size_t i = 0; i < buttonCodesN; ++i) {
       ID sym = rb_intern(buttonCodes[i].str);

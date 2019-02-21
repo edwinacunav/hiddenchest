@@ -73,7 +73,9 @@ struct SourceDesc
 
 	bool operator==(const SourceDesc &o) const
 	{
-		if (type != o.type) return false;
+		if (type != o.type)
+			return false;
+
 		switch (type)
 		{
 		case Invalid:
@@ -102,14 +104,15 @@ struct SourceDesc
 
 struct BindingDesc
 {
-  SourceDesc src;
-  Input::ButtonCode target;
+	SourceDesc src;
+	Input::ButtonCode target;
 };
 
 typedef std::vector<BindingDesc> BDescVec;
 struct Config;
 
 BDescVec genDefaultBindings(const Config &conf);
+
 void storeBindings(const BDescVec &d, const Config &conf);
 BDescVec loadBindings(const Config &conf);
 
