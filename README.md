@@ -107,7 +107,7 @@ By default, mkxp switches into the directory where its binary is contained and t
 
 To auto detect the encoding of the game title in `Game.ini` and auto convert it to UTF-8, build with `CONFIG+=INI_ENCODING`. Requires iconv implementation and libguess. If the encoding is wrongly detected, you can set the "titleLanguage" hint in mkxp.conf.
 
-**MRI-Binding**: pkg-config will look for `ruby-2.5.pc`, but you can override the version with `MRIVERSION=2.2` ('2.2' being an example). This is the default binding, so no arguments to qmake needed (`BINDING=MRI` to be explicit).
+**MRI-Binding**: pkg-config will look for `ruby-2.6.pc`, but you can override the version with `MRIVERSION=2.2` ('2.2' being an example). This is the default binding, so no arguments to qmake needed (`BINDING=MRI` to be explicit).
 
 **MRuby-Binding**: place the "mruby" folder into the project folder and build it first. Add `BINDING=MRUBY` to qmake's arguments.
 
@@ -166,6 +166,7 @@ To alleviate possible porting of heavily Win32API reliant scripts, we have added
 * Graphics module also lets you take snapshots by calling the save_screenshot method.
 * The Backdrop module lets you create a temporary snapshot of a previous map to use it in any scene class at will. Use keep_bitmap or blur_bitmap to create the bitmap you will need in your (custom) scene. Later you can assign its bitmap to an instance variable of your choice by calling its bitmap method. After freezing the scene, call clear_bitmap to dispose it properly.
 * Use the module_attr_accessor method to create module methods, getters and setters all in one! Example: module_attr_accessor :meow will create the self.meow and self.meow=(value) methods in a single step.
+* The Scripts module allows you to store a Ruby string or symbol as a script ID via Scripts << :script_name. Once it has been stored there, you can call its methods, i.e. Scripts.all or Scripts.include?(:script_name) to access the Scripts IDs Array and confirm if it has been included respectively.
 
 ## List of Bug Fixes for HiddenChest
 
