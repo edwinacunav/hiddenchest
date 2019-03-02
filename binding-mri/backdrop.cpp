@@ -3,7 +3,7 @@
 **
 ** This file is part of HiddenChest
 **
-** Copyright (C) 2018 Kyonides-Arkanthes
+** Copyright (C) 2018-2019 Kyonides-Arkanthes
 */
 
 #include <ruby.h>
@@ -59,6 +59,24 @@ static VALUE backdrop_clear_bitmap(VALUE self)
   return rb_iv_set(self, "@bitmap", Qnil);
 }
 
+static VALUE scripts_all(VALUE self)
+{
+  return rb_iv_get(self, "@pack");
+}
+
+static VALUE scripts_is_included(VALUE self, VALUE name)
+{
+  VALUE pack = rb_iv_get(self, "@pack");
+  return rb_ary_includes(pack, name);
+}
+
+static VALUE scripts_push(VALUE self, VALUE name)
+{
+  VALUE pack = rb_iv_get(self, "@pack");
+  rb_ary_push(pack, name);
+  return pack;
+}
+
 static VALUE module_attr_accessor(int argc, VALUE* argv, VALUE self)
 {
   if (!RB_TYPE_P(self, T_MODULE))
@@ -96,4 +114,9 @@ void Init_TermsBackdrop()
   rb_define_module_function(module, "blur_bitmap", RMF(backdrop_blur_bitmap), 0);
   rb_define_module_function(module, "bitmap", RMF(backdrop_bitmap), 0);
   rb_define_module_function(module, "clear_bitmap", RMF(backdrop_clear_bitmap), 0);
+  module = rb_define_module("Scripts");
+  rb_iv_set(module, "@pack", rb_ary_new());
+  rb_define_module_function(module, "all", RMF(scripts_all), 0);
+  rb_define_module_function(module, "include?", RMF(scripts_is_included), 1);
+  rb_define_module_function(module, "<<", RMF(scripts_push), 1);
 }
