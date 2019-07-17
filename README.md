@@ -158,15 +158,16 @@ If a requested font is not found, no error is generated. Instead, a built-in fon
 
 To alleviate possible porting of heavily Win32API reliant scripts, we have added certain functionality that you won't find in the RGSS spec. Currently this amounts to the following:
 
-* Expand RGSS1 tilesets to fill the enlarged screen
+* Expand RGSS1 tilesets to fill the enlarged screen and adapts the Window_Message settings to the increased screen resolutions.
 * The `Input.press?` family of functions accepts three additional button constants: `::MOUSELEFT`, `::MOUSEMIDDLE` and `::MOUSERIGHT` for the respective mouse buttons.
 * They now support additional keys like Return or Enter or LeftShift or RightAlt or NumPadDivide * or KeyH or KeyM or N1 through N0.
 * The `Input` module has two additional functions, `#mouse_x` and `#mouse_y` to query the mouse pointer position relative to the game screen.
-* The `Graphics` module has two additional properties: `fullscreen` represents the current fullscreen mode (`true` = fullscreen, `false` = windowed), `show_cursor` hides the system cursor inside the game window when `false`.
+* The `Graphics` module has three additional properties: `fullscreen` represents the current fullscreen mode (`true` = fullscreen, `false` = windowed), `show_cursor` hides the system cursor inside the game window when `false` and `block_fullscreen` (`true` or `false`) will prevent the player from entering fullscreen mode or not even if they change the configuration file settings.
 * Graphics module also lets you take snapshots by calling the save_screenshot method.
-* The Backdrop module lets you create a temporary snapshot of a previous map to use it in any scene class at will. Use keep_bitmap or blur_bitmap to create the bitmap you will need in your (custom) scene. Later you can assign its bitmap to an instance variable of your choice by calling its bitmap method. After freezing the scene, call clear_bitmap to dispose it properly.
-* Use the module_attr_accessor method to create module methods, getters and setters all in one! Example: module_attr_accessor :meow will create the self.meow and self.meow=(value) methods in a single step.
+* The Backdrop module lets you create a temporary snapshot of a previous map to use it in any scene class at will. Use `keep_bitmap` or `blur_bitmap` to create the bitmap you will need in your (custom) scene. Later you can assign its bitmap to an instance variable of your choice by calling its `bitmap` method. After freezing the scene, call `clear_bitmap` to dispose it properly.
+* Use the `module_attr_accessor` or `module_accessor` method to create module methods, getters and setters all in one! Example: module_attr_accessor :meow will create the self.meow and self.meow=(value) methods in a single step.
 * The Scripts module allows you to store a Ruby string or symbol as a script ID via Scripts << :script_name. Once it has been stored there, you can call its methods, i.e. Scripts.all or Scripts.include?(:script_name) to access the Scripts IDs Array and confirm if it has been included respectively.
+* Font class now lets you use its `underline` and `strikethrough` or `strikethru` options the same way you used `bold` or `italic`.
 
 ## List of Bug Fixes for HiddenChest
 
