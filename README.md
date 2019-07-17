@@ -29,9 +29,9 @@ Bindings provide the glue code for an interpreted language environment to run ga
 ### MRI
 Website: https://www.ruby-lang.org/en/
 
-Matz's Ruby Interpreter, also called CRuby for it has a C based API, is the most widely deployed version of Ruby. If you're interested in running games created with RPG Maker XP, this is the one you should go for. MRI 1.8 is what was used in RPG Maker XP, however, this binding is written against 2.5 (the current stable version). For games utilizing only the default scripts provided by Enterbrain, this binding works quite well so far.
+Matz's Ruby Interpreter, also called CRuby for it has a C based API, is the most widely deployed version of Ruby. If you're interested in running games created with RPG Maker XP, this is the one you should go for. MRI 1.8 is what was used in RPG Maker XP, however, this binding is written against 2.6 (the current stable version). For games utilizing only the default scripts provided by Enterbrain, this binding works quite well so far.
 
-Note that there are language and syntax differences between 1.8 and 2.5, so some user created scripts may not work correctly. Version 2.5 will not forgive you if you use the old syntax like in case statements where people used to place a colon after a when condition, i.e. when 2 : call_battle. The colon should be replace with a then keyword to enforce compatibility with later versions of Ruby.
+Note that there are language and syntax differences between 1.8 and 2.6, so some user created scripts may not work correctly. Version 2.6 will not forgive you if you use the old syntax like in case statements where people used to place a colon after a when condition, i.e. when 2 : call_battle. The colon should be replace with a then keyword to enforce compatibility with later versions of Ruby.
 
 For a list of differences, see:
 http://stackoverflow.com/questions/21574/what-is-the-difference-between-ruby-1-8-and-ruby-1-9
@@ -93,7 +93,7 @@ It will create a build directory where it will run CMake and later execute make 
 
 Take in consideration that you need Ancurio's SDL_sound fork installed on your system. Your OS package manager, i.e. pacman or apt-get, might offer you to install a default version of SDL_sound. DO NOT INSTALL IT! Both mkxp and HiddenChest will fail for sure if you do not follow my advice!
 
-Search for `set(MRIVERSION` in the CMakeLists.txt file to set a different version of Ruby. Default version is 2.5 now.
+Search for `set(MRIVERSION` in the CMakeLists.txt file to set a different version of Ruby. Default version is 2.6 now.
 
 ### Boost
 
