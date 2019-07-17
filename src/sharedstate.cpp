@@ -175,28 +175,85 @@ void SharedState::setScreen(Scene &screen)
   p->screen = &screen;
 }
 
-#define GSATT(type, lower) \
-	type SharedState :: lower() const \
-	{ \
-		return p->lower; \
-	}
+void* SharedState::bindingData() const
+{
+  return p->bindingData;
+}
 
-GSATT(void*, bindingData)
-GSATT(SDL_Window*, sdlWindow)
-GSATT(Scene*, screen)
-GSATT(FileSystem&, fileSystem)
-GSATT(EventThread&, eThread)
-GSATT(RGSSThreadData&, rtData)
-GSATT(Config&, config)
-GSATT(Graphics&, graphics)
-GSATT(Input&, input)
-GSATT(Audio&, audio)
-GSATT(GLState&, _glState)
-GSATT(ShaderSet&, shaders)
-GSATT(TexPool&, texPool)
-GSATT(Quad&, gpQuad)
-GSATT(SharedFontState&, fontState)
-GSATT(SharedMidiState&, midiState)
+SDL_Window* SharedState::sdlWindow() const
+{
+  return p->sdlWindow;
+}
+
+Scene* SharedState::screen() const
+{
+  return p->screen;
+}
+
+FileSystem& SharedState::fileSystem() const
+{
+  return p->fileSystem;
+}
+
+EventThread& SharedState::eThread() const
+{
+  return p->eThread;
+}
+
+RGSSThreadData& SharedState::rtData() const
+{
+  return p->rtData;
+}
+
+Config& SharedState::config() const
+{
+  return p->config;
+}
+
+Graphics& SharedState::graphics() const
+{
+  return p->graphics;
+}
+
+Input& SharedState::input() const
+{
+  return p->input;
+}
+
+Audio& SharedState::audio() const
+{
+  return p->audio;
+}
+
+GLState& SharedState::_glState() const
+{
+  return p->_glState;
+}
+
+ShaderSet& SharedState::shaders() const
+{
+  return p->shaders;
+}
+
+TexPool& SharedState::texPool() const
+{
+  return p->texPool;
+}
+
+Quad& SharedState::gpQuad() const
+{
+  return p->gpQuad;
+}
+
+SharedFontState& SharedState::fontState() const
+{
+  return p->fontState;
+}
+
+SharedMidiState&SharedState::midiState() const
+{
+  return p->midiState;
+}
 
 void SharedState::setBindingData(void *data)
 {

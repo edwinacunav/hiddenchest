@@ -251,6 +251,38 @@ RB_METHOD(bitmapTextSize)
   return wrapObject(rect, RectType);
 }
 
+RB_METHOD(bitmapTextWidth)
+{
+  Bitmap *b = getPrivateData<Bitmap>(self);
+  const char *str;
+  if (rgssVer >= 2) {
+    VALUE strObj;
+    rb_get_args(argc, argv, "o", &strObj RB_ARG_END);
+    str = objAsStringPtr(strObj);
+  } else {
+    rb_get_args(argc, argv, "z", &str RB_ARG_END);
+  }
+  int value;
+  GUARD_EXC( value = b->textWidth(str); );
+  return RB_INT2NUM(value);
+}
+
+RB_METHOD(bitmapTextHeight)
+{
+  Bitmap *b = getPrivateData<Bitmap>(self);
+  const char *str;
+  if (rgssVer >= 2) {
+    VALUE strObj;
+    rb_get_args(argc, argv, "o", &strObj RB_ARG_END);
+    str = objAsStringPtr(strObj);
+  } else {
+    rb_get_args(argc, argv, "z", &str RB_ARG_END);
+  }
+  int value;
+  GUARD_EXC( value = b->textHeight(str); );
+  return RB_INT2NUM(value);
+}
+
 static VALUE bitmapGetFont(VALUE self)
 {
   checkDisposed<Bitmap>(self);
@@ -404,6 +436,8 @@ void bitmapBindingInit()
   rb_define_method(klass, "hue_change", RUBY_METHOD_FUNC(bitmapHueChange), 1);
   rb_define_method(klass, "draw_text", RUBY_METHOD_FUNC(bitmapDrawText), -1);
   rb_define_method(klass, "text_size", RUBY_METHOD_FUNC(bitmapTextSize), -1);
+  rb_define_method(klass, "text_width", RUBY_METHOD_FUNC(bitmapTextWidth), -1);
+  rb_define_method(klass, "text_height", RUBY_METHOD_FUNC(bitmapTextHeight), -1);
   rb_define_method(klass, "gradient_fill_rect", RUBY_METHOD_FUNC(bitmapGradientFillRect), -1);
   rb_define_method(klass, "storm_fill_rect", RUBY_METHOD_FUNC(bitmapStormFillRect), 1);
   rb_define_method(klass, "snow_fill_rect", RUBY_METHOD_FUNC(bitmapSnowFillRect), 0);

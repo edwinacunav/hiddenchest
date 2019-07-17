@@ -123,32 +123,23 @@ void SharedFontState::initFontSetCB(SDL_RWops &ops,
 		set.other = filename;
 }
 
-_TTF_Font *SharedFontState::getFont(std::string family,
-                                    int size)
+_TTF_Font *SharedFontState::getFont(std::string family, int size)
 {
 	/* Check for substitutions */
 	if (p->subs.contains(family))
 		family = p->subs[family];
-
 	/* Find out if the font asset exists */
 	const FontSet &req = p->sets[family];
-
 	if (req.regular.empty() && req.other.empty())
 	{
 		/* Doesn't exist; use built-in font */
 		family = "";
 	}
-
 	FontKey key(family, size);
-
 	TTF_Font *font = p->pool.value(key);
-
-	if (font)
-		return font;
-
+	if (font) return font;
 	/* Not in pool; open new handle */
 	SDL_RWops *ops;
-
 	if (family.empty())
 	{
 		/* Built-in font */
@@ -156,43 +147,33 @@ _TTF_Font *SharedFontState::getFont(std::string family,
 	}
 	else
 	{
-		/* Use 'other' path as alternative in case
-		 * we have no 'regular' styled font asset */
+// Use 'other' path as alternative in case we have no 'regular' styled font asset
 		const char *path = !req.regular.empty()
 		                 ? req.regular.c_str() : req.other.c_str();
-
 		ops = SDL_AllocRW();
 		shState->fileSystem().openReadRaw(*ops, path, true);
 	}
-
 	// FIXME 0.9 is guesswork at this point
 //	float gamma = (96.0/45.0)*(5.0/14.0)*(size-5);
 //	font = TTF_OpenFontRW(ops, 1, gamma /** .90*/);
 	font = TTF_OpenFontRW(ops, 1, size* 0.90f);
-
 	if (!font)
 		throw Exception(Exception::SDLError, "%s", SDL_GetError());
-
 	p->pool.insert(key, font);
-
 	return font;
 }
 
 bool SharedFontState::fontPresent(std::string family) const
-{
-	/* Check for substitutions */
+{ // Check for substitutions
 	if (p->subs.contains(family))
 		family = p->subs[family];
-
 	const FontSet &set = p->sets[family];
-
 	return !(set.regular.empty() && set.other.empty());
 }
 
 _TTF_Font *SharedFontState::openBundled(int size)
 {
 	SDL_RWops *ops = openBundledFont();
-
 	return TTF_OpenFontRW(ops, 1, size);
 }
 
@@ -203,7 +184,6 @@ void pickExistingFontName(const std::vector<std::string> &names,
 	/* Note: In RMXP, a names array with no existing entry
 	 * results in no text being drawn at all (same for "" and []);
 	 * we can't replicate this in mkxp due to the default substitute. */
-
 	for (size_t i = 0; i < names.size(); ++i)
 	{
 		if (sfs.fontPresent(names[i]))
@@ -212,7 +192,6 @@ void pickExistingFontName(const std::vector<std::string> &names,
 			return;
 		}
 	}
-
 	out = "";
 }
 
@@ -225,6 +204,8 @@ struct FontPrivate
   bool italic;
   bool outline;
   bool shadow;
+  bool underline;
+  bool strikethrough;
   Color *color;
   Color *outColor;
   Color colorTmp;
@@ -235,6 +216,8 @@ struct FontPrivate
   static bool defaultItalic;
   static bool defaultOutline;
   static bool defaultShadow;
+  static bool defaultUnderline;
+  static bool defaultStrikethrough;
   static Color *defaultColor;
   static Color *defaultOutColor;
   static Color defaultColorTmp;
@@ -250,6 +233,8 @@ struct FontPrivate
     italic(defaultItalic),
     outline(defaultOutline),
     shadow(defaultShadow),
+    underline(defaultUnderline),
+    strikethrough(defaultStrikethrough),
     color(&colorTmp),
     outColor(&outColorTmp),
     colorTmp(*defaultColor),
@@ -264,6 +249,8 @@ struct FontPrivate
     italic(other.italic),
     outline(other.outline),
     shadow(other.shadow),
+    underline(other.underline),
+    strikethrough(other.strikethrough),
     color(&colorTmp),
     outColor(&outColorTmp),
     colorTmp(*other.color),
@@ -273,14 +260,16 @@ struct FontPrivate
 
   void operator=(const FontPrivate &o)
   {
-    name      =  o.name;
-    size      =  o.size;
-    bold      =  o.bold;
-    italic    =  o.italic;
-    outline   =  o.outline;
-    shadow    =  o.shadow;
-    *color    = *o.color;
-    *outColor = *o.outColor;
+    name          =  o.name;
+    size          =  o.size;
+    bold          =  o.bold;
+    italic        =  o.italic;
+    outline       =  o.outline;
+    shadow        =  o.shadow;
+    underline     =  o.underline;
+    strikethrough =  o.strikethrough;
+    *color        = *o.color;
+    *outColor     = *o.outColor;
     sdlFont = 0;
   }
 };
@@ -291,6 +280,8 @@ bool        FontPrivate::defaultBold     = false;
 bool        FontPrivate::defaultItalic   = false;
 bool        FontPrivate::defaultOutline  = false; /* Inited at runtime */
 bool        FontPrivate::defaultShadow   = false; /* Inited at runtime */
+bool        FontPrivate::defaultUnderline     = false;
+bool        FontPrivate::defaultStrikethrough = false;
 Color      *FontPrivate::defaultColor    = &FontPrivate::defaultColorTmp;
 Color      *FontPrivate::defaultOutColor = &FontPrivate::defaultOutColorTmp;
 
@@ -339,8 +330,7 @@ void Font::setName(const std::vector<std::string> &names)
 void Font::setSize(int value)
 {
   if (p->size == value) return;
-  // Catch illegal values (according to RMXP)
-  if (value < 6 || value > 96)
+  if (value < 6) // || value > 96) Catch illegal values (according to RMXP)
     throw Exception(Exception::ArgumentError, "%s", "bad value for size");
   p->size = value;
   p->sdlFont = 0;
@@ -349,16 +339,19 @@ void Font::setSize(int value)
 static void guardDisposed() {}
 
 DEF_ATTR_RD_SIMPLE(Font, Size, int, p->size)
-DEF_ATTR_SIMPLE(Font, Bold,     bool,    p->bold)
-DEF_ATTR_SIMPLE(Font, Italic,   bool,    p->italic)
-DEF_ATTR_SIMPLE(Font, Shadow,   bool,    p->shadow)
-DEF_ATTR_SIMPLE(Font, Outline,  bool,    p->outline)
-DEF_ATTR_SIMPLE(Font, OutColor, Color&, *p->outColor)
-DEF_ATTR_SIMPLE_STATIC(Font, DefaultSize,     int,     FontPrivate::defaultSize)
-DEF_ATTR_SIMPLE_STATIC(Font, DefaultBold,     bool,    FontPrivate::defaultBold)
-DEF_ATTR_SIMPLE_STATIC(Font, DefaultItalic,   bool,    FontPrivate::defaultItalic)
-DEF_ATTR_SIMPLE_STATIC(Font, DefaultShadow,   bool,    FontPrivate::defaultShadow)
-DEF_ATTR_SIMPLE_STATIC(Font, DefaultOutline,  bool,    FontPrivate::defaultOutline)
+DEF_ATTR_SIMPLE(Font, Bold,          bool,    p->bold)
+DEF_ATTR_SIMPLE(Font, Italic,        bool,    p->italic)
+DEF_ATTR_SIMPLE(Font, Shadow,        bool,    p->shadow)
+DEF_ATTR_SIMPLE(Font, Underline,     bool,    p->underline)
+DEF_ATTR_SIMPLE(Font, Strikethrough, bool,    p->strikethrough)
+DEF_ATTR_SIMPLE(Font, Outline,       bool,    p->outline)
+DEF_ATTR_SIMPLE_STATIC(Font, DefaultSize,          int,     FontPrivate::defaultSize)
+DEF_ATTR_SIMPLE_STATIC(Font, DefaultBold,          bool,    FontPrivate::defaultBold)
+DEF_ATTR_SIMPLE_STATIC(Font, DefaultItalic,        bool,    FontPrivate::defaultItalic)
+DEF_ATTR_SIMPLE_STATIC(Font, DefaultShadow,        bool,    FontPrivate::defaultShadow)
+DEF_ATTR_SIMPLE_STATIC(Font, DefaultUnderline,     bool,    FontPrivate::defaultUnderline)
+DEF_ATTR_SIMPLE_STATIC(Font, DefaultStrikethrough, bool,    FontPrivate::defaultStrikethrough)
+DEF_ATTR_SIMPLE_STATIC(Font, DefaultOutline,       bool,    FontPrivate::defaultOutline)
 DEF_ATTR_SIMPLE_STATIC(Font, DefaultColor,    Color&, *FontPrivate::defaultColor)
 DEF_ATTR_SIMPLE_STATIC(Font, DefaultOutColor, Color&, *FontPrivate::defaultOutColor)
 
@@ -378,6 +371,24 @@ void Font::setColor(double r, double g, double b, double a)
 {
   guardDisposed();
   p->color->set(r, g, b, a);
+}
+
+Color& Font::getOutColor() const
+{
+  guardDisposed();
+  return *p->outColor;
+}
+
+void Font::setOutColor(Color& value)
+{
+  guardDisposed();
+  *p->outColor = value;
+}
+
+void Font::setOutColor(double r, double g, double b, double a)
+{
+  guardDisposed();
+  p->outColor->set(r, g, b, a);
 }
 
 void Font::setDefaultName(const std::vector<std::string> &names,
@@ -434,6 +445,8 @@ _TTF_Font *Font::getSdlFont()
   int style = TTF_STYLE_NORMAL;
   if (p->bold)   style |= TTF_STYLE_BOLD;
   if (p->italic) style |= TTF_STYLE_ITALIC;
+  if (p->underline) style |= TTF_STYLE_UNDERLINE;
+  if (p->strikethrough) style |= TTF_STYLE_STRIKETHROUGH;
   TTF_SetFontStyle(p->sdlFont, style);
   return p->sdlFont;
 }

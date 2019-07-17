@@ -136,7 +136,7 @@ static void printRgssVersion(int ver)
 static void showInitError(const std::string &msg)
 {
   Debug() << msg;
-  SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "mkxpplus", msg.c_str(), 0);
+  SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "HiddenChest", msg.c_str(), 0);
 }
 
 static void setupWindowIcon(const Config &conf, SDL_Window *win)
@@ -152,7 +152,7 @@ static void setupWindowIcon(const Config &conf, SDL_Window *win)
     SDL_FreeSurface(iconImg);
   }
 }
-  
+
 int main(int argc, char *argv[])
 {
   SDL_SetHint(SDL_HINT_VIDEO_MINIMIZE_ON_FOCUS_LOSS, "0");
@@ -269,7 +269,7 @@ int main(int argc, char *argv[])
     SDL_WaitThread(rgssThread, 0);
   else
     SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, conf.windowTitle.c_str(),
-      "The RGSS script seems to be stuck and mkxpplus will now force quit", win);
+      "The RGSS script seems to be stuck and HiddenChest will now force quit", win);
   if (!rtData.rgssErrorMsg.empty()) {
     Debug() << rtData.rgssErrorMsg;
     SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, conf.windowTitle.c_str(),

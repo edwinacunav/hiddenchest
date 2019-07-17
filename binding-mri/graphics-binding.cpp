@@ -26,16 +26,14 @@
 #include "binding-types.h"
 #include "exception.h"
 
-RB_METHOD(graphicsUpdate)
+static VALUE graphicsUpdate(VALUE self)
 {
-  RB_UNUSED_PARAM;
   shState->graphics().update();
   return Qnil;
 }
 
-RB_METHOD(graphicsFreeze)
+static VALUE graphicsFreeze(VALUE self)
 {
-  RB_UNUSED_PARAM;
   shState->graphics().freeze();
   return Qnil;
 }
@@ -51,9 +49,8 @@ RB_METHOD(graphicsTransition)
   return Qnil;
 }
 
-RB_METHOD(graphicsFrameReset)
+static VALUE graphicsFrameReset(VALUE self)
 {
-  RB_UNUSED_PARAM;
   shState->graphics().frameReset();
   return Qnil;
 }
@@ -134,8 +131,8 @@ RB_METHOD(graphicsFadein)
 
 void bitmapInitProps(Bitmap *b, VALUE self);
 
-static VALUE graphicsSnapToBitmap(VALUE self)//RB_METHOD(graphicsSnapToBitmap)
-{ //  RB_UNUSED_PARAM;
+static VALUE graphicsSnapToBitmap(VALUE self)
+{
   Bitmap *result = 0;
   GUARD_EXC( result = shState->graphics().snapToBitmap(); );
   VALUE obj = wrapObject(result, BitmapType);
@@ -150,65 +147,123 @@ static VALUE graphicsSaveScreenShot(VALUE self)
   return result;
 }
 
-RB_METHOD(graphicsResizeScreen)
+static VALUE graphicsResizeScreen(VALUE self, VALUE w, VALUE h)
 {
-  RB_UNUSED_PARAM;
-  int width, height;
-  rb_get_args(argc, argv, "ii", &width, &height RB_ARG_END);
+  int width = RB_FIX2INT(w), height = RB_FIX2INT(h);
   shState->graphics().resizeScreen(width, height);
   return Qnil;
 }
 
-RB_METHOD(graphicsReset)
+static VALUE graphicsReset(VALUE self)
 {
-  RB_UNUSED_PARAM;
   shState->graphics().reset();
   return Qnil;
 }
 
-RB_METHOD(graphicsPlayMovie)
+static VALUE graphicsPlayMovie(VALUE self, VALUE filename)
 {
-  RB_UNUSED_PARAM;
-  const char *filename;
-  rb_get_args(argc, argv, "z", &filename RB_ARG_END);
-  shState->graphics().playMovie(filename);
+  const char *fn = StringValueCStr(filename);
+  shState->graphics().playMovie(fn);
   return Qnil;
 }
 
-DEF_GRA_PROP_I(FrameRate)
-DEF_GRA_PROP_I(FrameCount)
-DEF_GRA_PROP_I(Brightness)
-DEF_GRA_PROP_B(Fullscreen)
-DEF_GRA_PROP_B(ShowCursor)
+static VALUE graphicsGetFrameRate(VALUE self)
+{
+  return rb_fix_new(shState->graphics().getFrameRate());
+}
 
-#define INIT_GRA_PROP_BIND(PropName, prop_name_s) \
-{ \
-	_rb_define_module_function(module, prop_name_s, graphics##Get##PropName); \
-	_rb_define_module_function(module, prop_name_s "=", graphics##Set##PropName); \
+static VALUE graphicsSetFrameRate(VALUE self, VALUE num)
+{
+  shState->graphics().setFrameRate(RB_FIX2INT(num));
+  return rb_fix_new(shState->graphics().getFrameRate());
+}
+
+static VALUE graphicsGetFrameCount(VALUE self)
+{
+  return rb_fix_new(shState->graphics().getFrameCount());
+}
+
+static VALUE graphicsSetFrameCount(VALUE self, VALUE num)
+{
+  shState->graphics().setFrameCount(RB_FIX2INT(num));
+  return rb_fix_new(shState->graphics().getFrameCount());
+}
+
+static VALUE graphicsGetBrightness(VALUE self)
+{
+  return rb_fix_new(shState->graphics().getBrightness());
+}
+
+static VALUE graphicsSetBrightness(VALUE self, VALUE num)
+{
+  shState->graphics().setBrightness(RB_FIX2INT(num));
+  return rb_fix_new(shState->graphics().getBrightness());
+}
+
+static VALUE graphicsGetBlockFullscreen(VALUE self)
+{
+  return rb_iv_get(self, "@block_fullscreen");
+}
+
+static VALUE graphicsSetBlockFullscreen(VALUE self, VALUE boolean)
+{
+  rb_iv_set(self, "@block_fullscreen", boolean);
+  shState->graphics().setBlockFullscreen(boolean == Qtrue ? true : false);
+  return boolean;
+}
+
+static VALUE graphicsGetFullscreen(VALUE self)
+{
+  return shState->graphics().getFullscreen() ? Qtrue : Qfalse;
+}
+
+static VALUE graphicsSetFullscreen(VALUE self, VALUE boolean)
+{
+  if (rb_iv_get(self, "@block_fullscreen") == Qfalse) return Qfalse;
+  shState->graphics().setFullscreen(boolean == Qtrue ? true : false);
+  return shState->graphics().getFullscreen() ? Qtrue : Qfalse;
+}
+
+static VALUE graphicsGetShowCursor(VALUE self)
+{
+  return shState->graphics().getShowCursor() ? Qtrue : Qfalse;
+}
+
+static VALUE graphicsSetShowCursor(VALUE self, VALUE boolean)
+{
+  shState->graphics().setShowCursor(boolean == Qtrue ? true : false);
+  return boolean;
 }
 
 void graphicsBindingInit()
 {
   VALUE module = rb_define_module("Graphics");
-  _rb_define_module_function(module, "update", graphicsUpdate);
-  _rb_define_module_function(module, "freeze", graphicsFreeze);
-  _rb_define_module_function(module, "transition", graphicsTransition);
-  _rb_define_module_function(module, "frame_reset", graphicsFrameReset);
-  _rb_define_module_function(module, "__reset__", graphicsReset);
-  INIT_GRA_PROP_BIND( FrameRate,  "frame_rate"  );
-  INIT_GRA_PROP_BIND( FrameCount, "frame_count" );
+  rb_iv_set(module, "@block_fullscreen", Qfalse);
+  rb_define_module_function(module, "update", RUBY_METHOD_FUNC(graphicsUpdate), 0);
+  rb_define_module_function(module, "freeze", RUBY_METHOD_FUNC(graphicsFreeze), 0);
+  rb_define_module_function(module, "transition", RUBY_METHOD_FUNC(graphicsTransition), -1);
+  rb_define_module_function(module, "frame_reset", RUBY_METHOD_FUNC(graphicsFrameReset), 0);
+  rb_define_module_function(module, "__reset__", RUBY_METHOD_FUNC(graphicsReset), 0);
+  rb_define_module_function(module, "frame_rate", RUBY_METHOD_FUNC(graphicsGetFrameRate), 0);
+  rb_define_module_function(module, "frame_rate=", RUBY_METHOD_FUNC(graphicsSetFrameRate), 1);
+  rb_define_module_function(module, "frame_count", RUBY_METHOD_FUNC(graphicsGetFrameCount), 0);
+  rb_define_module_function(module, "frame_count=", RUBY_METHOD_FUNC(graphicsSetFrameCount), 1);
   rb_define_module_function(module, "width", RUBY_METHOD_FUNC(graphicsWidth), 0);
   rb_define_module_function(module, "height", RUBY_METHOD_FUNC(graphicsHeight), 0);
   rb_define_module_function(module, "dimensions", RUBY_METHOD_FUNC(graphicsDimensions), 0);
-  _rb_define_module_function(module, "wait", graphicsWait);
-  _rb_define_module_function(module, "fadeout", graphicsFadeout);
-  _rb_define_module_function(module, "fadein", graphicsFadein);
+  rb_define_module_function(module, "wait", RUBY_METHOD_FUNC(graphicsWait), -1);
+  rb_define_module_function(module, "fadeout", RUBY_METHOD_FUNC(graphicsFadeout), -1);
+  rb_define_module_function(module, "fadein", RUBY_METHOD_FUNC(graphicsFadein), -1);
   rb_define_module_function(module, "snap_to_bitmap", RUBY_METHOD_FUNC(graphicsSnapToBitmap), 0);
   rb_define_module_function(module, "save_screenshot", RUBY_METHOD_FUNC(graphicsSaveScreenShot), 0);
-  _rb_define_module_function(module, "resize_screen", graphicsResizeScreen);
-  INIT_GRA_PROP_BIND( Brightness, "brightness" );
-  if (rgssVer >= 3)
-    _rb_define_module_function(module, "play_movie", graphicsPlayMovie);
-  INIT_GRA_PROP_BIND( Fullscreen, "fullscreen"  );
-  INIT_GRA_PROP_BIND( ShowCursor, "show_cursor" );
+  rb_define_module_function(module, "resize_screen", RUBY_METHOD_FUNC(graphicsResizeScreen), 2);
+  rb_define_module_function(module, "brightness", RUBY_METHOD_FUNC(graphicsGetBrightness), 0);
+  rb_define_module_function(module, "brightness=", RUBY_METHOD_FUNC(graphicsSetBrightness), 1);
+  rb_define_module_function(module, "play_movie", RUBY_METHOD_FUNC(graphicsPlayMovie), 1);
+  rb_define_module_function(module, "block_fullscreen", RUBY_METHOD_FUNC(graphicsGetBlockFullscreen), 0);
+  rb_define_module_function(module, "block_fullscreen=", RUBY_METHOD_FUNC(graphicsSetBlockFullscreen), 1);
+  rb_define_module_function(module, "fullscreen", RUBY_METHOD_FUNC(graphicsGetFullscreen), 0);
+  rb_define_module_function(module, "fullscreen=", RUBY_METHOD_FUNC(graphicsSetFullscreen), 1);
+  rb_define_module_function(module, "show_cursor", RUBY_METHOD_FUNC(graphicsGetShowCursor), 0);
+  rb_define_module_function(module, "show_cursor=", RUBY_METHOD_FUNC(graphicsSetShowCursor), 1);
 }

@@ -79,9 +79,10 @@ public:
   };
   void drawText(int x, int y, int width, int height,
                 const char *str, int align = Left);
-  void drawText(const IntRect &rect,
-                const char *str, int align = Left);
+  void drawText(const IntRect &rect, const char *str, int align = Left);
   IntRect textSize(const char *str);
+  int textWidth(const char *str);
+  int textHeight(const char *str);
   DECL_ATTR(Font, Font&)
   // Sets initial reference without copying by value, use at construction
   void setInitFont(Font *value);

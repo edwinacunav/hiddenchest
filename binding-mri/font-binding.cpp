@@ -51,7 +51,7 @@ RB_METHOD(fontDoesExist)
   rb_get_args(argc, argv, "o", &nameObj RB_ARG_END);
   if (RB_TYPE_P(nameObj, RUBY_T_STRING))
     name = rb_string_value_cstr(&nameObj);
-  return rb_bool_new(Font::doesExist(name));
+  return Font::doesExist(name) ? Qtrue : Qfalse;
 }
 
 RB_METHOD(fontInitialize)
@@ -194,6 +194,36 @@ static VALUE FontSetOutline(VALUE self, VALUE boolean)
   return boolean;
 }
 
+static VALUE FontGetUnderline(VALUE self)
+{
+  Font *f = getPrivateData<Font>(self);
+  bool value = 0;
+  GUARD_EXC( value = f->getUnderline(); )
+  return value == true ? Qtrue : Qfalse;
+}
+
+static VALUE FontSetUnderline(VALUE self, VALUE boolean)
+{
+  Font *f = getPrivateData<Font>(self);
+  GUARD_EXC( f->setUnderline(boolean == Qtrue ? true : false); )
+  return boolean;
+}
+
+static VALUE FontGetStrikethrough(VALUE self)
+{
+  Font *f = getPrivateData<Font>(self);
+  bool value = 0;
+  GUARD_EXC( value = f->getStrikethrough(); )
+  return value == true ? Qtrue : Qfalse;
+}
+
+static VALUE FontSetStrikethrough(VALUE self, VALUE boolean)
+{
+  Font *f = getPrivateData<Font>(self);
+  GUARD_EXC( f->setStrikethrough(boolean == Qtrue ? true : false); )
+  return boolean;
+}
+
 #define DEF_KLASS_PROP(Klass, type, PropName, param_t_s, value_fun) \
 	RB_METHOD(Klass##Get##PropName) \
 	{ \
@@ -219,11 +249,13 @@ static VALUE FontSetDefaultSize(VALUE self, VALUE new_size)
   Font::setDefaultSize(RB_NUM2INT(new_size));
   return RB_INT2NUM(Font::getDefaultSize());
 }
-//DEF_KLASS_PROP(Font, int,  DefaultSize,    "i", rb_fix_new)
+
 DEF_KLASS_PROP(Font, bool, DefaultBold,    "b", rb_bool_new)
 DEF_KLASS_PROP(Font, bool, DefaultItalic,  "b", rb_bool_new)
 DEF_KLASS_PROP(Font, bool, DefaultShadow,  "b", rb_bool_new)
 DEF_KLASS_PROP(Font, bool, DefaultOutline, "b", rb_bool_new)
+DEF_KLASS_PROP(Font, bool, DefaultUnderline, "b", rb_bool_new)
+DEF_KLASS_PROP(Font, bool, DefaultStrikethrough,  "b", rb_bool_new)
 
 RB_METHOD(FontGetDefaultOutColor)
 {
@@ -294,18 +326,26 @@ void fontBindingInit()
   rb_define_singleton_method(klass, "default_name=", RUBY_METHOD_FUNC(FontSetDefaultName), -1);
   rb_define_singleton_method(klass, "default_size", RUBY_METHOD_FUNC(FontGetDefaultSize), 0);
   rb_define_singleton_method(klass, "default_size=", RUBY_METHOD_FUNC(FontSetDefaultSize), 1);
-  rb_define_singleton_method(klass, "default_bold", RUBY_METHOD_FUNC(FontGetDefaultBold), -1);
-  rb_define_singleton_method(klass, "default_bold=", RUBY_METHOD_FUNC(FontSetDefaultBold), -1);
-  rb_define_singleton_method(klass, "default_italic", RUBY_METHOD_FUNC(FontGetDefaultItalic), -1);
-  rb_define_singleton_method(klass, "default_italic=", RUBY_METHOD_FUNC(FontSetDefaultItalic), -1);
+  rb_define_singleton_method(klass, "default_bold", RUBY_METHOD_FUNC(FontGetDefaultBold), 0);
+  rb_define_singleton_method(klass, "default_bold=", RUBY_METHOD_FUNC(FontSetDefaultBold), 1);
+  rb_define_singleton_method(klass, "default_italic", RUBY_METHOD_FUNC(FontGetDefaultItalic), 0);
+  rb_define_singleton_method(klass, "default_italic=", RUBY_METHOD_FUNC(FontSetDefaultItalic), 1);
   rb_define_singleton_method(klass, "default_color", RUBY_METHOD_FUNC(FontGetDefaultColor), -1);
   rb_define_singleton_method(klass, "default_color=", RUBY_METHOD_FUNC(FontSetDefaultColor), -1);
   rb_define_singleton_method(klass, "default_outline", RUBY_METHOD_FUNC(FontGetDefaultOutline), -1);
   rb_define_singleton_method(klass, "default_outline=", RUBY_METHOD_FUNC(FontSetDefaultOutline), -1);
   rb_define_singleton_method(klass, "default_out_color", RUBY_METHOD_FUNC(FontGetDefaultOutColor), -1);
   rb_define_singleton_method(klass, "default_out_color=", RUBY_METHOD_FUNC(FontSetDefaultOutColor), -1);
+  rb_define_singleton_method(klass, "default_outline_color", RUBY_METHOD_FUNC(FontGetDefaultOutColor), -1);
+  rb_define_singleton_method(klass, "default_outline_color=", RUBY_METHOD_FUNC(FontSetDefaultOutColor), -1);
   rb_define_singleton_method(klass, "default_shadow", RUBY_METHOD_FUNC(FontGetDefaultShadow), -1);
   rb_define_singleton_method(klass, "default_shadow=", RUBY_METHOD_FUNC(FontSetDefaultShadow), -1);
+  rb_define_singleton_method(klass, "default_underline", RUBY_METHOD_FUNC(FontGetDefaultUnderline), -1);
+  rb_define_singleton_method(klass, "default_underline=", RUBY_METHOD_FUNC(FontSetDefaultUnderline), -1);
+  rb_define_singleton_method(klass, "default_strikethrough", RUBY_METHOD_FUNC(FontGetDefaultStrikethrough), -1);
+  rb_define_singleton_method(klass, "default_strikethrough=", RUBY_METHOD_FUNC(FontSetDefaultStrikethrough), -1);
+  rb_define_singleton_method(klass, "default_strikethru", RUBY_METHOD_FUNC(FontGetDefaultStrikethrough), -1);
+  rb_define_singleton_method(klass, "default_strikethru=", RUBY_METHOD_FUNC(FontSetDefaultStrikethrough), -1);
   rb_define_class_method(klass, "exist?", fontDoesExist);
   _rb_define_method(klass, "initialize",      fontInitialize);
   _rb_define_method(klass, "initialize_copy", fontInitializeCopy);
@@ -321,6 +361,13 @@ void fontBindingInit()
   rb_define_method(klass, "shadow=", RUBY_METHOD_FUNC(FontSetShadow), 1);
   rb_define_method(klass, "outline", RUBY_METHOD_FUNC(FontGetOutline), 0);
   rb_define_method(klass, "outline=", RUBY_METHOD_FUNC(FontSetOutline), 1);
+  rb_define_method(klass, "underline", RUBY_METHOD_FUNC(FontGetUnderline), 0);
+  rb_define_method(klass, "underline=", RUBY_METHOD_FUNC(FontSetUnderline), 1);
+  rb_define_method(klass, "strikethrough", RUBY_METHOD_FUNC(FontGetStrikethrough), 0);
+  rb_define_method(klass, "strikethrough=", RUBY_METHOD_FUNC(FontSetStrikethrough), 1);
+  rb_define_method(klass, "strikethru", RUBY_METHOD_FUNC(FontGetStrikethrough), 0);
+  rb_define_method(klass, "strikethru=", RUBY_METHOD_FUNC(FontSetStrikethrough), 1);
   INIT_PROP_BIND(Font, OutColor, "out_color");
+  INIT_PROP_BIND(Font, OutColor, "outline_color");
   INIT_PROP_BIND(Font, Color, "color");
 }

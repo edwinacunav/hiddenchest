@@ -44,8 +44,9 @@ extern const char module_rpg3[];
 static void mriBindingExecute();
 static void mriBindingTerminate();
 static void mriBindingReset();
+void Init_Scripts();
 void Init_TermsBackdrop();
-
+//static VALUE scripts_reset(VALUE self);
 ScriptBinding scriptBindingImpl =
 {
   mriBindingExecute,
@@ -102,6 +103,7 @@ static void mriBindingInit()
   audioBindingInit();
   graphicsBindingInit();
   fileIntBindingInit();
+  Init_Scripts();
   rb_define_module_function(rb_mKernel, "msgbox", RUBY_METHOD_FUNC(mriPrint), -1);
   rb_define_module_function(rb_mKernel, "msgbox_p", RUBY_METHOD_FUNC(mriP), -1);
   rb_define_module_function(rb_mKernel, "print", RUBY_METHOD_FUNC(mriPrint), -1);
@@ -215,11 +217,25 @@ static VALUE rgssMainRescue(VALUE arg, VALUE exc)
 }
 
 static void processReset()
-{
-  shState->graphics().reset();
-  shState->audio().reset();
+{// Haga cambio por aquí
+  VALUE mod = rb_const_get(rb_cObject, rb_intern("Scripts"));
+  VALUE scene = rb_iv_get(mod, "@start_scene");
+  if (RB_NIL_P(scene)) {
+    showMsg("Nil...");
+    shState->graphics().reset();
+    shState->audio().reset();
+    shState->rtData().rqReset.clear();
+  } else {
+    showMsg("Success!");
+    if (rgssVer < 3) {
+      rb_funcall(mod, rb_intern("reset"), 0);
+    } else {
+      
+    }
+  }
   shState->rtData().rqReset.clear();
   shState->graphics().repaintWait(shState->rtData().rqResetFinish, false);
+  return;
 }
 
 RB_METHOD(mriRgssMain)
@@ -231,10 +247,12 @@ RB_METHOD(mriRgssMain)
                (VALUE(*)(ANYARGS)) rgssMainRescue, (VALUE) &exc,
                rb_eException, (VALUE) 0);
     if (NIL_P(exc)) break;
-    if (rb_obj_class(exc) == getRbData()->exc[Reset])
+    if (rb_obj_class(exc) == getRbData()->exc[Reset]) {
+      showMsg("Main section...");
       processReset();
-    else
+    } else {
       rb_exc_raise(exc);
+    }
   }
   return Qnil;
 }
@@ -447,6 +465,7 @@ static void mriBindingExecute()
   /* Normally only a ruby executable would do a sysinit,
    * but not doing it will lead to crashes due to closed
    * stdio streams on some platforms (eg. Windows) */
+  //showMsg("Resetting inside mriBindingExecute!");
   int argc = 0;
   char **argv = 0;
   ruby_sysinit(&argc, &argv);
@@ -485,5 +504,6 @@ static void mriBindingTerminate()
 
 static void mriBindingReset()
 {
+  showMsg("Resetting!");
   rb_raise(getRbData()->exc[Reset], " ");
 }

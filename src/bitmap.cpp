@@ -999,6 +999,37 @@ IntRect Bitmap::textSize(const char *str)
   return IntRect(0, 0, w, h);
 }
 
+int Bitmap::textWidth(const char *str)
+{
+  guardDisposed();
+  GUARD_MEGA;
+  TTF_Font *font = p->font->getSdlFont();
+  std::string fixed = fixupString(str);
+  str = fixed.c_str();
+  int w, h;
+  TTF_SizeUTF8(font, str, &w, &h);
+  /* If str is one character long, *endPtr == 0 */
+  const char *endPtr;
+  uint16_t ucs2 = utf8_to_ucs2(str, &endPtr);
+  /* For cursive characters, returning the advance
+   * as width yields better results */
+  if (p->font->getItalic() && *endPtr == '\0')
+    TTF_GlyphMetrics(font, ucs2, 0, 0, 0, 0, &w);
+  return w;
+}
+
+int Bitmap::textHeight(const char *str)
+{
+  guardDisposed();
+  GUARD_MEGA;
+  TTF_Font *font = p->font->getSdlFont();
+  std::string fixed = fixupString(str);
+  str = fixed.c_str();
+  int w, h;
+  TTF_SizeUTF8(font, str, &w, &h);
+  return h;
+}
+
 Font& Bitmap::getFont() const
 {
   guardDisposed();

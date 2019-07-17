@@ -199,6 +199,7 @@ void EventThread::process(RGSSThreadData &rtData)
       if (event.key.keysym.scancode == SDL_SCANCODE_RETURN &&
           (event.key.keysym.mod & toggleFSMod))
       {
+        if (shState->graphics().getBlockFullscreen()) break;
         setFullscreen(win, !fullscreen);
         if (!fullscreen && havePendingTitle) {
           SDL_SetWindowTitle(win, pendingTitle);
@@ -299,6 +300,7 @@ void EventThread::process(RGSSThreadData &rtData)
       switch(event.type - usrIdStart)
       {
       case REQUEST_SETFULLSCREEN :
+        if (shState->graphics().getBlockFullscreen()) break;
         setFullscreen(win, static_cast<bool>(event.user.code));
         break;
       case REQUEST_WINRESIZE :

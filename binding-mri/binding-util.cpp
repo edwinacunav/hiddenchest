@@ -67,7 +67,7 @@ static const RbException excToRbExc[] =
   ArgumentError,
   PHYSFS,      /* PHYSFSError */
   SDL,         /* SDLError    */
-  HIDDENCHEST  /* MKXPPLUSError   */
+  HIDDENCHEST  /* HIDDENCHESTError */
 };
 
 void raiseRbExc(const Exception &exc)

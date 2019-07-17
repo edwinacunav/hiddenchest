@@ -33,10 +33,7 @@ static VALUE audio_bgmPlay(int argc, VALUE* argv, VALUE self)
   int volume = 100;
   int pitch = 100;
   double pos = 0.0;
-  if (rgssVer == 3)
-    rb_get_args(argc, argv, "z|iif", &filename, &volume, &pitch, &pos RB_ARG_END);
-  else
-    rb_get_args(argc, argv, "z|ii", &filename, &volume, &pitch RB_ARG_END);
+  rb_get_args(argc, argv, "z|iif", &filename, &volume, &pitch, &pos RB_ARG_END);
   GUARD_EXC( shState->audio().bgmPlay(filename, volume, pitch, pos); )
   return Qnil;
 }
@@ -49,7 +46,8 @@ static VALUE audio_bgmStop(VALUE self)
 
 static VALUE audio_bgmPos(VALUE self)
 {
-  return rb_float_new(shState->audio().bgmPos());
+  VALUE pos = rb_float_new(shState->audio().bgmPos());
+  return rb_iv_set(self, "@bgm_pos", pos);
 }
 
 static VALUE audio_bgsPlay(int argc, VALUE* argv, VALUE self)
@@ -58,10 +56,7 @@ static VALUE audio_bgsPlay(int argc, VALUE* argv, VALUE self)
   int volume = 100;
   int pitch = 100;
   double pos = 0.0;
-  if (rgssVer == 3)
-    rb_get_args(argc, argv, "z|iif", &filename, &volume, &pitch, &pos RB_ARG_END);
-  else
-    rb_get_args(argc, argv, "z|ii", &filename, &volume, &pitch RB_ARG_END);
+  rb_get_args(argc, argv, "z|iif", &filename, &volume, &pitch, &pos RB_ARG_END);
   GUARD_EXC( shState->audio().bgsPlay(filename, volume, pitch, pos); )
   return Qnil;
 }
@@ -74,7 +69,18 @@ static VALUE audio_bgsStop(VALUE self)
 
 static VALUE audio_bgsPos(VALUE self)
 {
-  return rb_float_new(shState->audio().bgsPos());
+  VALUE pos = rb_float_new(shState->audio().bgsPos());
+  return rb_iv_set(self, "@bgs_pos", pos);
+}
+
+static VALUE audio_bgm_pos_set(VALUE self, VALUE pos)
+{
+  return rb_iv_set(self, "@bgm_pos", pos);
+}
+
+static VALUE audio_bgs_pos_set(VALUE self, VALUE pos)
+{
+  return rb_iv_set(self, "@bgs_pos", pos);
 }
 
 void raiseRbExc(const Exception &exc);
@@ -88,9 +94,8 @@ static VALUE audio_play_se(int argc, VALUE* argv, VALUE self)
   const char *fn = StringValueCStr(name);
   int vol = RB_NIL_P(volume) ? 100 : RB_FIX2INT(volume);
   int pit = RB_NIL_P(pitch) ? 100 : RB_FIX2INT(pitch);
-  double pos = 0.0;
   try {
-    shState->audio().bgmPlay(fn, volume, pitch, pos);
+    shState->audio().sePlay(fn, vol, pit);
   } catch (const Exception &e) { raiseRbExc(e); }
   return Qnil;
 }
@@ -231,14 +236,16 @@ static VALUE audio_play_equip(VALUE self)
 
 static VALUE rpg_audio_file_initialize(int argc, VALUE* argv, VALUE self)
 {
-  VALUE name, volume, pitch;
-  rb_scan_args(argc, argv, "03", &name, &volume, &pitch);
+  VALUE name, volume, pitch, pos;
+  rb_scan_args(argc, argv, "04", &name, &volume, &pitch, &pos);
   if ( RB_NIL_P(name) ) name = rb_str_new_cstr("");
   if ( RB_NIL_P(volume) ) volume = RB_INT2FIX(100);
   if ( RB_NIL_P(pitch) ) pitch = RB_INT2FIX(100);
+  if ( RB_NIL_P(pos) ) pos = rb_float_new(0.0);
   rb_iv_set(self, "@name", name);
   rb_iv_set(self, "@volume", volume);
   rb_iv_set(self, "@pitch", pitch);
+  rb_iv_set(self, "@pos", pos);
   return self;
 }
 
@@ -261,6 +268,8 @@ void audio_setup_custom_se()
 void audioBindingInit()
 {
   VALUE module = rb_define_module("Audio");
+  rb_iv_set(module, "@bgm_pos", rb_float_new(0.0));
+  rb_iv_set(module, "@bgs_pos", rb_float_new(0.0));
   rb_iv_set(module, "@se", rb_str_new_cstr("Audio/SE/"));
   rb_define_module_function(module, "bgm_play", RUBY_METHOD_FUNC(audio_bgmPlay), -1);
   rb_define_module_function(module, "bgm_stop", RUBY_METHOD_FUNC(audio_bgmStop), 0);
@@ -286,9 +295,12 @@ void audioBindingInit()
     rb_define_attr(file, "name", 1, 1);
     rb_define_attr(file, "volume", 1, 1);
     rb_define_attr(file, "pitch", 1, 1);
+    rb_define_attr(file, "pos", 1, 1);
   }
   rb_define_module_function(module, "bgm_pos", RUBY_METHOD_FUNC(audio_bgmPos), 0);
   rb_define_module_function(module, "bgs_pos", RUBY_METHOD_FUNC(audio_bgsPos), 0);
+  rb_define_module_function(module, "bgm_pos=", RUBY_METHOD_FUNC(audio_bgm_pos_set), 1);
+  rb_define_module_function(module, "bgs_pos=", RUBY_METHOD_FUNC(audio_bgs_pos_set), 1);
   if (rgssVer >= 3)
     rb_define_module_function(module, "setup_midi", RUBY_METHOD_FUNC(audioSetupMidi), 0);
   rb_define_module_function(module, "se_play", RUBY_METHOD_FUNC(audio_sePlay), -1);

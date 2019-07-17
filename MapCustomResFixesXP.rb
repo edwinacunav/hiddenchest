@@ -1,6 +1,6 @@
 # Increased HiddenChest XP Resolution Map Fix
 # * Scripter : Kyonides-Arkanthes
-# 2018-12-30
+# 2019-07-16
 
 class Game_Screen
   def weather(type, power, duration)
@@ -127,9 +127,44 @@ class Spriteset_Map
     @weather = RPG::Weather.new(@viewport1)
     @picture_sprites = []
     for i in 1..50
-      @picture_sprites.push(Sprite_Picture.new(@viewport2, $game_screen.pictures[i]))
+     @picture_sprites << Sprite_Picture.new(@viewport2,$game_screen.pictures[i])
     end
     @timer_sprite = Sprite_Timer.new
     update
+  end
+end
+
+class Window_Message < Window_Selectable
+  def initialize
+    w = case Graphics.width
+    when 640 then 520
+    when 800 then 640
+    else 800 # 960, 1280, 1680, 1920
+    end
+    super((Graphics.width - w) / 2, 304, w, 160)
+    self.contents = Bitmap.new(width - 32, height - 32)
+    self.visible = false
+    self.z = 9998
+    @face = Bitmap.new(100, 100)
+    @fade_in = false
+    @fade_out = false
+    @contents_showing = false
+    @cursor_width = 0
+    self.active = false
+    self.index = -1
+  end
+
+  def reset_window
+    if $game_temp.in_battle
+      self.y = 16
+    else
+      case $game_system.message_position
+      when 0 then self.y = 16
+      when 1 then self.y = Graphics.height / 4
+      when 2 then self.y = Graphics.height - 176
+      end
+    end
+    self.opacity = $game_system.message_frame == 0 ? 255 : 0
+    self.back_opacity = 160
   end
 end
