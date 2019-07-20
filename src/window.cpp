@@ -1,22 +1,23 @@
 /*
 ** window.cpp
 **
-** This file is part of mkxp.
+** This file is part of HiddenChest and mkxp.
 **
 ** Copyright (C) 2013 Jonas Kulla <Nyocurio@gmail.com>
+** 2019 Extended by Kyonides Arkanthes
 **
-** mkxp is free software: you can redistribute it and/or modify
+** HiddenChest is free software: you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
 ** the Free Software Foundation, either version 2 of the License, or
 ** (at your option) any later version.
 **
-** mkxp is distributed in the hope that it will be useful,
+** HiddenChest is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
 ** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ** GNU General Public License for more details.
 **
 ** You should have received a copy of the GNU General Public License
-** along with mkxp.  If not, see <http://www.gnu.org/licenses/>.
+** along with HiddenChest.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "window.h"
@@ -32,6 +33,8 @@
 #include "texpool.h"
 #include "glstate.h"
 #include <sigc++/connection.h>
+
+#define MINOPENH 48
 
 template<typename T>
 struct Sides
@@ -182,6 +185,10 @@ struct WindowPrivate
   bool baseVertDirty;
   bool opacityDirty;
   bool baseTexDirty;
+  bool needOpenness;
+  int openness;
+  int tempHeight;
+  int openMode;
   ColorQuadArray baseQuadArray;
   /* Used when opacity < 255 */
   TEXFBO baseTex;
@@ -231,7 +238,7 @@ struct WindowPrivate
 
   sigc::connection prepareCon;
 
-  WindowPrivate(Viewport *viewport = 0)
+  WindowPrivate(Viewport *viewport = 0, int mode = 0)
       : windowskin(0),
         contents(0),
         bgStretch(true),
@@ -241,9 +248,13 @@ struct WindowPrivate
         opacity(255),
         backOpacity(255),
         contentsOpacity(255),
+        openness(100),
+        openMode(mode),
+        tempHeight(0),
         baseVertDirty(true),
         opacityDirty(true),
         baseTexDirty(true),
+        needOpenness(true),
         controlsElement(this, viewport),
         cursorAniAlphaIdx(0),
         pauseAniAlphaIdx(0),
@@ -254,6 +265,8 @@ struct WindowPrivate
     controlsQuadArray.resize(14);
     cursorVert.count = 9;
     pauseAniVert.count = 1;
+    processOpenMode();
+    if (openMode > 0) openness = 0;
     prepareCon = shState->prepareDraw.connect(sigc::mem_fun(this, &WindowPrivate::prepare));
   }
 
@@ -262,6 +275,17 @@ struct WindowPrivate
     shState->texPool().release(baseTex);
     cursorRectCon.disconnect();
     prepareCon.disconnect();
+  }
+
+  void processOpenMode()
+  {//    if () return;
+    int offset = size.y;
+    if (baseTex.height > offset) offset = baseTex.height;
+    if (tempHeight > offset) offset = tempHeight;
+    if (openMode == 3) sceneOffset.y = offset - MINOPENH;
+    if (openMode == 2) sceneOffset.y = offset / 2 - MINOPENH / 2;
+    if (openMode < 2) sceneOffset.y = 0;
+    needOpenness = openMode > 0;
   }
 
   void markControlVertDirty()
@@ -278,8 +302,13 @@ struct WindowPrivate
 
   void buildBaseVert()
   {
-    int w = size.x;
-    int h = size.y;
+    int w = size.x, h = size.y;
+    if (needOpenness) {
+      h = size.y * openness / 100;
+      if (h < MINOPENH) h = MINOPENH;
+      tempHeight = h;
+      processOpenMode();
+    }
     IntRect bgRect(2, 2, w - 4, h - 4);
     Sides<IntRect> borderRects;
     borderRects.l = IntRect(0,    8,    16,   h-16);
@@ -291,27 +320,22 @@ struct WindowPrivate
     cornerRects.tr = IntRect(w-16, 0,    16, 16);
     cornerRects.bl = IntRect(0,    h-16, 16, 16);
     cornerRects.br = IntRect(w-16, h-16, 16, 16);
-    /* Required quad count */
-    int count = 0;
-    /* Background */
-    if (bgStretch)
-            backgroundVert.count = 1;
+    int count = 0; /* Required quad count */
+    if (bgStretch) /* Background */
+      backgroundVert.count = 1;
     else
-            backgroundVert.count =
-                    TileQuads::twoDimCount(128, 128, bgRect.w, bgRect.h);
+      backgroundVert.count =
+        TileQuads::twoDimCount(128, 128, bgRect.w, bgRect.h);
     count += backgroundVert.count;
     /* Borders (sides) */
     count += TileQuads::oneDimCount(32, w-16) * 2;
     count += TileQuads::oneDimCount(32, h-16) * 2;
-    /* Corners */
-    count += 4;
-    /* Our vertex array */
-    baseQuadArray.resize(count);
+    count += 4; /* Corners */
+    baseQuadArray.resize(count); /* Our vertex array */
     Vertex *vert = baseQuadArray.vertices.data();
     int i = 0;
     backgroundVert.vert = &vert[i];
-    /* Background */
-    if (bgStretch) {
+    if (bgStretch) { /* Background */
       Quad::setTexRect(&vert[i*4], backgroundSrc);
       Quad::setPosRect(&vert[i*4], bgRect);
       i += 1;
@@ -329,8 +353,8 @@ struct WindowPrivate
     i += Quad::setTexPosRect(&vert[i*4], cornersSrc.bl, cornerRects.bl);
     i += Quad::setTexPosRect(&vert[i*4], cornersSrc.br, cornerRects.br);
     for (int j = 0; j < count*4; ++j)
-            vert[j].color = Vec4(1, 1, 1, 1);
-    FloatRect texRect = FloatRect(0, 0, size.x, size.y);
+      vert[j].color = Vec4(1, 1, 1, 1);
+    FloatRect texRect = FloatRect(0, 0, size.x, h);
     baseTexQuad.setTexPosRect(texRect, texRect);
     opacityDirty = true;
     baseTexDirty = true;
@@ -362,8 +386,19 @@ struct WindowPrivate
     baseTexDirty = true;
   }
 
+  void forceBaseTexRecreate()
+  {
+    shState->texPool().release(baseTex);
+    baseTex = shState->texPool().request(baseTex.width, tempHeight);
+  }
+
   void redrawBaseTex()
-  { /* Discard old buffer */
+  { // Discard old buffer
+    if (needOpenness) {
+      if (openMode == 1) sceneOffset.y = 0;
+      if (openMode == 2) sceneOffset.y = size.y / 2 - baseTex.height / 2;
+      if (openMode == 3) sceneOffset.y = size.y - baseTex.height;
+    }
     TEX::bind(baseTex.tex);
     TEX::allocEmpty(baseTex.width, baseTex.height);
     TEX::unbind();
@@ -374,10 +409,8 @@ struct WindowPrivate
     shader.bind();
     shader.applyViewportProj();
     shader.setTranslation(Vec2i());
-    /* Clear texture */
-    FBO::clear();
-    /* Repaint base */
-    windowskin->bindTex(shader);
+    FBO::clear(); // Clear texture
+    windowskin->bindTex(shader); // Repaint base
     TEX::setSmooth(true);
     /* We need to blit the background without blending,
      * because we want to retain its correct alpha value.
@@ -398,16 +431,14 @@ struct WindowPrivate
   {
     int i = 0;
     Vertex *vert = controlsQuadArray.vertices.data();
-    /* Cursor */
-    if (!cursorRect->isEmpty()) {
+    if (!cursorRect->isEmpty()) {/* Cursor */
             /* Effective cursor rect has 16 xy offset to window */
             IntRect effectRect(cursorRect->x+16, cursorRect->y+16,
                                cursorRect->width, cursorRect->height);
             cursorVert.vert = &vert[i*4];
             TileQuads::buildFrameSource(cursorSrc, cursorVert.vert);
             i += TileQuads::buildFrame(effectRect, cursorVert.vert);
-    }
-    /* Scroll arrow position: Top Bottom X, Left Right Y */
+    } // Scroll arrow position: Top Bottom X, Left Right Y
     const Vec2i scroll = (size - Vec2i(16)) / 2;
     Sides<IntRect> scrollArrows;
     scrollArrows.l = IntRect(4, scroll.y, 8, 16);
@@ -423,15 +454,12 @@ struct WindowPrivate
         i += Quad::setTexPosRect(&vert[i*4], scrollArrowSrc.r, scrollArrows.r);
       if ((size.y - 32) < (contents->height() - contentsOffset.y))
         i += Quad::setTexPosRect(&vert[i*4], scrollArrowSrc.b, scrollArrows.b);
-    }
-    /* Pause animation */
-    if (pause)
-    {
+    } // Pause animation
+    if (pause) {
       pauseAniVert.vert = &vert[i*4];
       i += Quad::setTexPosRect(&vert[i*4], pauseAniSrc[pauseAniQuad[pauseAniQuadIdx]],
                                FloatRect((size.x - 16) / 2, size.y - 16, 16, 16));
     }
-
     controlsQuadArray.commit();
     controlsQuadCount = i;
   }
@@ -485,13 +513,12 @@ struct WindowPrivate
   void drawControls()
   {
     if (nullOrDisposed(windowskin) && nullOrDisposed(contents)) return;
-    if (size == Vec2i(0, 0)) return;
+    if (openness < 100 || size == Vec2i(0, 0)) return;
     if (controlsVertDirty) {
       buildControlsVert();
       updateControls();
       controlsVertDirty = false;
-    }
-    /* Effective on screen coordinates */
+    } // Effective on screen coordinates
     const Vec2i efPos = position + sceneOffset;
     const IntRect windowRect(efPos, size);
     const IntRect contentsRect(efPos + Vec2i(16), size - Vec2i(32));
@@ -503,13 +530,13 @@ struct WindowPrivate
     shader.applyViewportProj();
     if (!nullOrDisposed(windowskin)) {
       shader.setTranslation(efPos);
-      /* Draw arrows / cursors */
+      // Draw arrows or cursors
       windowskin->bindTex(shader);
       TEX::setSmooth(true);
       controlsQuadArray.draw(0, controlsQuadCount);
       TEX::setSmooth(false);
     }
-    if (!nullOrDisposed(contents)) { /* Draw contents bitmap */
+    if (!nullOrDisposed(contents)) { // Draw contents bitmap
       glState.scissorBox.setIntersect(contentsRect);
       shader.setTranslation(efPos + (Vec2i(16) - contentsOffset));
       contents->bindTex(shader);
@@ -521,6 +548,7 @@ struct WindowPrivate
 
   void updateControls()
   {
+    if (needOpenness) return;
     bool updateArray = false;
     if (active && cursorVert.vert) {
       float alpha = cursorAniAlpha[cursorAniAlphaIdx] / 255.0f;
@@ -547,12 +575,31 @@ struct WindowPrivate
     if (++pauseAniQuadIdx == pauseAniQuadN)
       pauseAniQuadIdx = 0;
   }
+
+  void updateOpenness()
+  {
+    if (!needOpenness) return;
+    buildBaseVert();
+    updateBaseAlpha();
+    baseQuadArray.commit();
+    forceBaseTexRecreate();
+    redrawBaseTex();
+    needOpenness = openness < 100;
+    SimpleAlphaShader &shader = shState->shaders().simpleAlpha;
+    shader.bind();
+    shader.applyViewportProj();
+    shader.setTranslation(position + sceneOffset);
+    windowskin->bindTex(shader);
+    TEX::setSmooth(true);
+    baseQuadArray.draw();
+    TEX::setSmooth(false);
+  }
 };
 
-Window::Window(Viewport *viewport) : ViewportElement(viewport)
+Window::Window(Viewport *viewport, int mode) : ViewportElement(viewport)
 {
-  p = new WindowPrivate(viewport);
-  onGeometryChange(scene->getGeometry());
+  p = new WindowPrivate(viewport, mode);
+  if (p->openMode < 2) p->sceneOffset = scene->getGeometry().offset();
 }
 
 Window::~Window()
@@ -563,13 +610,11 @@ Window::~Window()
 void Window::update()
 {
   guardDisposed();
+  p->updateOpenness();
   p->updateControls();
   p->stepAnimations();
 }
 
-DEF_ATTR_SIMPLE(Window, X,          int,     p->position.x)
-DEF_ATTR_SIMPLE(Window, Y,          int,     p->position.y)
-DEF_ATTR_SIMPLE(Window, CursorRect, Rect&,  *p->cursorRect)
 DEF_ATTR_RD_SIMPLE(Window, Windowskin,      Bitmap*, p->windowskin)
 DEF_ATTR_RD_SIMPLE(Window, Contents,        Bitmap*, p->contents)
 DEF_ATTR_RD_SIMPLE(Window, Stretch,         bool,    p->bgStretch)
@@ -582,6 +627,55 @@ DEF_ATTR_RD_SIMPLE(Window, OY,              int,     p->contentsOffset.y)
 DEF_ATTR_RD_SIMPLE(Window, Opacity,         int,     p->opacity)
 DEF_ATTR_RD_SIMPLE(Window, BackOpacity,     int,     p->backOpacity)
 DEF_ATTR_RD_SIMPLE(Window, ContentsOpacity, int,     p->contentsOpacity)
+
+int Window::getX() const
+{
+  guardDisposed();
+  return p->position.x;
+}
+
+void Window::setX(int value)
+{
+  guardDisposed();
+  p->position.x = value;
+}
+
+int Window::getY() const
+{
+  guardDisposed();
+  return p->position.y;
+}
+
+void Window::setY(int value)
+{
+  guardDisposed();
+  p->position.y = value;
+  if (p->size.y == 0) return;
+  p->processOpenMode();
+  p->updateOpenness();
+}
+
+void Window::setXY(int val, int num)
+{
+  guardDisposed();
+  p->position.x = val;
+  p->position.y = num;
+  if (p->size.y == 0) return;
+  p->processOpenMode();
+  p->updateOpenness();
+}
+
+Rect& Window::getCursorRect() const
+{
+  guardDisposed();
+  return *p->cursorRect;
+}
+
+void Window::setCursorRect(Rect& rect)
+{
+  guardDisposed();
+  *p->cursorRect = rect;
+}
 
 void Window::setWindowskin(Bitmap *value)
 {
@@ -596,7 +690,7 @@ void Window::setContents(Bitmap *value)
   guardDisposed();
   if (p->contents == value) return;
   p->contents = value;
-  p->controlsVertDirty = true;
+  p->controlsVertDirty = p->openness == 100;
   if (nullOrDisposed(value)) return;
   value->ensureNonMega();
   p->contentsQuad.setTexPosRect(value->rect(), value->rect());
@@ -642,6 +736,8 @@ void Window::setHeight(int value)
   if (p->size.y == value) return;
   p->size.y = value;
   p->baseVertDirty = true;
+  p->processOpenMode();
+  p->updateOpenness();
 }
 
 void Window::setOX(int value)
@@ -658,6 +754,51 @@ void Window::setOY(int value)
   if (p->contentsOffset.y == value) return;
   p->contentsOffset.y = value;
   p->controlsVertDirty = true;
+}
+
+int Window::getOpenMode() const
+{
+  guardDisposed();
+  return p->openMode;
+}
+
+void Window::setOpenMode(int val)
+{
+  guardDisposed();
+  p->openMode = (val < 0 && val > 3)? 0 : val;
+  p->openness = p->openMode == 0 ? 100 : 0;
+  p->processOpenMode();
+  setVisible(!(p->openness == 0 && p->openMode == 0));
+  p->updateOpenness();
+}
+
+int Window::getOpenness() const
+{
+  guardDisposed();
+  return p->openness;
+}
+
+void Window::setOpenness(int val)
+{
+  guardDisposed();
+  if (p->openness == val) return;
+  p->openness = val < 0 ? 0 : val > 100 ? 100 : val;
+  p->needOpenness = true;
+  p->processOpenMode();
+  setVisible(!(p->openness == 0 && p->openMode == 0));
+  p->updateOpenness();
+}
+
+bool Window::isOpen() const
+{
+  guardDisposed();
+  return (p->openMode == 0 || p->openness == 100);
+}
+
+bool Window::isClosed() const
+{
+  guardDisposed();
+  return (p->openMode > 0 && p->openness == 0);
 }
 
 void Window::setOpacity(int value)

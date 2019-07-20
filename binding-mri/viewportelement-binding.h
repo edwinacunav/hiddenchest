@@ -1,22 +1,23 @@
 /*
 ** viewportelement-binding.h
 **
-** This file is part of mkxp.
+** This file is part of HiddenChest and mkxp.
 **
-** Copyright (C) 2013 Jonas Kulla <Nyocurio@gmail.com>
+** mkxp Copyright (C) 2013 Jonas Kulla <Nyocurio@gmail.com>
+** 2019 Extended by Kyonides Arkanthes
 **
-** mkxp is free software: you can redistribute it and/or modify
+** HiddenChest is free software: you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
 ** the Free Software Foundation, either version 2 of the License, or
 ** (at your option) any later version.
 **
-** mkxp is distributed in the hope that it will be useful,
+** HiddenChest is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
 ** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ** GNU General Public License for more details.
 **
 ** You should have received a copy of the GNU General Public License
-** along with mkxp.  If not, see <http://www.gnu.org/licenses/>.
+** along with HiddenChest.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #ifndef VIEWPORTELEMENTBINDING_H
@@ -49,19 +50,17 @@ static VALUE viewportElementSetViewport(VALUE self, VALUE rviewport)
 }
 
 template<class C>
-static C * viewportElementInitialize(int argc, VALUE *argv, VALUE self)
+static C * viewportElementInitialize(int argc, VALUE *v, VALUE self)
 { // Get parameters
-  VALUE viewportObj = Qnil;
+  VALUE rbView = Qnil;
   Viewport *viewport = 0;
-  rb_get_args(argc, argv, "|o", &viewportObj RB_ARG_END);
-  if (!NIL_P(viewportObj)) {
-    viewport = getPrivateDataCheck<Viewport>(viewportObj, ViewportType);
-    if (rgssVer == 1)
-      disposableAddChild(viewportObj, self);
+  rb_get_args(argc, v, "|o", &rbView RB_ARG_END);
+  if (!RB_NIL_P(rbView)) {
+    viewport = getPrivateDataCheck<Viewport>(rbView, ViewportType);
+    if (rgssVer == 1) disposableAddChild(rbView, self);
   } // Construct object
   C *ve = new C(viewport);
-  // Set property objects
-  rb_iv_set(self, "viewport", viewportObj);
+  rb_iv_set(self, "viewport", rbView); // Set property objects
   return ve;
 }
 

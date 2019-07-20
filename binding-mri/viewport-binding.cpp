@@ -1,22 +1,23 @@
 /*
 ** viewport-binding.cpp
 **
-** This file is part of mkxp.
+** This file is part of HiddenChest and mkxp.
 **
 ** Copyright (C) 2013 Jonas Kulla <Nyocurio@gmail.com>
+** 2019 Extended by Kyonides Arkanthes
 **
-** mkxp is free software: you can redistribute it and/or modify
+** HiddenChest is free software: you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
 ** the Free Software Foundation, either version 2 of the License, or
 ** (at your option) any later version.
 **
-** mkxp is distributed in the hope that it will be useful,
+** HiddenChest is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
 ** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ** GNU General Public License for more details.
 **
 ** You should have received a copy of the GNU General Public License
-** along with mkxp.  If not, see <http://www.gnu.org/licenses/>.
+** along with HiddenChest.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "viewport.h"
@@ -32,7 +33,7 @@ DEF_TYPE(Viewport);
 RB_METHOD(viewportInitialize)
 {
   Viewport *v;
-  if (argc == 0 && rgssVer >= 3) {
+  if (argc == 0 && rgssVer == 3) {
     v = new Viewport();
   } else if (argc == 1) { // The rect arg is only used to init the viewport,
     //and does NOT replace its 'rect' property
@@ -41,14 +42,17 @@ RB_METHOD(viewportInitialize)
     rb_get_args(argc, argv, "o", &rectObj RB_ARG_END);
     rect = getPrivateDataCheck<Rect>(rectObj, RectType);
     v = new Viewport(rect);
+  } else if (rgssVer == 1 && argc == 4) {
+    int x = RB_FIX2INT(argv[0]), y = RB_FIX2INT(argv[1]);
+    int width = RB_FIX2INT(argv[2]), height = RB_FIX2INT(argv[3]);
+    v = new Viewport(x, y, width, height);
   } else {
     int x, y, width, height;
     rb_get_args(argc, argv, "iiii", &x, &y, &width, &height RB_ARG_END);
     v = new Viewport(x, y, width, height);
   }
   setPrivateData(self, v);
-  // Wrap property objects
-  v->initDynAttribs();
+  v->initDynAttribs(); // Wrap property objects
   wrapProperty(self, &v->getRect(),  "rect",  RectType);
   wrapProperty(self, &v->getColor(), "color", ColorType);
   wrapProperty(self, &v->getTone(),  "tone",  ToneType);
@@ -63,6 +67,10 @@ DEF_PROP_OBJ_VAL(Viewport, Color, Color, "color")
 DEF_PROP_OBJ_VAL(Viewport, Tone,  Tone,  "tone")
 DEF_PROP_I(Viewport, OX)
 DEF_PROP_I(Viewport, OY)
+DEF_PROP_I(Viewport, X)
+DEF_PROP_I(Viewport, Y)
+DEF_PROP_I(Viewport, Width)
+DEF_PROP_I(Viewport, Height)
 
 void viewportBindingInit()
 {
@@ -72,10 +80,14 @@ void viewportBindingInit()
   flashableBindingInit   <Viewport>(klass);
   sceneElementBindingInit<Viewport>(klass);
   _rb_define_method(klass, "initialize", viewportInitialize);
-  INIT_PROP_BIND( Viewport, Rect,  "rect"  );
-  INIT_PROP_BIND( Viewport, OX,    "ox"    );
-  INIT_PROP_BIND( Viewport, OY,    "oy"    );
-  INIT_PROP_BIND( Viewport, Color, "color" );
-  INIT_PROP_BIND( Viewport, Tone,  "tone"  );
+  INIT_PROP_BIND( Viewport, Rect,   "rect"  );
+  INIT_PROP_BIND( Viewport, OX,     "ox"    );
+  INIT_PROP_BIND( Viewport, OY,     "oy"    );
+  INIT_PROP_BIND( Viewport, X,      "x"     );
+  INIT_PROP_BIND( Viewport, Y,      "y"     );
+  INIT_PROP_BIND( Viewport, Width,  "width" );
+  INIT_PROP_BIND( Viewport, Height, "height");
+  INIT_PROP_BIND( Viewport, Color,  "color" );
+  INIT_PROP_BIND( Viewport, Tone,   "tone"  );
 }
 

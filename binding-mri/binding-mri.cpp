@@ -128,6 +128,8 @@ static void mriBindingInit()
     assert(!"unreachable");
   }
   VALUE mod = rb_define_module("HIDDENCHEST");
+  rb_define_const(mod, "VERSION", rb_str_new_cstr("1.1.10"));
+  rb_define_const(mod, "RELEASE_DATE", rb_str_new_cstr("2019-07-20"));
   rb_define_module_function(mod, "data_directory", RUBY_METHOD_FUNC(HCDataDirectory), -1);
   rb_define_module_function(mod, "puts", RUBY_METHOD_FUNC(HCPuts), -1);
   rb_define_module_function(mod, "raw_key_states", RUBY_METHOD_FUNC(HCRawKeyStates), -1);
@@ -140,7 +142,7 @@ static void mriBindingInit()
   } else if (rgssVer >= 2) {
     rb_gv_set("TEST", debug);
   }
-  rb_gv_set("BTEST", rb_bool_new(shState->config().editor.battleTest));
+  rb_gv_set("BTEST", shState->config().editor.battleTest ? Qtrue : Qfalse);
 }
 
 static void showMsg(const std::string &msg)
@@ -221,12 +223,12 @@ static void processReset()
   VALUE mod = rb_const_get(rb_cObject, rb_intern("Scripts"));
   VALUE scene = rb_iv_get(mod, "@start_scene");
   if (RB_NIL_P(scene)) {
-    showMsg("Nil...");
+    //showMsg("Nil...");
     shState->graphics().reset();
     shState->audio().reset();
     shState->rtData().rqReset.clear();
   } else {
-    showMsg("Success!");
+    //showMsg("Success!");
     if (rgssVer < 3) {
       rb_funcall(mod, rb_intern("reset"), 0);
     } else {
@@ -248,7 +250,7 @@ RB_METHOD(mriRgssMain)
                rb_eException, (VALUE) 0);
     if (NIL_P(exc)) break;
     if (rb_obj_class(exc) == getRbData()->exc[Reset]) {
-      showMsg("Main section...");
+      //showMsg("Main section...");
       processReset();
     } else {
       rb_exc_raise(exc);
@@ -491,7 +493,7 @@ static void mriBindingExecute()
   else
     runRMXPScripts(btData);
   VALUE exc = rb_errinfo();
-  if (!NIL_P(exc) && !rb_obj_is_kind_of(exc, rb_eSystemExit))
+  if (!RB_NIL_P(exc) && !rb_obj_is_kind_of(exc, rb_eSystemExit))
     showExc(exc, btData);
   ruby_cleanup(0);
   shState->rtData().rqTermAck.set();
@@ -503,7 +505,6 @@ static void mriBindingTerminate()
 }
 
 static void mriBindingReset()
-{
-  showMsg("Resetting!");
+{//showMsg("Resetting!");
   rb_raise(getRbData()->exc[Reset], " ");
 }

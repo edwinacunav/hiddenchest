@@ -1,22 +1,22 @@
 /*
 ** viewport.cpp
 **
-** This file is part of mkxp.
+** This file is part of HiddenChest and mkxp.
 **
 ** Copyright (C) 2013 Jonas Kulla <Nyocurio@gmail.com>
 **
-** mkxp is free software: you can redistribute it and/or modify
+** HiddenChest is free software: you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
 ** the Free Software Foundation, either version 2 of the License, or
 ** (at your option) any later version.
 **
-** mkxp is distributed in the hope that it will be useful,
+** HiddenChest is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
 ** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ** GNU General Public License for more details.
 **
 ** You should have received a copy of the GNU General Public License
-** along with mkxp.  If not, see <http://www.gnu.org/licenses/>.
+** along with HiddenChest.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "viewport.h"
@@ -120,11 +120,96 @@ void Viewport::update()
   Flashable::update();
 }
 
-DEF_ATTR_RD_SIMPLE(Viewport, OX,   int,   geometry.orig.x)
-DEF_ATTR_RD_SIMPLE(Viewport, OY,   int,   geometry.orig.y)
-DEF_ATTR_SIMPLE(Viewport, Rect,  Rect&,  *p->rect)
-DEF_ATTR_SIMPLE(Viewport, Color, Color&, *p->color)
-DEF_ATTR_SIMPLE(Viewport, Tone,  Tone&,  *p->tone)
+Rect& Viewport::getRect() const
+{
+  guardDisposed();
+  return *p->rect;
+}
+
+void Viewport::setRect(Rect& rect)
+{
+  guardDisposed();
+  *p->rect = rect;
+}
+
+int Viewport::getX() const
+{
+  guardDisposed();
+  return p->rect->x;
+}
+
+void Viewport::setX(int nx)
+{
+  guardDisposed();
+  p->rect->setX(nx);
+}
+
+int Viewport::getY() const
+{
+  guardDisposed();
+  return p->rect->y;
+}
+
+void Viewport::setY(int ny)
+{
+  guardDisposed();
+  p->rect->setY(ny);
+}
+
+int Viewport::getWidth() const
+{
+  guardDisposed();
+  return p->rect->width;
+}
+
+void Viewport::setWidth(int width)
+{
+  guardDisposed();
+  p->rect->setWidth(width);
+}
+
+int Viewport::getHeight() const
+{
+  guardDisposed();
+  return p->rect->height;
+}
+
+void Viewport::setHeight(int height)
+{
+  guardDisposed();
+  Rect& r = *p->rect;
+  p->rect->setHeight(height);
+}
+
+Color& Viewport::getColor() const
+{
+  guardDisposed();
+  return *p->color;
+}
+
+void Viewport::setColor(Color& color)
+{
+  guardDisposed();
+  *p->color = color;
+}
+
+Tone& Viewport::getTone() const
+{
+  guardDisposed();
+  return *p->tone;
+}
+
+void Viewport::setTone(Tone& tone)
+{
+  guardDisposed();
+  *p->tone = tone;
+}
+
+int Viewport::getOX() const
+{
+  guardDisposed();
+  return geometry.orig.x;
+}
 
 void Viewport::setOX(int value)
 {
@@ -132,6 +217,12 @@ void Viewport::setOX(int value)
   if (geometry.orig.x == value) return;
   geometry.orig.x = value;
   notifyGeometryChange();
+}
+
+int Viewport::getOY() const
+{
+  guardDisposed();
+  return geometry.orig.y;
 }
 
 void Viewport::setOY(int value)

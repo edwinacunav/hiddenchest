@@ -55,36 +55,6 @@ static VALUE graphicsFrameReset(VALUE self)
   return Qnil;
 }
 
-#define DEF_GRA_PROP_I(PropName) \
-	RB_METHOD(graphics##Get##PropName) \
-	{ \
-		RB_UNUSED_PARAM; \
-		return rb_fix_new(shState->graphics().get##PropName()); \
-	} \
-	RB_METHOD(graphics##Set##PropName) \
-	{ \
-		RB_UNUSED_PARAM; \
-		int value; \
-		rb_get_args(argc, argv, "i", &value RB_ARG_END); \
-		shState->graphics().set##PropName(value); \
-		return rb_fix_new(value); \
-	}
-
-#define DEF_GRA_PROP_B(PropName) \
-	RB_METHOD(graphics##Get##PropName) \
-	{ \
-		RB_UNUSED_PARAM; \
-		return rb_bool_new(shState->graphics().get##PropName()); \
-	} \
-	RB_METHOD(graphics##Set##PropName) \
-	{ \
-		RB_UNUSED_PARAM; \
-		bool value; \
-		rb_get_args(argc, argv, "b", &value RB_ARG_END); \
-		shState->graphics().set##PropName(value); \
-		return rb_bool_new(value); \
-	}
-
 static VALUE graphicsWidth(VALUE self)
 {
   return rb_fix_new(shState->graphics().width());
@@ -97,8 +67,8 @@ static VALUE graphicsHeight(VALUE self)
 
 static VALUE graphicsDimensions(VALUE self)
 {
-  VALUE width = INT2NUM( shState->graphics().width() );
-  VALUE height = INT2NUM( shState->graphics().height() );
+  VALUE width = RB_INT2NUM( shState->graphics().width() );
+  VALUE height = RB_INT2NUM( shState->graphics().height() );
   return rb_ary_new3(2, width, height);
 }
 

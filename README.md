@@ -1,12 +1,12 @@
 # HiddenChest
 
-HiddenChest is a project based upon mkxp developed by Ancurio. It should let you play RGSS based games on a 800 * 608 resolution by default, but you might change it before compiling it if deemed necessary.
+HiddenChest is a project based upon mkxp developed by Ancurio. It should let you play RGSS based games on a 800 * 608 resolution or higher by default, but you might change it before compiling it if deemed necessary.
 
-After you have finished compiling the binary executable, you should also open the MapCustomResFixes.rb (for RMXP games) text file with a text editor like Notepad++ or change its file extension to txt if you plan to use Windows Notepad application. On Linux distributions you can use your favorite text editor, for KDE GUI based systems Kate or KWrite should be fine. Once you have opened it copy its contents and paste them in the script editor below Scene_Debug and before Main scripts.
+After you have finished compiling the binary executable, you should also open the MapCustomResFixes0 (for RMXP or RMVX games) text file with a text editor like Notepad++ or change its file extension to txt if you plan to use Windows Notepad application. On Linux distributions you can use your favorite text editor, for KDE GUI based systems Kate or KWrite should be fine. Once you have opened it copy its contents and paste them in the script editor below Scene_Debug and before Main scripts.
 
-The Sprite#mirror_y alias Sprite#flip_y method has been added!
+The `Sprite#mirror_y` alias `Sprite#flip_y` method has been added!
 
-Except for the increased window resolution the Y axis flip features, many additional keys you can press, and a bug fix, everything remains the same as in the original mkxp project.
+Except for the several scripting tools, the window openness options, the increased window resolution, the Y axis flip features, many additional keys you can press, and a bug fix, retains much of the original mkxp project.
 
 mkxp Documentation is still valid so do not forget to check it out!
 
@@ -43,7 +43,7 @@ Website: https://github.com/mruby/mruby
 
 mruby is a new endeavor by Matz and others to create a more lightweight, spec-adhering, embeddable Ruby implementation. You can think of it as a Ruby version of Lua.
 
-Due to heavy differences between mruby and MRI as well as lacking modules, running RPG Maker games with this binding will most likely not work correctly. It is provided as experimental code. You can eg. write your own ruby scripts and run them.
+Due to heavy differences between mruby and MRI as well as lacking modules, running RPG Maker games with this binding will most likely not work correctly. It is provided as experimental code. You can eg. write your own Ruby scripts and run them.
 
 Some extensions to the standard classes/modules are provided, taking the RPG Maker XP helpfile as a quasi "reference". These include Marshal, File, FileTest and Time.
 
@@ -69,14 +69,14 @@ This binding only exists for testing purposes and does nothing (the engine quits
 * [Ancurio's SDL_sound fork](https://github.com/Ancurio/SDL_sound)
 * vorbisfile
 * pixman
-* zlib (only ruby bindings)
+* zlib (only Ruby bindings)
 * OpenGL header (alternatively GLES2 with `DEFINES+=GLES2_HEADER`)
 * libiconv (on Windows, optional with INI_ENCODING)
 * libguess (optional with INI_ENCODING)
 
 (* For the F1 menu to work correctly under Linux/X11, you need latest hg + [this patch](https://bugzilla.libsdl.org/show_bug.cgi?id=2745))
 
-mkxp employs Qt's qmake build system, so you'll need to install that beforehand. Alternatively, you can build with cmake.
+HiddenChest and mkxp may employ Qt's qmake build system, so you'll need to install that beforehand. Alternatively, you can build with cmake successfully and even cross-compile them.
 
 
 qmake will use pkg-config to locate the respective include/library paths. If you installed any dependencies into non-standard prefixes, make sure to adjust your `PKG_CONFIG_PATH` variable accordingly.
@@ -91,7 +91,7 @@ You might need to use chmod +x do.sh first to make it an executable script.
 
 It will create a build directory where it will run CMake and later execute make to compile the HiddenChest binary. If succeeded it will move the binary executable file to the root directory for you.
 
-Take in consideration that you need Ancurio's SDL_sound fork installed on your system. Your OS package manager, i.e. pacman or apt-get, might offer you to install a default version of SDL_sound. DO NOT INSTALL IT! Both mkxp and HiddenChest will fail for sure if you do not follow my advice!
+Take in consideration that you need Ancurio's SDL_sound fork installed on your system. Your OS package manager, i.e. pacman or apt-get, might offer you to install a default version of SDL_sound. DO NOT INSTALL IT! Both HiddenChest and mkxp will fail for sure if you do not follow my advice!
 
 Search for `set(MRIVERSION` in the CMakeLists.txt file to set a different version of Ruby. Default version is 2.6 now.
 
@@ -101,11 +101,11 @@ The exception is boost, which is weird in that it still hasn't managed to pull o
 
 ### MIDI Support
 
-Midi support is enabled by default and requires fluidsynth to be present at runtime (not needed for building); if mkxp can't find it at runtime, midi playback is disabled. It looks for `libfluidsynth.so.1` on Linux, `libfluidsynth.dylib.1` on OSX and `fluidsynth.dll` on Windows, so make sure to have one of these in your link path. If you still need fluidsynth to be hard linked at buildtime, use `CONFIG+=SHARED_FLUID`. When building fluidsynth yourself, you can disable almost all options (audio drivers etc.) as they are not used. Note that upstream fluidsynth has support for sharing soundfont data between synthesizers (mkxp uses multiple synths), so if your memory usage is very high, you might want to try compiling fluidsynth from git master.
+Midi support is enabled by default and requires fluidsynth to be present at runtime (not needed for building); if HiddenChest can't find it at runtime, midi playback is disabled. It looks for `libfluidsynth.so.1` on Linux, `libfluidsynth.dylib.1` on OSX and `fluidsynth.dll` on Windows, so make sure to have one of these in your link path. If you still need fluidsynth to be hard linked at buildtime, use `CONFIG+=SHARED_FLUID`. When building fluidsynth yourself, you can disable almost all options (audio drivers etc.) as they are not used. Note that upstream fluidsynth has support for sharing soundfont data between synthesizers (HiddenChest uses multiple synths), so if your memory usage is very high, you might want to try compiling fluidsynth from git master.
 
-By default, mkxp switches into the directory where its binary is contained and then starts reading the configuration and resolving relative paths. In case this is undesired (eg. when the binary is to be installed to a system global, read-only location), it can be turned off by adding `DEFINES+=WORKDIR_CURRENT` to qmake's arguments.
+By default, HiddenChest switches into the directory where its binary is contained and then starts reading the configuration and resolving relative paths. In case this is undesired (eg. when the binary is to be installed to a system global, read-only location), it can be turned off by adding `DEFINES+=WORKDIR_CURRENT` to qmake's arguments.
 
-To auto detect the encoding of the game title in `Game.ini` and auto convert it to UTF-8, build with `CONFIG+=INI_ENCODING`. Requires iconv implementation and libguess. If the encoding is wrongly detected, you can set the "titleLanguage" hint in mkxp.conf.
+To auto detect the encoding of the game title in `Game.ini` and auto convert it to UTF-8, build with `CONFIG+=INI_ENCODING`. Requires iconv implementation and libguess. If the encoding is wrongly detected, you can set the "titleLanguage" hint in hiddenchest.conf.
 
 **MRI-Binding**: pkg-config will look for `ruby-2.6.pc`, but you can override the version with `MRIVERSION=2.2` ('2.2' being an example). This is the default binding, so no arguments to qmake needed (`BINDING=MRI` to be explicit).
 
@@ -117,25 +117,25 @@ To auto detect the encoding of the game title in `Game.ini` and auto convert it 
 
 These depend on the SDL auxiliary libraries. For maximum RGSS compliance, build SDL2_image with png/jpg support, and SDL_sound with oggvorbis/wav/mp3 support.
 
-To run mkxp, you should have a graphics card capable of at least **OpenGL (ES) 2.0** with an up-to-date driver installed.
+To run HiddenChest, you should have a graphics card capable of at least **OpenGL (ES) 2.0** with an up-to-date driver installed.
 
 ## Dependency kit
 
-To facilitate hacking, I have assembled a package containing all dependencies to compile mkxp on a bare-bones Ubuntu 12.04 64bit installation. Compatibility with other distributions has not been tested. You can download it [here](https://www.dropbox.com/s/mtp44ur367m2zts/mkxp-depkit.tar.xz). Read the "README" for instructions.
+To facilitate hacking, I have assembled a package containing all dependencies to compile HiddenChest on a bare-bones Ubuntu 12.04 64bit installation. Compatibility with other distributions has not been tested. You can download it [here](https://www.dropbox.com/s/mtp44ur367m2zts/mkxp-depkit.tar.xz). Read the "README" for instructions.
 
 ## Configuration
 
-mkxp reads configuration data from the file "mkxp.conf". The format is ini-style. Do *not* use quotes around file paths (spaces won't break). Lines starting with '#' are comments. See 'mkxp.conf.sample' for a list of accepted entries.
+HiddenChest reads configuration data from the file "hiddenchest.conf". The format is ini-style. Do *not* use quotes around file paths (spaces won't break). Lines starting with '#' are comments. See 'hiddenchest.conf.sample' for a list of accepted entries.
 
-All option entries can alternatively be specified as command line options. Any options that are not arrays (eg. RTP paths) specified as command line options will override entries in mkxp.conf. Note that you will have to wrap values containing spaces in quotes (unlike in mkxp.conf).
+All option entries can alternatively be specified as command line options. Any options that are not arrays (eg. RTP paths) specified as command line options will override entries in hiddenchest.conf. Note that you will have to wrap values containing spaces in quotes (unlike in hiddenchest.conf).
 
 The syntax is: `--<option>=<value>`
 
-Example: `./mkxp --gameFolder="my game" --vsync=true --fixedFramerate=60`
+Example: `./hiddenchest --gameFolder="my game" --vsync=true --fixedFramerate=60`
 
 ## Midi music
 
-mkxp doesn't come with a soundfont by default, so you will have to supply it yourself (set its path in the config). Playback has been tested and should work reasonably well with all RTP assets.
+HiddenChest doesn't come with a soundfont by default, so you will have to supply it yourself (set its path in the config). Playback has been tested and should work reasonably well with all RTP assets.
 
 You can use this public domain soundfont: [GMGSx.sf2](https://www.dropbox.com/s/qxdvoxxcexsvn43/GMGSx.sf2?dl=0)
 
@@ -149,16 +149,27 @@ If a requested font is not found, no error is generated. Instead, a built-in fon
 
 * Movie playback
 * wma audio files
-* The Win32API ruby class (for obvious reasons)
-* Creating Bitmaps with sizes greater than the OpenGL texture size limit (around 8192 on modern cards)*
+* The Win32API Ruby class (for obvious reasons)
+* Creating Bitmaps with sizes greater than the OpenGL texture size limit (probably around 8192 on some cards)
 
 \* There is an exception to this, called *mega surface*. When a Bitmap bigger than the texture limit is created from a file, it is not stored in VRAM, but regular RAM. Its sole purpose is to be used as a tileset bitmap. Any other operation to it (besides blitting to a regular Bitmap) will result in an error.
 
-## Nonstandard RGSS extensions
+## New Features alias Non-standard RGSS extensions
 
 To alleviate possible porting of heavily Win32API reliant scripts, we have added certain functionality that you won't find in the RGSS spec. Currently this amounts to the following:
 
 * Expand RGSS1 tilesets to fill the enlarged screen and adapts the Window_Message settings to the increased screen resolutions.
+* Implementation of window openness feature in RMXP games without affecting VX and VX Ace ones. It works in a different fashion in VX Ace like using a 0 through 100 value range while VX Ace requires a maximum value of 255.
+* There are 4 modes available to assign to the `self.open_mode` option, i.e.
+    - nil or false or true - nothing ever happens
+    - :top - the window stretches from the top to the bottom
+    - :center - the window opens like a scroll in both directions
+    - :bottom - the window seems to grow taller
+        - Keep in mind that the `Window#open` command will be ignored if a boolean value is set as the current `Window#open_mode` value.
+        - You can set `Window#open_mode=` value before or after the window has called its superclass to initialize or create that window.
+        - Only the last assignment to `Window#open_mode=` will be taken in consideration by the engine.
+* `Window#set_xy(newx, newy)` lets you assign both Carthesian coordinates at the same time.
+* Assign a viewport to any RGSS1 window by using `Window#viewport = some_viewport`
 * The `Input.press?` family of functions accepts three additional button constants: `::MOUSELEFT`, `::MOUSEMIDDLE` and `::MOUSERIGHT` for the respective mouse buttons.
 * They now support additional keys like Return or Enter or LeftShift or RightAlt or NumPadDivide * or KeyH or KeyM or N1 through N0.
 * The `Input` module has two additional functions, `#mouse_x` and `#mouse_y` to query the mouse pointer position relative to the game screen.

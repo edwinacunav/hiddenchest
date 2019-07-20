@@ -391,6 +391,7 @@ struct GraphicsPrivate
   int frameCount;
   int brightness;
   FPSLimiter fpsLimiter;
+  bool blockFullscreen;
   bool frozen;
   TEXFBO frozenScene;
   Quad screenQuad;
@@ -409,7 +410,8 @@ struct GraphicsPrivate
         frameCount(0),
         brightness(255),
         fpsLimiter(frameRate),
-        frozen(false)
+        frozen(false),
+        blockFullscreen(false)
   {
     winSize.x = START_WIDTH;
     winSize.y = START_HEIGHT;
@@ -807,6 +809,16 @@ void Graphics::reset()
   p->screen.getPP().clearBuffers();
   setFrameRate(DEF_FRAMERATE);
   setBrightness(255);
+}
+
+bool Graphics::getBlockFullscreen() const
+{
+  return p->blockFullscreen;
+}
+
+void Graphics::setBlockFullscreen(bool value)
+{
+  p->blockFullscreen = value;
 }
 
 bool Graphics::getFullscreen() const

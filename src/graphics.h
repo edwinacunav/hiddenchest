@@ -54,6 +54,7 @@ public:
   void playMovie(const char *filename);
   void reset();
   /* Non-standard extension */
+  DECL_ATTR( BlockFullscreen, bool )
   DECL_ATTR( Fullscreen, bool )
   DECL_ATTR( ShowCursor, bool )
   /* <internal> */

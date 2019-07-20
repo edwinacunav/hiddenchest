@@ -37,11 +37,15 @@ public:
   Viewport();
   ~Viewport();
   void update();
-  DECL_ATTR( Rect,  Rect&  )
-  DECL_ATTR( OX,    int    )
-  DECL_ATTR( OY,    int    )
-  DECL_ATTR( Color, Color& )
-  DECL_ATTR( Tone,  Tone&  )
+  DECL_ATTR( Rect,   Rect&  )
+  DECL_ATTR( X,      int    )
+  DECL_ATTR( Y,      int    )
+  DECL_ATTR( Width,  int    )
+  DECL_ATTR( Height, int    )
+  DECL_ATTR( OX,     int    )
+  DECL_ATTR( OY,     int    )
+  DECL_ATTR( Color,  Color& )
+  DECL_ATTR( Tone,   Tone&  )
   void initDynAttribs();
 
 private:

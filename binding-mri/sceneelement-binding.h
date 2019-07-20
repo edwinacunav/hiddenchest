@@ -29,6 +29,7 @@ template<class C>
 static VALUE sceneElementGetZ(VALUE self)
 {
   SceneElement *se = static_cast<C*>(RTYPEDDATA_DATA(self));
+  if (se == 0) return RB_INT2FIX(0);
   int value = 0;
   GUARD_EXC( value = se->getZ(); );
   return rb_fix_new(value);
@@ -38,6 +39,7 @@ template<class C>
 static VALUE sceneElementSetZ(VALUE self, VALUE rz)
 {
   SceneElement *se = static_cast<C*>(RTYPEDDATA_DATA(self));
+  if (se == 0) return RB_INT2FIX(0);
   int z = RB_FIX2INT(rz);
   GUARD_EXC( se->setZ(z); );
   return rb_fix_new(se->getZ());
@@ -47,18 +49,20 @@ template<class C>
 static VALUE sceneElementGetVisible(VALUE self)
 {
   SceneElement *se = static_cast<C*>(RTYPEDDATA_DATA(self));
+  if (se == 0) return Qfalse;
   bool value = false;
   GUARD_EXC( value = se->getVisible(); );
-  return rb_bool_new(value);
+  return value ? Qtrue : Qfalse;
 }
 
 template<class C>
 static VALUE sceneElementSetVisible(VALUE self, VALUE bln)
 {
   SceneElement *se = static_cast<C*>(RTYPEDDATA_DATA(self));
+  if (se == 0) return Qfalse;
   bool visible = bln == Qtrue ? true : false;
   GUARD_EXC( se->setVisible(visible); );
-  return rb_bool_new(se->getVisible());
+  return se->getVisible() ? Qtrue : Qfalse;
 }
 
 template<class C>
