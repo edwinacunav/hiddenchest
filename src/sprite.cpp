@@ -117,6 +117,7 @@ struct SpritePrivate
 
   void updateReduceWidth()
   {
+    if (!bitmap) return;
     int w = bitmap->width();
     if (increaseWidth) {
       reducedWidth -= reduceSpeed;
@@ -135,6 +136,7 @@ struct SpritePrivate
 
   void updateReduceHeight()
   {
+    if (!bitmap) return;
     int h = bitmap->height();
     if (increaseHeight) {
       reducedHeight -= reduceSpeed;
@@ -376,7 +378,7 @@ void Sprite::setBitmap(Bitmap *bitmap)
   *p->srcRect = bitmap->rect();
   p->onSrcRectChange();
   p->quad.setPosRect(p->srcRect->toFloatRect());
-  p->wave.dirty = true;
+  if (p->wave.active) p->wave.dirty = true;
 }
 
 void Sprite::setX(int value)
@@ -391,10 +393,9 @@ void Sprite::setY(int value)
   guardDisposed();
   if (p->trans.getPosition().y == value) return;
   p->trans.setPosition(Vec2(getX(), value));
-  //if (rgssVer >= 2) {
-    p->wave.dirty = true;
-    setSpriteY(value);
-  //}
+  if (!p->wave.active) return;//rgssVer >= 2) {
+  p->wave.dirty = true;
+  setSpriteY(value);
 }
 
 void Sprite::setOX(int value)
@@ -478,16 +479,19 @@ void Sprite::setBlendType(int type)
 
 int Sprite::getReduceSpeed()
 {
+  guardDisposed();
   return p->reduceSpeed;
 }
 
 void Sprite::setReduceSpeed(int speed)
 {
+  guardDisposed();
   p->reduceSpeed = speed;
 }
 
 void Sprite::increaseWidth()
 {
+  guardDisposed();
   p->reducedWidth = p->bitmap->width();
   p->increaseWidth = true;
   p->updateReduceWidth();
@@ -495,6 +499,7 @@ void Sprite::increaseWidth()
 
 void Sprite::increaseHeight()
 {
+  guardDisposed();
   p->reducedHeight = p->bitmap->height();
   p->increaseHeight = true;
   p->updateReduceHeight();
@@ -502,31 +507,37 @@ void Sprite::increaseHeight()
 
 void Sprite::reduceWidth()
 {
+  guardDisposed();
   p->reduceWidth = true;
 }
 
 void Sprite::reduceHeight()
 {
+  guardDisposed();
   p->reduceHeight = true;
 }
 
 bool Sprite::isWidthIncreased()
 {
+  guardDisposed();
   return p->reducedWidth == 0;
 }
 
 bool Sprite::isHeightIncreased()
 {
+  guardDisposed();
   return p->reducedHeight == 0;
 }
 
 bool Sprite::isWidthReduced()
 {
+  guardDisposed();
   return p->reducedWidth == p->bitmap->width();
 }
 
 bool Sprite::isHeightReduced()
 {
+  guardDisposed();
   return p->reducedHeight == p->bitmap->height();
 }
 
@@ -561,6 +572,7 @@ void Sprite::update()
   Flashable::update();
   p->updateReduceWidth();
   p->updateReduceHeight();
+  if (!p->wave.active) return;
   p->wave.phase += p->wave.speed / 180;
   p->wave.dirty = true;
 }
