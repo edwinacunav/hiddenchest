@@ -1,11 +1,14 @@
 # * KWinOpen XP
 #   Scripter : Kyonides-Arkanthes
-#   2019-07-20
+#   2019-07-23 - v 0.2.1
 
 # This scriptlet shows you how you can implement window openness a la VX Ace in
 # your beloved XP games by using the HiddenChest engine! But it sports not one
 # but 4 modes! Yeah one would be the default XP window behavior alias
 # "nothing happens". XD
+
+# This shows you how to use it for opening and closing a single menu window.
+# If you need to update other stuff as well, check the Scene_Example scriptlet.
 
 # Window_Selectable#update method had to be overridden so place this scriptlet
 # right below the Scene_Debug script to make sure it will not be ignored.
@@ -15,6 +18,9 @@
 # self.open_mode Options: nil false :top :center :bottom
 # self.openness = number # Not really necessary if you already set a mode
 # open? and close? # In case you need to know if its open or closed
+# Window#closing for updating a single menu window that is about to get closed.
+# The Window# part stands for any custom window name like @command_window. with
+# the dot replacing the # symbol.
 
 class Window_Selectable
   def initialize(x, y, width, height)
@@ -22,6 +28,7 @@ class Window_Selectable
     @item_max ||= 1
     @column_max ||= 1
     @index = -1
+    @update_height ||= 14
     @open ||= false
     @close ||= false
   end
@@ -29,11 +36,11 @@ class Window_Selectable
   def update
     super
     if @open
-      self.openness += 10
+      self.openness += @update_height
       @open = !open?
       return
     elsif @close
-      self.openness -= 10
+      self.openness -= @update_height
       @close = !close?
       return
     end
@@ -83,7 +90,7 @@ class Window_Selectable
     update_cursor_rect
   end
 
-  def update_close
+  def closing
     until close?
       Graphics.update
       update
@@ -98,7 +105,7 @@ class TitleOptionsWindow < Window_Selectable
   def initialize(x, y, w, commands)
     @commands = commands
     @item_max = commands.size
-    self.open_mode = :bottom
+    self.open_mode = :bottom # First Assignment - Ignored by the next one!
     super(x, y, w, @item_max * 32 + 32)
     self.open_mode = :center # End Result: :center
     self.contents = Bitmap.new(width - 32, @item_max * 32)

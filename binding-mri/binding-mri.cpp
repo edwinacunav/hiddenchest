@@ -1,22 +1,23 @@
 /*
 ** binding-mri.cpp
 **
-** This file is part of mkxp.
+** This file is part of HiddenChest and mkxp.
 **
 ** Copyright (C) 2013 Jonas Kulla <Nyocurio@gmail.com>
+** 2019 Extended by Kyonides Arkanthes <kyonides@gmail.com>
 **
-** mkxp is free software: you can redistribute it and/or modify
+** HiddenChest is free software: you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
 ** the Free Software Foundation, either version 2 of the License, or
 ** (at your option) any later version.
 **
-** mkxp is distributed in the hope that it will be useful,
+** HiddenChest is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
 ** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ** GNU General Public License for more details.
 **
 ** You should have received a copy of the GNU General Public License
-** along with mkxp.  If not, see <http://www.gnu.org/licenses/>.
+** along with HiddenChest.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "binding.h"
@@ -37,6 +38,9 @@
 #include <string>
 #include <zlib.h>
 #include <SDL_filesystem.h>
+
+#define HIDDENVERSION "1.1.14"
+#define HIDDENDATE "2019-07-22"
 
 extern const char module_rpg1[];
 extern const char module_rpg2[];
@@ -128,8 +132,11 @@ static void mriBindingInit()
     assert(!"unreachable");
   }
   VALUE mod = rb_define_module("HIDDENCHEST");
-  rb_define_const(mod, "VERSION", rb_str_new_cstr("1.1.10"));
-  rb_define_const(mod, "RELEASE_DATE", rb_str_new_cstr("2019-07-20"));
+  rb_define_const(mod, "AUTHOR", rb_str_new_cstr("Kyonides Arkanthes"));
+  rb_define_const(mod, "VERSION", rb_str_new_cstr(HIDDENVERSION));
+  rb_define_const(mod, "RELEASE_DATE", rb_str_new_cstr(HIDDENDATE));
+  rb_define_const(mod, "DESCRIPTION",
+    rb_str_new_cstr("An RGSS based engine derived from mkxp developed by Ancurio"));
   rb_define_module_function(mod, "data_directory", RUBY_METHOD_FUNC(HCDataDirectory), -1);
   rb_define_module_function(mod, "puts", RUBY_METHOD_FUNC(HCPuts), -1);
   rb_define_module_function(mod, "raw_key_states", RUBY_METHOD_FUNC(HCRawKeyStates), -1);
@@ -229,11 +236,8 @@ static void processReset()
     shState->rtData().rqReset.clear();
   } else {
     //showMsg("Success!");
-    if (rgssVer < 3) {
+    //if (rgssVer < 3)
       rb_funcall(mod, rb_intern("reset"), 0);
-    } else {
-      
-    }
   }
   shState->rtData().rqReset.clear();
   shState->graphics().repaintWait(shState->rtData().rqResetFinish, false);

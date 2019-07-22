@@ -1,22 +1,23 @@
 /*
 ** sprite.cpp
 **
-** This file is part of mkxp.
+** This file is part of HiddenChest and mkxp.
 **
 ** Copyright (C) 2013 Jonas Kulla <Nyocurio@gmail.com>
+** 2019 Extended by Kyonides Arkanthes <kyonides@gmail.com>
 **
-** mkxp is free software: you can redistribute it and/or modify
+** HiddenChest is free software: you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
 ** the Free Software Foundation, either version 2 of the License, or
 ** (at your option) any later version.
 **
-** mkxp is distributed in the hope that it will be useful,
+** HiddenChest is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
 ** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ** GNU General Public License for more details.
 **
 ** You should have received a copy of the GNU General Public License
-** along with mkxp.  If not, see <http://www.gnu.org/licenses/>.
+** along with HiddenChest.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "sprite.h"
@@ -35,6 +36,8 @@
 #include <SDL_rect.h>
 #include <sigc++/connection.h>
 
+#define ROWH 6
+
 struct SpritePrivate
 {
   Bitmap *bitmap;
@@ -44,6 +47,13 @@ struct SpritePrivate
   sigc::connection srcRectCon;
   bool mirrored;
   bool mirroredY;
+  bool increaseWidth;
+  bool increaseHeight;
+  bool reduceWidth;
+  bool reduceHeight;
+  int reducedWidth;
+  int reducedHeight;
+  int reduceSpeed;
   int bushDepth;
   float efBushDepth;
   NormValue bushOpacity;
@@ -78,6 +88,13 @@ struct SpritePrivate
         bushOpacity(128),
         opacity(255),
         blendType(BlendNormal),
+        increaseWidth(false),
+        increaseHeight(false),
+        reduceWidth(false),
+        reduceHeight(false),
+        reducedWidth(0),
+        reducedHeight(0),
+        reduceSpeed(ROWH),
         isVisible(false),
         color(&tmp.color),
         tone(&tmp.tone)
@@ -98,6 +115,42 @@ struct SpritePrivate
     prepareCon.disconnect();
   }
 
+  void updateReduceWidth()
+  {
+    int w = bitmap->width();
+    if (increaseWidth) {
+      reducedWidth -= reduceSpeed;
+      reducedWidth = clamp<int>(reducedWidth, 0, w);
+      onSrcRectChange();
+      if (reducedWidth == 0) increaseWidth = false;
+      return;
+    }
+    if (reduceWidth) {
+      reducedWidth += reduceSpeed;
+      reducedWidth = clamp<int>(reducedWidth, 0, w);
+      onSrcRectChange();
+      if (w == reducedWidth) reduceWidth = false;
+    }
+  }
+
+  void updateReduceHeight()
+  {
+    int h = bitmap->height();
+    if (increaseHeight) {
+      reducedHeight -= reduceSpeed;
+      reducedHeight = clamp<int>(reducedHeight, 0, h);
+      onSrcRectChange();
+      if (reducedHeight == 0) increaseHeight = false;
+      return;
+    }
+    if (reduceHeight) {
+      reducedHeight += reduceSpeed;
+      reducedHeight = clamp<int>(reducedHeight, 0, h);
+      onSrcRectChange();
+      if (h == reducedHeight) reduceHeight = false;
+    }
+  }
+
   void recomputeBushDepth()
   {
     if (nullOrDisposed(bitmap)) return;
@@ -113,7 +166,7 @@ struct SpritePrivate
     FloatRect rect = srcRect->toFloatRect();
     Vec2i bmSize;
     if (!nullOrDisposed(bitmap))
-      bmSize = Vec2i(bitmap->width(), bitmap->height());
+      bmSize = Vec2i(bitmap->width() - reducedWidth, bitmap->height() - reducedHeight);
     // Clamp the rectangle so it doesn't reach outside the bitmap bounds
     rect.w = clamp<int>(rect.w, 0, bmSize.x-rect.x);
     rect.h = clamp<int>(rect.h, 0, bmSize.y-rect.y);
@@ -125,9 +178,8 @@ struct SpritePrivate
   }
 
   void updateSrcRectCon()
-  { // Cut old connection
+  { // Cut old connection and Create new one
     srcRectCon.disconnect();
-    // Create new one
     srcRectCon = srcRect->valueChanged.connect
                 (sigc::mem_fun(this, &SpritePrivate::onSrcRectChange));
   }
@@ -138,9 +190,8 @@ struct SpritePrivate
     if (nullOrDisposed(bitmap)) return;
     if (!opacity) return;
     if (wave.active) {
-      // Don't do expensive wave bounding box calculations
       isVisible = true;
-      return;
+      return;// Don't do expensive wave bounding box calculations
     }
     // Compare sprite bounding box against the scene
     // If sprite is zoomed/rotated, just opt out for now for simplicity's sake
@@ -425,6 +476,60 @@ void Sprite::setBlendType(int type)
   }
 }
 
+int Sprite::getReduceSpeed()
+{
+  return p->reduceSpeed;
+}
+
+void Sprite::setReduceSpeed(int speed)
+{
+  p->reduceSpeed = speed;
+}
+
+void Sprite::increaseWidth()
+{
+  p->reducedWidth = p->bitmap->width();
+  p->increaseWidth = true;
+  p->updateReduceWidth();
+}
+
+void Sprite::increaseHeight()
+{
+  p->reducedHeight = p->bitmap->height();
+  p->increaseHeight = true;
+  p->updateReduceHeight();
+}
+
+void Sprite::reduceWidth()
+{
+  p->reduceWidth = true;
+}
+
+void Sprite::reduceHeight()
+{
+  p->reduceHeight = true;
+}
+
+bool Sprite::isWidthIncreased()
+{
+  return p->reducedWidth == 0;
+}
+
+bool Sprite::isHeightIncreased()
+{
+  return p->reducedHeight == 0;
+}
+
+bool Sprite::isWidthReduced()
+{
+  return p->reducedWidth == p->bitmap->width();
+}
+
+bool Sprite::isHeightReduced()
+{
+  return p->reducedHeight == p->bitmap->height();
+}
+
 #define DEF_WAVE_SETTER(Name, name, type) \
 	void Sprite::setWave##Name(type value) \
 	{ \
@@ -454,6 +559,8 @@ void Sprite::update()
 {
   guardDisposed();
   Flashable::update();
+  p->updateReduceWidth();
+  p->updateReduceHeight();
   p->wave.phase += p->wave.speed / 180;
   p->wave.dirty = true;
 }

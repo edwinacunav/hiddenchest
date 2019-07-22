@@ -1,22 +1,23 @@
 /*
 ** sprite.h
 **
-** This file is part of mkxp.
+** This file is part of HiddenChest and mkxp.
 **
 ** Copyright (C) 2013 Jonas Kulla <Nyocurio@gmail.com>
+** 2019 Extended by Kyonides Arkanthes <kyonides@gmail.com>
 **
-** mkxp is free software: you can redistribute it and/or modify
+** HiddenChest is free software: you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
 ** the Free Software Foundation, either version 2 of the License, or
 ** (at your option) any later version.
 **
-** mkxp is distributed in the hope that it will be useful,
+** HiddenChest is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
 ** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ** GNU General Public License for more details.
 **
 ** You should have received a copy of the GNU General Public License
-** along with mkxp.  If not, see <http://www.gnu.org/licenses/>.
+** along with HiddenChest.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #ifndef SPRITE_H
@@ -71,7 +72,16 @@ public:
   void setColor(double r, double g, double b, double a);
   Tone& getTone() const;
   void setTone(Tone& tone);
-
+  int  getReduceSpeed();
+  void setReduceSpeed(int);
+  void increaseWidth();
+  void increaseHeight();
+  void reduceWidth();
+  void reduceHeight();
+  bool isWidthIncreased();
+  bool isHeightIncreased();
+  bool isWidthReduced();
+  bool isHeightReduced();
   void initDynAttribs();
 
 private:

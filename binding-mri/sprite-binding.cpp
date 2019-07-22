@@ -1,22 +1,23 @@
 /*
 ** sprite-binding.cpp
 **
-** This file is part of mkxp.
+** This file is part of HiddenChest and mkxp.
 **
 ** Copyright (C) 2013 Jonas Kulla <Nyocurio@gmail.com>
+** 2019 Extended by Kyonides Arkanthes <kyonides@gmail.com>
 **
-** mkxp is free software: you can redistribute it and/or modify
+** HiddenChest is free software: you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
 ** the Free Software Foundation, either version 2 of the License, or
 ** (at your option) any later version.
 **
-** mkxp is distributed in the hope that it will be useful,
+** HiddenChest is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
 ** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ** GNU General Public License for more details.
 **
 ** You should have received a copy of the GNU General Public License
-** along with mkxp.  If not, see <http://www.gnu.org/licenses/>.
+** along with HiddenChest.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "sprite.h"
@@ -302,12 +303,14 @@ static VALUE SpriteSetZoomY(VALUE self, VALUE number)
 static VALUE SpriteGetAngle(VALUE self)
 {
   Sprite *s = static_cast<Sprite*>(RTYPEDDATA_DATA(self));
+  if (s == 0) return RB_INT2FIX(0);
   return rb_float_new( s->getAngle() );
 }
 
 static VALUE SpriteSetAngle(VALUE self, VALUE number)
 {
   Sprite *s = static_cast<Sprite*>(RTYPEDDATA_DATA(self));
+  if (s == 0) return RB_INT2FIX(0);
   GUARD_EXC( s->setAngle( NUM2DBL(number) ); )
   return rb_float_new( s->getAngle() );
 }
@@ -315,12 +318,14 @@ static VALUE SpriteSetAngle(VALUE self, VALUE number)
 static VALUE SpriteGetMirror(VALUE self)
 {
   Sprite *s = static_cast<Sprite*>(RTYPEDDATA_DATA(self));
+  if (s == 0) return Qfalse;
   return s->getMirror() ? Qtrue : Qfalse;
 }
 
 static VALUE SpriteSetMirror(VALUE self, VALUE bln)
 {
   Sprite *s = static_cast<Sprite*>(RTYPEDDATA_DATA(self));
+  if (s == 0) return Qfalse;
   GUARD_EXC( s->setMirror( bln == Qtrue ? true : false ); )
   return bln;
 }
@@ -328,12 +333,14 @@ static VALUE SpriteSetMirror(VALUE self, VALUE bln)
 static VALUE SpriteGetMirrorY(VALUE self)
 {
   Sprite *s = static_cast<Sprite*>(RTYPEDDATA_DATA(self));
+  if (s == 0) return Qfalse;
   return s->getMirrorY() ? Qtrue : Qfalse;
 }
 
 static VALUE SpriteSetMirrorY(VALUE self, VALUE bln)
 {
   Sprite *s = static_cast<Sprite*>(RTYPEDDATA_DATA(self));
+  if (s == 0) return Qfalse;
   GUARD_EXC( s->setMirrorY( bln == Qtrue ? true : false ); )
   return bln;
 }
@@ -341,13 +348,90 @@ static VALUE SpriteSetMirrorY(VALUE self, VALUE bln)
 static VALUE SpriteWidth(VALUE self)
 {
   Sprite *s = static_cast<Sprite*>(RTYPEDDATA_DATA(self));
+  if (s == 0) return RB_INT2FIX(0);
   return RB_INT2FIX( s->getWidth() );
 }
 
 static VALUE SpriteHeight(VALUE self)
 {
   Sprite *s = static_cast<Sprite*>(RTYPEDDATA_DATA(self));
+  if (s == 0) return RB_INT2FIX(0);
   return RB_INT2FIX( s->getHeight() );
+}
+
+static VALUE SpriteGetReduceSpeed(VALUE self)
+{
+  Sprite *s = static_cast<Sprite*>(RTYPEDDATA_DATA(self));
+  if (s == 0) return RB_INT2FIX(0);
+  return RB_INT2FIX( s->getReduceSpeed() );
+}
+
+static VALUE SpriteSetReduceSpeed(VALUE self, VALUE rspeed)
+{
+  Sprite *s = static_cast<Sprite*>(RTYPEDDATA_DATA(self));
+  if (s == 0) return RB_INT2FIX(0);
+  s->setReduceSpeed(RB_FIX2INT(rspeed));
+  return rspeed;
+}
+
+static VALUE SpriteIncreaseWidth(VALUE self)
+{
+  Sprite *s = static_cast<Sprite*>(RTYPEDDATA_DATA(self));
+  if (s == 0) return Qfalse;
+  s->increaseWidth();
+  return Qtrue;
+}
+
+static VALUE SpriteIncreaseHeight(VALUE self)
+{
+  Sprite *s = static_cast<Sprite*>(RTYPEDDATA_DATA(self));
+  if (s == 0) return Qfalse;
+  s->increaseHeight();
+  return Qtrue;
+}
+
+static VALUE SpriteReduceWidth(VALUE self)
+{
+  Sprite *s = static_cast<Sprite*>(RTYPEDDATA_DATA(self));
+  if (s == 0) return Qnil;
+  s->reduceWidth();
+  return Qtrue;
+}
+
+static VALUE SpriteReduceHeight(VALUE self)
+{
+  Sprite *s = static_cast<Sprite*>(RTYPEDDATA_DATA(self));
+  if (s == 0) return Qnil;
+  s->reduceHeight();
+  return Qtrue;
+}
+
+static VALUE SpriteIsWidthIncreased(VALUE self)
+{
+  Sprite *s = static_cast<Sprite*>(RTYPEDDATA_DATA(self));
+  if (s == 0) return Qnil;
+  return s->isWidthIncreased() ? Qtrue : Qfalse;
+}
+
+static VALUE SpriteIsHeightIncreased(VALUE self)
+{
+  Sprite *s = static_cast<Sprite*>(RTYPEDDATA_DATA(self));
+  if (s == 0) return Qnil;
+  return s->isHeightIncreased() ? Qtrue : Qfalse;
+}
+
+static VALUE SpriteIsWidthReduced(VALUE self)
+{
+  Sprite *s = static_cast<Sprite*>(RTYPEDDATA_DATA(self));
+  if (s == 0) return Qnil;
+  return s->isWidthReduced() ? Qtrue : Qfalse;
+}
+
+static VALUE SpriteIsHeightReduced(VALUE self)
+{
+  Sprite *s = static_cast<Sprite*>(RTYPEDDATA_DATA(self));
+  if (s == 0) return Qnil;
+  return s->isHeightReduced() ? Qtrue : Qfalse;
 }
 
 }
@@ -403,6 +487,16 @@ void spriteBindingInit() {
   rb_define_method(RSprite, "blend_type=", RUBY_METHOD_FUNC(SpriteSetBlendType), 1);
   rb_define_method(RSprite, "width", RUBY_METHOD_FUNC(SpriteWidth), 0);
   rb_define_method(RSprite, "height", RUBY_METHOD_FUNC(SpriteHeight), 0);
+  rb_define_method(RSprite, "reduce_speed", RUBY_METHOD_FUNC(SpriteGetReduceSpeed), 0);
+  rb_define_method(RSprite, "reduce_speed=", RUBY_METHOD_FUNC(SpriteSetReduceSpeed), 1);
+  rb_define_method(RSprite, "increase_width!", RUBY_METHOD_FUNC(SpriteIncreaseWidth), 0);
+  rb_define_method(RSprite, "increase_height!", RUBY_METHOD_FUNC(SpriteIncreaseHeight), 0);
+  rb_define_method(RSprite, "increased_width?", RUBY_METHOD_FUNC(SpriteIsWidthIncreased), 0);
+  rb_define_method(RSprite, "increased_height?", RUBY_METHOD_FUNC(SpriteIsHeightIncreased), 0);
+  rb_define_method(RSprite, "reduce_width!", RUBY_METHOD_FUNC(SpriteReduceWidth), 0);
+  rb_define_method(RSprite, "reduce_height!", RUBY_METHOD_FUNC(SpriteReduceHeight), 0);
+  rb_define_method(RSprite, "reduced_width?", RUBY_METHOD_FUNC(SpriteIsWidthReduced), 0);
+  rb_define_method(RSprite, "reduced_height?", RUBY_METHOD_FUNC(SpriteIsHeightReduced), 0);
   if (rgssVer >= 2) {
     rb_define_method(RSprite, "bush_opacity", RUBY_METHOD_FUNC(SpriteGetBushOpacity), 0);
     rb_define_method(RSprite, "bush_opacity=", RUBY_METHOD_FUNC(SpriteSetBushOpacity), 1);

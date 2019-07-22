@@ -1,22 +1,23 @@
 /*
 ** main.cpp
 **
-** This file is part of mkxp.
+** This file is part of HiddenChest and mkxp.
 **
 ** Copyright (C) 2013 Jonas Kulla <Nyocurio@gmail.com>
+** 2019 Extended by Kyonides Arkanthes <kyonides@gmail.com>
 **
-** mkxp is free software: you can redistribute it and/or modify
+** HiddenChest is free software: you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
 ** the Free Software Foundation, either version 2 of the License, or
 ** (at your option) any later version.
 **
-** mkxp is distributed in the hope that it will be useful,
+** HiddenChest is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
 ** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ** GNU General Public License for more details.
 **
 ** You should have received a copy of the GNU General Public License
-** along with mkxp.  If not, see <http://www.gnu.org/licenses/>.
+** along with HiddenChest.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include <alc.h>
@@ -39,6 +40,10 @@
 #include "resource.h"
 #endif
 #include "icon.png.xxd"
+
+#define HIDDENAUTHOR "Kyonides Arkanthes"
+#define HIDDENVERSION "1.1.14"
+#define HIDDENDATE "2019-07-22"
 
 static void
 rgssThreadError(RGSSThreadData *rtData, const std::string &msg)
@@ -127,9 +132,12 @@ int rgssThreadFun(void *userdata)
 
 static void printRgssVersion(int ver)
 {
+  Debug() << "HiddenChest The RGSS 1 2 & 3 Player Engine\n" <<
+    "Author:" << HIDDENAUTHOR << "HiddenChest Engine Version:" <<
+    HIDDENVERSION << "\nRelease Date:" << HIDDENDATE;
   const char *const makers[] = { "", "XP", "VX", "VX Ace" };
   char buf[128];
-  snprintf(buf, sizeof(buf), "RGSS version %d (%s)", ver, makers[ver]);
+  snprintf(buf, sizeof(buf), "Using RGSS Version %d (%s)", ver, makers[ver]);
   Debug() << buf;
 }
 
@@ -256,14 +264,14 @@ int main(int argc, char *argv[])
   rtData.rqTerm.set();
   // Wait for RGSS thread response
   for (int i = 0; i < 1000; ++i) {
-    // We can stop waiting when the request was ack'd
+    // We can stop waiting when the request was acknowledged
     if (rtData.rqTermAck) {
       Debug() << "RGSS thread acknowledged request after" << i*10 << "ms";
       break;
     } // Give RGSS thread some time to respond
     SDL_Delay(10);
   }
-  // If RGSS thread ack'd request, wait for it to shutdown,
+  // If RGSS thread acknowledged request, wait for it to shutdown,
   //otherwise abandon hope and just end the process as is.
   if (rtData.rqTermAck)
     SDL_WaitThread(rgssThread, 0);

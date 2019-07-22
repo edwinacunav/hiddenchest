@@ -34,7 +34,7 @@
 #include "glstate.h"
 #include <sigc++/connection.h>
 
-#define MINOPENH 48
+#define MINOPENH 32
 
 template<typename T>
 struct Sides
@@ -268,6 +268,7 @@ struct WindowPrivate
     processOpenMode();
     if (openMode > 0) openness = 0;
     prepareCon = shState->prepareDraw.connect(sigc::mem_fun(this, &WindowPrivate::prepare));
+    prepare();
   }
 
   ~WindowPrivate()
@@ -278,7 +279,7 @@ struct WindowPrivate
   }
 
   void processOpenMode()
-  {//    if () return;
+  {
     int offset = size.y;
     if (baseTex.height > offset) offset = baseTex.height;
     if (tempHeight > offset) offset = tempHeight;
@@ -593,6 +594,7 @@ struct WindowPrivate
     TEX::setSmooth(true);
     baseQuadArray.draw();
     TEX::setSmooth(false);
+    prepare();
   }
 };
 
@@ -650,9 +652,8 @@ void Window::setY(int value)
 {
   guardDisposed();
   p->position.y = value;
-  if (p->size.y == 0) return;
+  p->needOpenness = p->openMode > 0;
   p->processOpenMode();
-  p->updateOpenness();
 }
 
 void Window::setXY(int val, int num)
@@ -660,9 +661,41 @@ void Window::setXY(int val, int num)
   guardDisposed();
   p->position.x = val;
   p->position.y = num;
-  if (p->size.y == 0) return;
+  p->needOpenness = p->openMode > 0;
   p->processOpenMode();
-  p->updateOpenness();
+}
+
+void Window::setWidth(int value)
+{
+  guardDisposed();
+  if (p->size.x == value) return;
+  p->size.x = value;
+  p->baseVertDirty = true;
+}
+
+void Window::setHeight(int value)
+{
+  guardDisposed();
+  if (p->size.y == value) return;
+  p->size.y = value;
+  p->needOpenness = p->openMode > 0;
+  p->processOpenMode();
+}
+
+void Window::setOX(int value)
+{
+  guardDisposed();
+  if (p->contentsOffset.x == value) return;
+  p->contentsOffset.x = value;
+  p->controlsVertDirty = true;
+}
+
+void Window::setOY(int value)
+{
+  guardDisposed();
+  if (p->contentsOffset.y == value) return;
+  p->contentsOffset.y = value;
+  p->controlsVertDirty = true;
 }
 
 Rect& Window::getCursorRect() const
@@ -722,40 +755,6 @@ void Window::setPause(bool value)
   p->controlsVertDirty = true;
 }
 
-void Window::setWidth(int value)
-{
-  guardDisposed();
-  if (p->size.x == value) return;
-  p->size.x = value;
-  p->baseVertDirty = true;
-}
-
-void Window::setHeight(int value)
-{
-  guardDisposed();
-  if (p->size.y == value) return;
-  p->size.y = value;
-  p->baseVertDirty = true;
-  p->processOpenMode();
-  p->updateOpenness();
-}
-
-void Window::setOX(int value)
-{
-  guardDisposed();
-  if (p->contentsOffset.x == value) return;
-  p->contentsOffset.x = value;
-  p->controlsVertDirty = true;
-}
-
-void Window::setOY(int value)
-{
-  guardDisposed();
-  if (p->contentsOffset.y == value) return;
-  p->contentsOffset.y = value;
-  p->controlsVertDirty = true;
-}
-
 int Window::getOpenMode() const
 {
   guardDisposed();
@@ -768,8 +767,8 @@ void Window::setOpenMode(int val)
   p->openMode = (val < 0 && val > 3)? 0 : val;
   p->openness = p->openMode == 0 ? 100 : 0;
   p->processOpenMode();
-  setVisible(!(p->openness == 0 && p->openMode == 0));
-  p->updateOpenness();
+  //setVisible(!(p->openness == 0 && p->openMode == 0));
+  //p->updateOpenness();
 }
 
 int Window::getOpenness() const
