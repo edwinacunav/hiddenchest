@@ -39,7 +39,7 @@
 #include <zlib.h>
 #include <SDL_filesystem.h>
 
-#define HIDDENVERSION "1.1.15"
+#define HIDDENVERSION "1.1.16"
 #define HIDDENDATE "2019-07-22"
 
 extern const char module_rpg1[];

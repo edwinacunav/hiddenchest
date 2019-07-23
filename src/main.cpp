@@ -42,7 +42,7 @@
 #include "icon.png.xxd"
 
 #define HIDDENAUTHOR "Kyonides Arkanthes"
-#define HIDDENVERSION "1.1.15"
+#define HIDDENVERSION "1.1.16"
 #define HIDDENDATE "2019-07-22"
 
 static void

@@ -117,39 +117,39 @@ struct SpritePrivate
 
   void updateReduceWidth()
   {
-    if (!bitmap) return;
-    int w = bitmap->width();
     if (increaseWidth) {
+      int w = bitmap->width();
       reducedWidth -= reduceSpeed;
       reducedWidth = clamp<int>(reducedWidth, 0, w);
       onSrcRectChange();
-      if (reducedWidth == 0) increaseWidth = false;
+      increaseWidth = reducedWidth > 0;
       return;
     }
     if (reduceWidth) {
+      int w = bitmap->width();
       reducedWidth += reduceSpeed;
       reducedWidth = clamp<int>(reducedWidth, 0, w);
       onSrcRectChange();
-      if (w == reducedWidth) reduceWidth = false;
+      reduceWidth = w > reducedWidth;
     }
   }
 
   void updateReduceHeight()
   {
-    if (!bitmap) return;
-    int h = bitmap->height();
     if (increaseHeight) {
+      int h = bitmap->height();
       reducedHeight -= reduceSpeed;
       reducedHeight = clamp<int>(reducedHeight, 0, h);
       onSrcRectChange();
-      if (reducedHeight == 0) increaseHeight = false;
+      increaseHeight = reducedHeight > 0;
       return;
     }
     if (reduceHeight) {
+      int h = bitmap->height();
       reducedHeight += reduceSpeed;
       reducedHeight = clamp<int>(reducedHeight, 0, h);
       onSrcRectChange();
-      if (h == reducedHeight) reduceHeight = false;
+      reduceHeight = h > reducedHeight;
     }
   }
 
