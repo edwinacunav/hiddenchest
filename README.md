@@ -180,6 +180,7 @@ To alleviate possible porting of heavily Win32API reliant scripts, we have added
 * The Scripts module allows you to store a Ruby string or symbol as a script ID via Scripts << :script_name. Once it has been stored there, you can call its methods, i.e. Scripts.all or Scripts.include?(:script_name) to access the Scripts IDs Array and confirm if it has been included respectively.
 * Font class now lets you use its `underline` and `strikethrough` or `strikethru` options the same way you used `bold` or `italic`.
 * `RPG::Weather.sprite_max = Number`. where Number is a positive integer number, lets you define the upper limit of the weather sprites like rain or storm or snow effects. Currently it is set at 400 sprites.
+* Sprite class got new methods like `mirror_y` alias `flip_y`, `reduce_speed`, `reduce_speed=`, `increase_width!`, `increase_height!`, `reduce_width!`. `increase_height!`.
 
 ## List of Bug Fixes for HiddenChest
 
