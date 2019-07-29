@@ -1,5 +1,6 @@
 # * Scene_Example Script
 #   Scripter : Kyonides-Arkanthes
+#   2019-07-29
 
 #   This script consists of ideas on How To Implement HiddenChest's
 #   New Script calls like...
@@ -12,13 +13,16 @@
 #   Scene Script Call: $scene = Scene_Example.new
 
 module Examples
-  PICTURE = "Some Picture"
-  FACES = ["", "", "", ""]
+  PICTURE = "equipbox"
+  FACES = Dir['Graphics/Faces/*'].sort[0..3].map{|s| s.sub(".png","") }
+  FACES.map!{|s| s.sub("Graphics/Faces/","") }
 end
 
 class Scene_Example
   include Examples
   def main
+    song = RPG::AudioFile.new("The Field of Dreams")
+    $game_system.bgm_play(song)
     create_interphase
     Graphics.transition
     entry_animations
@@ -89,21 +93,48 @@ class Scene_Example
       sprite.bitmap.dispose
       sprite.dispose
     end
+    Audio.bgm_fade(400)
   end
 
   def update
     @command_window.update
+    if @click_on_window
+      @timer -= 1
+      @click_on_window = @timer > 0
+      unless @click_on_window
+        Audio.play_ok
+        process_decision
+        process_closing
+      end
+      return
+    end
     if Input.trigger?(Input::B)
       Audio.play_cancel
       return $scene = nil
     elsif Input.trigger?(Input::C)
+    Audio.play_ok
+      process_decision
+      return process_closing
+    elsif Input.trigger?(Input::MOUSELEFT)
+      pos = nil
+      3.times{|n| (pos = n; break) if @command_window.mouse_above?(n) }
+      return unless pos
       Audio.play_ok
-      $scene = case @command_window.index
-      when 0 then Scene_Title.new
-      when 1 then nil
-      end
-      @command_window.close
-      (@faces + @sprites).each{|s| s.reduce_width! }
+      @click_on_window = true
+      @timer = Graphics.frame_rate / 3
+      @command_window.index = pos
     end
+  end
+
+  def process_decision
+    $scene = case @command_window.index
+    when 0 then Scene_Title.new
+    when 1 then nil
+    end
+  end
+
+  def process_closing
+    @command_window.close
+    (@faces + @sprites).each{|s| s.reduce_width! }
   end
 end

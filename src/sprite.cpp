@@ -562,6 +562,7 @@ bool Sprite::isHeightReduced()
 
 bool Sprite::isMouseInside()
 {
+  guardDisposed();
   int mx = shState->input().mouseX();
   int x = p->trans.getPosition().x;
   if (mx < x) return false;

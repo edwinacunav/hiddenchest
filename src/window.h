@@ -17,7 +17,7 @@
 ** GNU General Public License for more details.
 **
 ** You should have received a copy of the GNU General Public License
-** along with HiddenChest.  If not, see <http://www.gnu.org/licenses/>.
+** along with HiddenChest. If not, see <http://www.gnu.org/licenses/>.
 */
 
 #ifndef WINDOW_H
@@ -58,6 +58,7 @@ public:
     void setOpenness(int);
     bool isOpen() const;
     bool isClosed() const;
+    bool isMouseInside(Rect*) const;
     void updateOpenness();
     int  getOpenMode() const;
     void setOpenMode(int);

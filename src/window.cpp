@@ -20,6 +20,7 @@
 ** along with HiddenChest.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "input.h"
 #include "window.h"
 #include "viewport.h"
 #include "sharedstate.h"
@@ -798,6 +799,17 @@ bool Window::isClosed() const
 {
   guardDisposed();
   return (p->openMode > 0 && p->openness == 0);
+}
+
+bool Window::isMouseInside(Rect *r) const
+{
+  guardDisposed();
+  int mx = shState->input().mouseX();
+  if (mx < r->getX()) return false;
+  if (mx > r->getXWidth()) return false;
+  int my = shState->input().mouseY();
+  if (my < r->getY()) return false;
+  return my <= r->getYHeight();
 }
 
 void Window::setOpacity(int value)

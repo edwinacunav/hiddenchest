@@ -119,7 +119,7 @@ static void mriBindingInit()
     rb_define_module_function(rb_mKernel, "caller", RUBY_METHOD_FUNC(_kernelCaller), -1);
   }
   VALUE mod = rb_define_module("HIDDENCHEST");
-  rb_define_const(mod, "AUTHOR", rb_str_new_cstr("Kyonides Arkanthes"));
+  rb_define_const(mod, "AUTHOR", rb_str_new_cstr(HIDDENAUTHOR));
   rb_define_const(mod, "VERSION", rb_str_new_cstr(HIDDENVERSION));
   rb_define_const(mod, "RELEASE_DATE", rb_str_new_cstr(HIDDENDATE));
   rb_define_const(mod, "DESCRIPTION",

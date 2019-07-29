@@ -17,7 +17,7 @@
 ** GNU General Public License for more details.
 **
 ** You should have received a copy of the GNU General Public License
-** along with HiddenChest.  If not, see <http://www.gnu.org/licenses/>.
+** along with HiddenChest. If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "window.h"
@@ -81,6 +81,7 @@ static VALUE window_initialize(int argc, VALUE *v, VALUE self)
   Window *w = new Window(view, cmode);
   setPrivateData(self, w);
   w->initDynAttribs();
+  rb_iv_set(self, "@area", rb_ary_new());
   wrapProperty(self, &w->getCursorRect(), "cursor_rect", RectType);
   return self;
 }
@@ -181,6 +182,21 @@ static VALUE window_set_xy(VALUE self, VALUE rx, VALUE ry)
   return rb_ary_new3(2, rx, ry);
 }
 
+static VALUE window_is_mouse_inside(VALUE self, VALUE pos)
+{
+  Window *win = getPrivateData<Window>(self);
+  if (win == 0) return Qnil;
+  int index = RB_FIX2INT(pos);
+  VALUE rect = rb_ary_entry(rb_iv_get(self, "@area"), index);
+  if (RB_NIL_P(rect)) return Qnil;
+  int x = RB_FIX2INT(rb_ary_entry(rect, 0));
+  int y = RB_FIX2INT(rb_ary_entry(rect, 1));
+  int w = RB_FIX2INT(rb_ary_entry(rect, 2));
+  Rect *r = new Rect(x, y, w, RB_FIX2INT(rb_ary_entry(rect, 3)));
+  bool result = win->isMouseInside(r);
+  return result ? Qtrue : Qfalse;
+}
+
 DEF_PROP_OBJ_REF(Window, Bitmap, Contents,   "contents")
 DEF_PROP_OBJ_VAL(Window, Rect,   CursorRect, "cursor_rect")
 DEF_PROP_B(Window, Stretch)
@@ -216,6 +232,9 @@ void windowBindingInit()
   rb_define_method(klass, "open?", RMF(window_is_open), 0);
   rb_define_method(klass, "close?", RMF(window_is_closed), 0);
   rb_define_method(klass, "set_xy", RMF(window_set_xy), 2);
+  rb_define_method(klass, "mouse_inside?", RMF(window_is_mouse_inside), 1);
+  rb_define_method(klass, "mouse_above?", RMF(window_is_mouse_inside), 1);
+  rb_define_attr(klass, "area", 1, 0);
   INIT_PROP_BIND( Window, Contents,        "contents"         );
   INIT_PROP_BIND( Window, Stretch,         "stretch"          );
   INIT_PROP_BIND( Window, CursorRect,      "cursor_rect"      );

@@ -134,6 +134,8 @@ struct Rect : public Serializable
   int getY() const { return y; }
   int getWidth() const { return width; }
   int getHeight() const { return height; }
+  int getXWidth() const { return x + width; }
+  int getYHeight() const { return y + height; }
   /* Serializable */
   int serialSize() const;
   void serialize(char *buffer) const;

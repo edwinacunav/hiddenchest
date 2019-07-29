@@ -1,6 +1,6 @@
 # * KWinOpen XP
 #   Scripter : Kyonides-Arkanthes
-#   2019-07-23 - v 0.2.1
+#   2019-07-29 - v 0.3.0
 
 # This scriptlet shows you how you can implement window openness a la VX Ace in
 # your beloved XP games by using the HiddenChest engine! But it sports not one
@@ -120,8 +120,12 @@ class TitleOptionsWindow < Window_Selectable
   end
 
   def draw_item(index, color)
+    w = self.contents.width - 8
+    # Set a clickable area for each command option - Single Column Style!
+    # Delete || in case the areas might change eventually.
+    @area[index] ||= [self.x + 16, self.y + 16 + 32 * index, w, 32]
     self.contents.font.color = color
-    rect = Rect.new(4, 32 * index, self.contents.width - 8, 32)
+    rect = Rect.new(4, 32 * index, w, 32)
     self.contents.fill_rect(rect, Color.new(0, 0, 0, 0))
     self.contents.draw_text(rect, @commands[index])
   end
