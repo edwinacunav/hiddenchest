@@ -192,9 +192,8 @@ static VALUE window_is_mouse_inside(VALUE self, VALUE pos)
   int x = RB_FIX2INT(rb_ary_entry(rect, 0));
   int y = RB_FIX2INT(rb_ary_entry(rect, 1));
   int w = RB_FIX2INT(rb_ary_entry(rect, 2));
-  Rect *r = new Rect(x, y, w, RB_FIX2INT(rb_ary_entry(rect, 3)));
-  bool result = win->isMouseInside(r);
-  return result ? Qtrue : Qfalse;
+  int h = RB_FIX2INT(rb_ary_entry(rect, 3));
+  return win->isMouseInside(x, y, w, h) ? Qtrue : Qfalse;
 }
 
 DEF_PROP_OBJ_REF(Window, Bitmap, Contents,   "contents")

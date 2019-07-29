@@ -36,48 +36,49 @@ struct WindowVXPrivate;
 class WindowVX : public ViewportElement, public Disposable
 {
 public:
-	WindowVX(Viewport *viewport = 0);
-	WindowVX(int x, int y, int width, int height);
-	~WindowVX();
+  WindowVX(Viewport *viewport = 0);
+  WindowVX(int x, int y, int width, int height);
+  ~WindowVX();
 
-	void update();
+  void update();
 
-	void move(int x, int y, int width, int height);
-	bool isOpen() const;
-	bool isClosed() const;
+  void move(int x, int y, int width, int height);
+  bool isOpen() const;
+  bool isClosed() const;
+  bool isMouseInside(int, int, int, int) const;
 
-	DECL_ATTR( Windowskin,      Bitmap* )
-	DECL_ATTR( Contents,        Bitmap* )
-	DECL_ATTR( CursorRect,      Rect&   )
-	DECL_ATTR( Active,          bool    )
-	DECL_ATTR( ArrowsVisible,   bool    )
-	DECL_ATTR( Pause,           bool    )
-	DECL_ATTR( X,               int     )
-	DECL_ATTR( Y,               int     )
-	DECL_ATTR( Width,           int     )
-	DECL_ATTR( Height,          int     )
-	DECL_ATTR( OX,              int     )
-	DECL_ATTR( OY,              int     )
-	DECL_ATTR( Padding,         int     )
-	DECL_ATTR( PaddingBottom,   int     )
-	DECL_ATTR( Opacity,         int     )
-	DECL_ATTR( BackOpacity,     int     )
-	DECL_ATTR( ContentsOpacity, int     )
-	DECL_ATTR( Openness,        int     )
-	DECL_ATTR( Tone,            Tone&   )
+  DECL_ATTR( Windowskin,      Bitmap* )
+  DECL_ATTR( Contents,        Bitmap* )
+  DECL_ATTR( CursorRect,      Rect&   )
+  DECL_ATTR( Active,          bool    )
+  DECL_ATTR( ArrowsVisible,   bool    )
+  DECL_ATTR( Pause,           bool    )
+  DECL_ATTR( X,               int     )
+  DECL_ATTR( Y,               int     )
+  DECL_ATTR( Width,           int     )
+  DECL_ATTR( Height,          int     )
+  DECL_ATTR( OX,              int     )
+  DECL_ATTR( OY,              int     )
+  DECL_ATTR( Padding,         int     )
+  DECL_ATTR( PaddingBottom,   int     )
+  DECL_ATTR( Opacity,         int     )
+  DECL_ATTR( BackOpacity,     int     )
+  DECL_ATTR( ContentsOpacity, int     )
+  DECL_ATTR( Openness,        int     )
+  DECL_ATTR( Tone,            Tone&   )
 
-	void initDynAttribs();
+  void initDynAttribs();
 
 private:
-	WindowVXPrivate *p;
+  WindowVXPrivate *p;
 
-	void draw();
-	void onGeometryChange(const Scene::Geometry &);
+  void draw();
+  void onGeometryChange(const Scene::Geometry &);
 
-	void releaseResources();
-	const char *klassName() const { return "window"; }
+  void releaseResources();
+  const char *klassName() const { return "window"; }
 
-	ABOUT_TO_ACCESS_DISP
+  ABOUT_TO_ACCESS_DISP
 };
 
 #endif // WINDOWVX_H

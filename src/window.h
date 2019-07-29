@@ -58,7 +58,7 @@ public:
     void setOpenness(int);
     bool isOpen() const;
     bool isClosed() const;
-    bool isMouseInside(Rect*) const;
+    bool isMouseInside(int, int, int, int) const;
     void updateOpenness();
     int  getOpenMode() const;
     void setOpenMode(int);

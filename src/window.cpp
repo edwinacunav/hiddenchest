@@ -801,15 +801,15 @@ bool Window::isClosed() const
   return (p->openMode > 0 && p->openness == 0);
 }
 
-bool Window::isMouseInside(Rect *r) const
+bool Window::isMouseInside(int x, int y, int w, int h) const
 {
   guardDisposed();
   int mx = shState->input().mouseX();
-  if (mx < r->getX()) return false;
-  if (mx > r->getXWidth()) return false;
+  if (mx < x) return false;
+  if (mx > x + w) return false;
   int my = shState->input().mouseY();
-  if (my < r->getY()) return false;
-  return my <= r->getYHeight();
+  if (my < y) return false;
+  return my <= y + h;
 }
 
 void Window::setOpacity(int value)
