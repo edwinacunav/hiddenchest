@@ -17,9 +17,10 @@
 ** GNU General Public License for more details.
 **
 ** You should have received a copy of the GNU General Public License
-** along with HiddenChest.  If not, see <http://www.gnu.org/licenses/>.
+** along with HiddenChest. If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "author.h"
 #include <alc.h>
 #include <SDL.h>
 #include <SDL_image.h>
@@ -40,10 +41,6 @@
 #include "resource.h"
 #endif
 #include "icon.png.xxd"
-
-#define HIDDENAUTHOR "Kyonides Arkanthes"
-#define HIDDENVERSION "1.1.16"
-#define HIDDENDATE "2019-07-22"
 
 static void
 rgssThreadError(RGSSThreadData *rtData, const std::string &msg)
@@ -82,18 +79,14 @@ int rgssThreadFun(void *userdata)
     rgssThreadError(threadData, std::string("Error creating context: ") + SDL_GetError());
     return 0;
   }
-  try
-  {
+  try {
     initGLFunctions();
-  }
-  catch (const Exception &exc)
-  {
+  } catch (const Exception &exc) {
     rgssThreadError(threadData, exc.msg);
     SDL_GL_DeleteContext(glCtx);
     return 0;
   }
-  if (!conf.enableBlitting)
-          gl.BlitFramebuffer = 0;
+  if (!conf.enableBlitting) gl.BlitFramebuffer = 0;
   gl.ClearColor(0, 0, 0, 1);
   gl.Clear(GL_COLOR_BUFFER_BIT);
   SDL_GL_SwapWindow(win);
@@ -109,12 +102,9 @@ int rgssThreadFun(void *userdata)
     return 0;
   }
   alcMakeContextCurrent(alcCtx);
-  try
-  {
+  try {
     SharedState::initInstance(threadData);
-  }
-  catch (const Exception &exc)
-  {
+  } catch (const Exception &exc) {
     rgssThreadError(threadData, exc.msg);
     alcDestroyContext(alcCtx);
     SDL_GL_DeleteContext(glCtx);
@@ -135,7 +125,7 @@ static void printRgssVersion(int ver)
   Debug() << "HiddenChest The RGSS 1 2 & 3 Player Engine\n" <<
     "Author:" << HIDDENAUTHOR << "HiddenChest Engine Version:" <<
     HIDDENVERSION << "\nRelease Date:" << HIDDENDATE;
-  const char *const makers[] = { "", "XP", "VX", "VX Ace" };
+  const char *const makers[] = { "HiddenChest", "XP", "VX", "VX Ace" };
   char buf[128];
   snprintf(buf, sizeof(buf), "Using RGSS Version %d (%s)", ver, makers[ver]);
   Debug() << buf;

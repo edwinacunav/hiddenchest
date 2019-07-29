@@ -23,6 +23,7 @@
 #include "sprite.h"
 #include "sharedstate.h"
 #include "bitmap.h"
+#include "input.h"
 #include "etc.h"
 #include "etc-internal.h"
 #include "util.h"
@@ -505,6 +506,17 @@ void Sprite::increaseHeight()
   p->updateReduceHeight();
 }
 
+void Sprite::increaseWidthHeight()
+{
+  guardDisposed();
+  p->reducedWidth = p->bitmap->width();
+  p->reducedHeight = p->bitmap->height();
+  p->increaseWidth = true;
+  p->increaseHeight = true;
+  p->updateReduceWidth();
+  p->updateReduceHeight();
+}
+
 void Sprite::reduceWidth()
 {
   guardDisposed();
@@ -514,6 +526,13 @@ void Sprite::reduceWidth()
 void Sprite::reduceHeight()
 {
   guardDisposed();
+  p->reduceHeight = true;
+}
+
+void Sprite::reduceWidthHeight()
+{
+  guardDisposed();
+  p->reduceWidth = true;
   p->reduceHeight = true;
 }
 
@@ -539,6 +558,18 @@ bool Sprite::isHeightReduced()
 {
   guardDisposed();
   return p->reducedHeight == p->bitmap->height();
+}
+
+bool Sprite::isMouseInside()
+{
+  int mx = shState->input().mouseX();
+  int x = p->trans.getPosition().x;
+  if (mx < x) return false;
+  if (mx > x + p->srcRect->width) return false;
+  int my = shState->input().mouseY();
+  int y = p->trans.getPosition().y;
+  if (my < y) return false;
+  return my <= y + p->srcRect->height;
 }
 
 #define DEF_WAVE_SETTER(Name, name, type) \

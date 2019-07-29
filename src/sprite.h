@@ -76,12 +76,15 @@ public:
   void setReduceSpeed(int);
   void increaseWidth();
   void increaseHeight();
+  void increaseWidthHeight();
   void reduceWidth();
   void reduceHeight();
+  void reduceWidthHeight();
   bool isWidthIncreased();
   bool isHeightIncreased();
   bool isWidthReduced();
   bool isHeightReduced();
+  bool isMouseInside();
   void initDynAttribs();
 
 private:

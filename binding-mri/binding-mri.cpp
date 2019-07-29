@@ -20,6 +20,7 @@
 ** along with HiddenChest.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "author.h"
 #include "binding.h"
 #include "binding-util.h"
 #include "sharedstate.h"
@@ -39,9 +40,6 @@
 #include <zlib.h>
 #include <SDL_filesystem.h>
 
-#define HIDDENVERSION "1.1.16"
-#define HIDDENDATE "2019-07-22"
-
 extern const char module_rpg1[];
 extern const char module_rpg2[];
 extern const char module_rpg3[];
@@ -50,7 +48,7 @@ static void mriBindingTerminate();
 static void mriBindingReset();
 void Init_Scripts();
 void Init_TermsBackdrop();
-//static VALUE scripts_reset(VALUE self);
+
 ScriptBinding scriptBindingImpl =
 {
   mriBindingExecute,
@@ -120,6 +118,16 @@ static void mriBindingInit()
     rb_define_alias(rb_singleton_class(rb_mKernel), "_HC_kernel_caller_alias", "caller");
     rb_define_module_function(rb_mKernel, "caller", RUBY_METHOD_FUNC(_kernelCaller), -1);
   }
+  VALUE mod = rb_define_module("HIDDENCHEST");
+  rb_define_const(mod, "AUTHOR", rb_str_new_cstr("Kyonides Arkanthes"));
+  rb_define_const(mod, "VERSION", rb_str_new_cstr(HIDDENVERSION));
+  rb_define_const(mod, "RELEASE_DATE", rb_str_new_cstr(HIDDENDATE));
+  rb_define_const(mod, "DESCRIPTION",
+    rb_str_new_cstr("An RGSS based engine derived from mkxp developed by Ancurio"));
+  rb_define_module_function(mod, "data_directory", RUBY_METHOD_FUNC(HCDataDirectory), -1);
+  rb_define_module_function(mod, "puts", RUBY_METHOD_FUNC(HCPuts), -1);
+  rb_define_module_function(mod, "raw_key_states", RUBY_METHOD_FUNC(HCRawKeyStates), -1);
+  rb_define_module_function(mod, "mouse_in_window", RUBY_METHOD_FUNC(HCMouseInWindow), -1);
   if (rgssVer == 1) {
     Init_TermsBackdrop();
     rb_eval_string(module_rpg1);
@@ -131,16 +139,6 @@ static void mriBindingInit()
   } else {
     assert(!"unreachable");
   }
-  VALUE mod = rb_define_module("HIDDENCHEST");
-  rb_define_const(mod, "AUTHOR", rb_str_new_cstr("Kyonides Arkanthes"));
-  rb_define_const(mod, "VERSION", rb_str_new_cstr(HIDDENVERSION));
-  rb_define_const(mod, "RELEASE_DATE", rb_str_new_cstr(HIDDENDATE));
-  rb_define_const(mod, "DESCRIPTION",
-    rb_str_new_cstr("An RGSS based engine derived from mkxp developed by Ancurio"));
-  rb_define_module_function(mod, "data_directory", RUBY_METHOD_FUNC(HCDataDirectory), -1);
-  rb_define_module_function(mod, "puts", RUBY_METHOD_FUNC(HCPuts), -1);
-  rb_define_module_function(mod, "raw_key_states", RUBY_METHOD_FUNC(HCRawKeyStates), -1);
-  rb_define_module_function(mod, "mouse_in_window", RUBY_METHOD_FUNC(HCMouseInWindow), -1);
   // Load global constants
   rb_gv_set("HIDDENCHEST", Qtrue);
   VALUE debug = rb_bool_new(shState->config().editor.debug);

@@ -71,6 +71,27 @@ static VALUE scripts_reset(VALUE self)
   return Qnil;
 }
 
+static VALUE scripts_scene_is_running(VALUE self)
+{
+  return rb_iv_get(self, "@run");
+}
+
+static VALUE scripts_scene_stop(VALUE self)
+{
+  rb_iv_set(self, "@run", Qnil);
+  return rb_iv_set(self, "@scene", Qnil);
+}
+
+static VALUE scripts_scene_get(VALUE self)
+{
+  return rb_iv_get(self, "@scene");
+}
+
+static VALUE scripts_scene_set(VALUE self, VALUE name)
+{
+  return rb_iv_set(self, "@scene", name);
+}
+
 static VALUE scripts_start_scene_get(VALUE self)
 {
   return rb_iv_get(self, "@start_scene");
@@ -106,6 +127,7 @@ static VALUE module_attr_accessor(int argc, VALUE* argv, VALUE self)
 void Init_Scripts()
 {
   VALUE module = rb_define_module("Scripts");
+  rb_iv_set(module, "@run", Qtrue);
   rb_iv_set(module, "@pack", rb_hash_new());
   rb_iv_set(module, "@start_scene", Qnil);
   rb_define_module_function(module, "all", RMF(scripts_all), 0);
@@ -115,8 +137,12 @@ void Init_Scripts()
   rb_define_module_function(module, "[]", RMF(scripts_get), 1);
   rb_define_module_function(module, "[]=", RMF(scripts_set), 2);
   rb_define_module_function(module, "reset", RMF(scripts_reset), 0);
+  rb_define_module_function(module, "run?", RMF(scripts_scene_is_running), 0);
+  rb_define_module_function(module, "stop", RMF(scripts_scene_stop), 0);
   rb_define_module_function(module, "start_scene", RMF(scripts_start_scene_get), 0);
   rb_define_module_function(module, "start_scene=", RMF(scripts_start_scene_set), 1);
+  rb_define_module_function(module, "scene", RMF(scripts_scene_get), 0);
+  rb_define_module_function(module, "scene=", RMF(scripts_scene_set), 1);
   rb_define_method(rb_cModule, "module_attr_accessor", RMF(module_attr_accessor), -1);
   rb_define_method(rb_cModule, "module_accessor", RMF(module_attr_accessor), -1);
 }
