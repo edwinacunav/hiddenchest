@@ -170,9 +170,12 @@ To alleviate possible porting of heavily Win32API reliant scripts, we have added
         - Only the last assignment to `Window#open_mode=` will be taken in consideration by the engine.
 * `Window#set_xy(newx, newy)` lets you assign both Carthesian coordinates at the same time.
 * Assign a viewport to any RGSS1 window by using `Window#viewport = some_viewport`
-* The `Input.press?` family of functions accepts three additional button constants: `::MOUSELEFT`, `::MOUSEMIDDLE` and `::MOUSERIGHT` for the respective mouse buttons.
-* They now support additional keys like Return or Enter or LeftShift or RightAlt or NumPadDivide * or KeyH or KeyM or N1 through N0.
+* The `Input.press?` family of functions accepts three additional button constants: `::MOUSELEFT`, `::MOUSEMIDDLE` and `::MOUSERIGHT` for the respective mouse buttons. But you can also type them as `::MouseLeft`, `::MouseMiddle` and `::MouseRight`.
+* They now support additional keys like PrintScreen, Return or Enter or LeftShift or RightAlt or NumPadDivide * or KeyH or KeyM or N1 through N0.
 * The `Input` module has two additional functions, `#mouse_x` and `#mouse_y` to query the mouse pointer position relative to the game screen.
+* The `Sprite` and `Window` classes now support mouse clicks! Well, they indirectly do it... You got to set the `@area` array with every single x, y, width and height dimensions first. Usually you do that in the Window_Selectable and its child classes refresh method. The following script calls might be used in scene scripts:
+    - `Sprite#mouse_above?` alias `Sprite#mouse_inside?`
+    - `Window#mouse_above?(command_index)` alias `Window#mouse_inside?(command_index)`
 * The `Graphics` module has three additional properties: `fullscreen` represents the current fullscreen mode (`true` = fullscreen, `false` = windowed), `show_cursor` hides the system cursor inside the game window when `false` and `block_fullscreen` (`true` or `false`) will prevent the player from entering fullscreen mode or not even if they change the configuration file settings.
 * Graphics module also lets you take snapshots by calling the save_screenshot method.
 * The Backdrop module lets you create a temporary snapshot of a previous map to use it in any scene class at will. Use `keep_bitmap` or `blur_bitmap` to create the bitmap you will need in your (custom) scene. Later you can assign its bitmap to an instance variable of your choice by calling its `bitmap` method. After freezing the scene, call `clear_bitmap` to dispose it properly.
@@ -180,7 +183,6 @@ To alleviate possible porting of heavily Win32API reliant scripts, we have added
 * The Scripts module allows you to store a Ruby string or symbol as a script ID via Scripts << :script_name. Once it has been stored there, you can call its methods, i.e. Scripts.all or Scripts.include?(:script_name) to access the Scripts IDs Array and confirm if it has been included respectively.
 * Font class now lets you use its `underline` and `strikethrough` or `strikethru` options the same way you used `bold` or `italic`.
 * `RPG::Weather.sprite_max = Number`. where Number is a positive integer number, lets you define the upper limit of the weather sprites like rain or storm or snow effects. Currently it is set at 400 sprites.
-* Sprite class got new methods like `mirror_y` alias `flip_y`, `reduce_speed`, `reduce_speed=`, `increase_width!`, `increase_height!`, `reduce_width!`. `increase_height!`.
 
 ## List of Bug Fixes for HiddenChest
 
