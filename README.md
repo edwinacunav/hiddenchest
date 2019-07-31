@@ -1,6 +1,6 @@
 # HiddenChest
 
-HiddenChest is a project based upon mkxp developed by Ancurio. It should let you play RGSS based games on a 800 * 608 resolution or higher by default, but you might change it before compiling it if deemed necessary.
+HiddenChest is a project based upon mkxp developed by Ancurio. It should let you play RGSS based games on a 800 * 608 resolution or higher by default, but you might change it before compiling it if deemed necessary. In my case I have set it at 1920 * 1080, but I have only tested it at 1680 * 1050 at most. The results were quite decent indeed.
 
 After you have finished compiling the binary executable, you should also open the MapCustomResFixes0 (for RMXP or RMVX games) text file with a text editor like Notepad++ or change its file extension to txt if you plan to use Windows Notepad application. On Linux distributions you can use your favorite text editor, for KDE GUI based systems Kate or KWrite should be fine. Once you have opened it copy its contents and paste them in the script editor below Scene_Debug and before Main scripts.
 
@@ -170,11 +170,14 @@ To alleviate possible porting of heavily Win32API reliant scripts, we have added
         - Only the last assignment to `Window#open_mode=` will be taken in consideration by the engine.
 * `Window#set_xy(newx, newy)` lets you assign both Carthesian coordinates at the same time.
 * Assign a viewport to any RGSS1 window by using `Window#viewport = some_viewport`
-* The `Input.press?` family of functions accepts three additional button constants: `::MOUSELEFT`, `::MOUSEMIDDLE` and `::MOUSERIGHT` for the respective mouse buttons. But you can also type them as `::MouseLeft`, `::MouseMiddle` and `::MouseRight`.
 * They now support additional keys like PrintScreen, Return or Enter or LeftShift or RightAlt or NumPadDivide * or KeyH or KeyM or N1 through N0.
-* The `Input` module has two additional functions, `#mouse_x` and `#mouse_y` to query the mouse pointer position relative to the game screen.
-* The `Sprite` and `Window` classes now support mouse clicks! Well, they indirectly do it... You got to set the `@area` array with every single x, y, width and height dimensions first. Usually you do that in the Window_Selectable and its child classes refresh method. The following script calls might be used in scene scripts:
+* The `Input.press?` family of functions accepts three additional button constants: `::MOUSELEFT`, `::MOUSEMIDDLE` and `::MOUSERIGHT` for the respective mouse buttons. But you can also type them as `::MouseLeft`, `::MouseMiddle` and `::MouseRight`.
+* The `Input` module has two additional functions, `mouse_x` and `mouse_y` to query the mouse pointer position relative to the game screen.
+* Now the `Input` module offers you some new methods: `left_click?` `middle_click?` and `right_click?`.
+* The `Bitmap`, `Sprite` and `Window` classes now support mouse clicks! Well, they indirectly do it... You got to set the `@area` array with every single x, y, width and height dimensions first. Usually you do that in the Window_Selectable and its child classes refresh method. The following script calls might be used in scene scripts:
+    - `Bitmap#alpha_pixel?(x, y)` - It's not just for clicks!
     - `Sprite#mouse_above?` alias `Sprite#mouse_inside?`
+    - `Sprite#mouse_above_color?` - It will ignore pixels with alpha value set at 0.
     - `Window#mouse_above?(command_index)` alias `Window#mouse_inside?(command_index)`
 * The `Graphics` module has three additional properties: `fullscreen` represents the current fullscreen mode (`true` = fullscreen, `false` = windowed), `show_cursor` hides the system cursor inside the game window when `false` and `block_fullscreen` (`true` or `false`) will prevent the player from entering fullscreen mode or not even if they change the configuration file settings.
 * Graphics module also lets you take snapshots by calling the save_screenshot method.
