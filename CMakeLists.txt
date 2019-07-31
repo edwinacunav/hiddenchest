@@ -284,7 +284,6 @@ if (BINDING STREQUAL "MRI")
   pkg_check_modules(MRI REQUIRED ruby-${MRIVERSION})
   list(APPEND DEFINES BINDING_MRI)
   set(BINDING_HEADERS
-    binding-mri/audio-play-se.h
     binding-mri/binding-util.h
     binding-mri/binding-types.h
     binding-mri/serializable-binding.h

@@ -174,6 +174,13 @@ static VALUE bitmapClear(VALUE self)
   return self;
 }
 
+static VALUE bitmap_is_alpha_pixel(VALUE self, VALUE rx, VALUE ry)
+{
+  Bitmap *b = getPrivateData<Bitmap>(self);
+  if (!b) return Qnil;
+  return b->isAlphaPixel(RB_FIX2INT(rx), RB_FIX2INT(ry)) ? Qtrue : Qfalse;
+}
+
 static VALUE bitmapGetPixel(VALUE self, VALUE rx, VALUE ry)
 {
   Bitmap *b = getPrivateData<Bitmap>(self);
@@ -418,32 +425,33 @@ void bitmapBindingInit()
 {
   VALUE klass = rb_define_class("Bitmap", rb_cObject);
   rb_define_alloc_func(klass, classAllocate<&BitmapType>);
-  rb_define_method(klass, "disposed?", RUBY_METHOD_FUNC(bitmapIsDisposed), 0);
-  rb_define_method(klass, "dispose", RUBY_METHOD_FUNC(bitmapDispose), 0);
+  rb_define_method(klass, "disposed?", RMF(bitmapIsDisposed), 0);
+  rb_define_method(klass, "dispose", RMF(bitmapDispose), 0);
   if (rgssVer == 1)
     rb_define_alias(klass, "_HC_dispose_alias", "dispose");
-  rb_define_method(klass, "initialize", RUBY_METHOD_FUNC(bitmapInitialize), -1);
-  rb_define_method(klass, "initialize_copy", RUBY_METHOD_FUNC(bitmapInitializeCopy), -1);
-  rb_define_method(klass, "width", RUBY_METHOD_FUNC(bitmapWidth), 0);
-  rb_define_method(klass, "height", RUBY_METHOD_FUNC(bitmapHeight), 0);
-  rb_define_method(klass, "rect", RUBY_METHOD_FUNC(bitmapRect), 0);
-  rb_define_method(klass, "blt", RUBY_METHOD_FUNC(bitmapBlt), -1);
-  rb_define_method(klass, "stretch_blt", RUBY_METHOD_FUNC(bitmapStretchBlt), -1);
-  rb_define_method(klass, "fill_rect", RUBY_METHOD_FUNC(bitmapFillRect), -1);
-  rb_define_method(klass, "clear", RUBY_METHOD_FUNC(bitmapClear), 0);
-  rb_define_method(klass, "get_pixel", RUBY_METHOD_FUNC(bitmapGetPixel), 2);
-  rb_define_method(klass, "set_pixel", RUBY_METHOD_FUNC(bitmapSetPixel), -1);
-  rb_define_method(klass, "hue_change", RUBY_METHOD_FUNC(bitmapHueChange), 1);
-  rb_define_method(klass, "draw_text", RUBY_METHOD_FUNC(bitmapDrawText), -1);
-  rb_define_method(klass, "text_size", RUBY_METHOD_FUNC(bitmapTextSize), -1);
-  rb_define_method(klass, "text_width", RUBY_METHOD_FUNC(bitmapTextWidth), -1);
-  rb_define_method(klass, "text_height", RUBY_METHOD_FUNC(bitmapTextHeight), -1);
-  rb_define_method(klass, "gradient_fill_rect", RUBY_METHOD_FUNC(bitmapGradientFillRect), -1);
-  rb_define_method(klass, "storm_fill_rect", RUBY_METHOD_FUNC(bitmapStormFillRect), 1);
-  rb_define_method(klass, "snow_fill_rect", RUBY_METHOD_FUNC(bitmapSnowFillRect), 0);
-  rb_define_method(klass, "clear_rect", RUBY_METHOD_FUNC(bitmapClearRect), -1);
-  rb_define_method(klass, "blur", RUBY_METHOD_FUNC(bitmapBlur), 0);
-  rb_define_method(klass, "radial_blur", RUBY_METHOD_FUNC(bitmapRadialBlur), 2);
-  rb_define_method(klass, "font", RUBY_METHOD_FUNC(bitmapGetFont), 0);
-  rb_define_method(klass, "font=", RUBY_METHOD_FUNC(bitmapSetFont), 1);
+  rb_define_method(klass, "initialize", RMF(bitmapInitialize), -1);
+  rb_define_method(klass, "initialize_copy", RMF(bitmapInitializeCopy), -1);
+  rb_define_method(klass, "width", RMF(bitmapWidth), 0);
+  rb_define_method(klass, "height", RMF(bitmapHeight), 0);
+  rb_define_method(klass, "rect", RMF(bitmapRect), 0);
+  rb_define_method(klass, "blt", RMF(bitmapBlt), -1);
+  rb_define_method(klass, "stretch_blt", RMF(bitmapStretchBlt), -1);
+  rb_define_method(klass, "fill_rect", RMF(bitmapFillRect), -1);
+  rb_define_method(klass, "clear", RMF(bitmapClear), 0);
+  rb_define_method(klass, "alpha_pixel?", RMF(bitmap_is_alpha_pixel), 2);
+  rb_define_method(klass, "get_pixel", RMF(bitmapGetPixel), 2);
+  rb_define_method(klass, "set_pixel", RMF(bitmapSetPixel), -1);
+  rb_define_method(klass, "hue_change", RMF(bitmapHueChange), 1);
+  rb_define_method(klass, "draw_text", RMF(bitmapDrawText), -1);
+  rb_define_method(klass, "text_size", RMF(bitmapTextSize), -1);
+  rb_define_method(klass, "text_width", RMF(bitmapTextWidth), -1);
+  rb_define_method(klass, "text_height", RMF(bitmapTextHeight), -1);
+  rb_define_method(klass, "gradient_fill_rect", RMF(bitmapGradientFillRect), -1);
+  rb_define_method(klass, "storm_fill_rect", RMF(bitmapStormFillRect), 1);
+  rb_define_method(klass, "snow_fill_rect", RMF(bitmapSnowFillRect), 0);
+  rb_define_method(klass, "clear_rect", RMF(bitmapClearRect), -1);
+  rb_define_method(klass, "blur", RMF(bitmapBlur), 0);
+  rb_define_method(klass, "radial_blur", RMF(bitmapRadialBlur), 2);
+  rb_define_method(klass, "font", RMF(bitmapGetFont), 0);
+  rb_define_method(klass, "font=", RMF(bitmapSetFont), 1);
 }

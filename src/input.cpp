@@ -533,7 +533,7 @@ struct InputPrivate
     if (!oldState.pressed)
       state.triggered = true;
     /* Unbound keys don't create/break repeat */
-    if (repeatCand != Input::None) return;
+    //if (repeatCand != Input::None) return;
     if (repeating != b.target && !oldState.pressed) {
       if (b.sourceRepeatable())
         repeatCand = b.target;
@@ -639,6 +639,26 @@ void Input::update()
   p->repeating = None;
 }
 
+bool Input::isLeftClick()
+{
+  bool trig = p->getStateCheck(MouseLeft).pressed ? true : false;
+  p->getStateCheck(MouseMiddle).pressed = false;
+  p->getStateCheck(MouseRight).pressed = false;
+  p->getStateCheck(MouseLeft).pressed = false;
+  bool state = p->getStateCheck(MouseLeft).pressed ? true : false;
+  return (trig && !state);
+}
+
+bool Input::isMiddleClick()
+{
+  return isPressed(MouseMiddle);
+}
+
+bool Input::isRightClick()
+{
+  return isPressed(MouseRight);
+}
+
 bool Input::isPressed(int button)
 {
   if (button == Shift)
@@ -648,7 +668,7 @@ bool Input::isPressed(int button)
   if (button == Alt)
     return p->getStateCheck(LeftAlt).pressed || p->getStateCheck(RightAlt).pressed;
   if (button == MouseLeft || button == MouseRight) {
-    bool trig = p->getStateCheck(button).pressed;
+    bool trig = p->getStateCheck(button).pressed ? true : false;
     p->getStateCheck(button).pressed = false;
     return trig;
   }
@@ -664,11 +684,11 @@ bool Input::isTriggered(int button)
   if (button == Alt)
     return p->getStateCheck(LeftAlt).triggered || p->getStateCheck(RightAlt).triggered;
   if (button == MouseLeft) {
-    bool trig = p->getStateCheck(MouseLeft).triggered;
+    bool trig = p->getStateCheck(MouseLeft).triggered ? true : false;
     p->getStateCheck(MouseLeft).triggered = false;
     return trig;
   } else if (button == MouseRight) {
-    bool trig = p->getStateCheck(MouseRight).triggered;
+    bool trig = p->getStateCheck(MouseRight).triggered ? true : false;
     p->getStateCheck(MouseRight).triggered = false;
     return trig;
   }

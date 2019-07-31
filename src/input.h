@@ -56,6 +56,9 @@ public:
     MouseLeft = 297, MouseMiddle = 298, MouseRight = 299 // 38 39 40
   };
   void update();
+  bool isLeftClick();
+  bool isMiddleClick();
+  bool isRightClick();
   bool isPressed(int button);
   bool isTriggered(int button);
   bool isRepeated(int button);

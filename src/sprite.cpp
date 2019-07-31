@@ -36,6 +36,7 @@
 #include <math.h>
 #include <SDL_rect.h>
 #include <sigc++/connection.h>
+#include "debugwriter.h"
 
 #define ROWH 6
 
@@ -563,6 +564,7 @@ bool Sprite::isHeightReduced()
 bool Sprite::isMouseInside()
 {
   guardDisposed();
+  if (!p->isVisible) return false;
   int mx = shState->input().mouseX();
   int x = p->trans.getPosition().x;
   if (mx < x) return false;
@@ -571,6 +573,22 @@ bool Sprite::isMouseInside()
   int y = p->trans.getPosition().y;
   if (my < y) return false;
   return my <= y + p->srcRect->height;
+}
+
+bool Sprite::isMouseAboveColorFound()
+{
+  guardDisposed();
+  if (!p->isVisible) return false;
+  int mx = shState->input().mouseX();
+  int x = p->trans.getPosition().x;
+  if (mx < x) return false;
+  if (mx > x + p->srcRect->width) return false;
+  int my = shState->input().mouseY();
+  int y = p->trans.getPosition().y;
+  if (my < y) return false;
+  if (my > y + p->srcRect->height) return false;
+  int ax = mx - x, ay = my - y;
+  return !p->bitmap->isAlphaPixel(ax, ay);
 }
 
 #define DEF_WAVE_SETTER(Name, name, type) \

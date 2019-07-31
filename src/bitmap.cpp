@@ -178,14 +178,14 @@ struct BitmapPrivate
 
   void fillRect(const IntRect &rect, const Vec4 &color)
   {
-          bindFBO();
-          glState.scissorTest.pushSet(true);
-          glState.scissorBox.pushSet(normalizedRect(rect));
-          glState.clearColor.pushSet(color);
-          FBO::clear();
-          glState.clearColor.pop();
-          glState.scissorBox.pop();
-          glState.scissorTest.pop();
+    bindFBO();
+    glState.scissorTest.pushSet(true);
+    glState.scissorBox.pushSet(normalizedRect(rect));
+    glState.clearColor.pushSet(color);
+    FBO::clear();
+    glState.clearColor.pop();
+    glState.scissorBox.pop();
+    glState.scissorTest.pop();
   }
 
   static void ensureFormat(SDL_Surface *&surf, Uint32 format)
@@ -236,12 +236,9 @@ Bitmap::Bitmap(const char *filename)
     SDL_SetSurfaceBlendMode(p->megaSurface, SDL_BLENDMODE_NONE);
   } else { // Regular surface
     TEXFBO tex;
-    try
-    {
+    try {
       tex = shState->texPool().request(imgSurf->w, imgSurf->h);
-    }
-    catch (const Exception &e)
-    {
+    } catch (const Exception &e) {
       SDL_FreeSurface(imgSurf);
       throw e;
     }
@@ -630,18 +627,32 @@ static uint32_t &getPixelAt(SDL_Surface *surf, SDL_PixelFormat *form, int x, int
   return *((uint32_t*) bytes);
 }
 
+void Bitmap::makeSurface() const
+{
+  p->allocSurface();
+  FBO::bind(p->gl.fbo);
+  glState.viewport.pushSet(IntRect(0, 0, width(), height()));
+  gl.ReadPixels(0, 0, width(), height(), GL_RGBA, GL_UNSIGNED_BYTE, p->surface->pixels);
+  glState.viewport.pop();
+}
+
+bool Bitmap::isAlphaPixel(int x, int y) const
+{
+  guardDisposed();
+  GUARD_MEGA;
+  if (x < 0 || y < 0 || x >= width() || y >= height()) return false;
+  if (!p->surface) makeSurface();
+  uint32_t pixel = getPixelAt(p->surface, p->format, x, y);
+  uint8_t alpha = (pixel >> p->format->Ashift) & 0xFF;
+  return alpha == 0;
+}
+
 Color Bitmap::getPixel(int x, int y) const
 {
   guardDisposed();
   GUARD_MEGA;
   if (x < 0 || y < 0 || x >= width() || y >= height()) return Vec4();
-  if (!p->surface) {
-    p->allocSurface();
-    FBO::bind(p->gl.fbo);
-    glState.viewport.pushSet(IntRect(0, 0, width(), height()));
-    gl.ReadPixels(0, 0, width(), height(), GL_RGBA, GL_UNSIGNED_BYTE, p->surface->pixels);
-    glState.viewport.pop();
-  }
+  if (!p->surface) makeSurface();
   uint32_t pixel = getPixelAt(p->surface, p->format, x, y);
   return Color((pixel >> p->format->Rshift) & 0xFF,
                (pixel >> p->format->Gshift) & 0xFF,
@@ -1058,13 +1069,7 @@ SDL_Surface *Bitmap::megaSurface() const
 
 SDL_Surface *Bitmap::surface() const
 {
-  if (!p->surface) {
-    p->allocSurface();
-    FBO::bind(p->gl.fbo);
-    glState.viewport.pushSet(IntRect(0, 0, width(), height()));
-    gl.ReadPixels(0, 0, width(), height(), GL_RGBA, GL_UNSIGNED_BYTE, p->surface->pixels);
-    glState.viewport.pop();
-  }
+  if (!p->surface) makeSurface();
   return p->surface;
 }
 

@@ -26,74 +26,79 @@
 #include "binding-util.h"
 #include "util.h"
 
-RB_METHOD(inputUpdate)
+static VALUE inputUpdate(VALUE self)
 {
-  RB_UNUSED_PARAM;
   shState->input().update();
   return Qnil;
 }
 
-static int getButtonArg(int argc, VALUE *argv)
+static int getButtonArg(VALUE number)
 {
   int num;
-  rb_check_argc(argc, 1);
-  if (FIXNUM_P(argv[0])) {
-    num = FIX2INT(argv[0]);
-  } else if (SYMBOL_P(argv[0]) && rgssVer >= 3) {
+  if (FIXNUM_P(number)) {
+    num = RB_FIX2INT(number);
+  } else if (SYMBOL_P(number) && rgssVer >= 3) {
     VALUE symHash = getRbData()->buttoncodeHash;
-    num = FIX2INT(rb_hash_lookup2(symHash, argv[0], INT2FIX(Input::None)));
+    num = RB_FIX2INT(rb_hash_lookup2(symHash, number, RB_INT2FIX(Input::None)));
   } else {
-    // FIXME: RMXP allows only few more types that
-    // don't make sense (symbols in pre 3, floats)
+// FIXME: RMXP allows only few more types that don't make sense (symbols in pre 3, floats)
     num = 0;
   }
   return num;
 }
 
-RB_METHOD(inputPress)
+static VALUE inputPress(VALUE self, VALUE number)
 {
-  RB_UNUSED_PARAM;
-  int num = getButtonArg(argc, argv);
-  return rb_bool_new(shState->input().isPressed(num));
+  int num = getButtonArg(number);
+  return shState->input().isPressed(num) ? Qtrue : Qfalse;
 }
 
-RB_METHOD(inputTrigger)
+static VALUE inputTrigger(VALUE self, VALUE number)
 {
-  RB_UNUSED_PARAM;
-  int num = getButtonArg(argc, argv);
-  return rb_bool_new(shState->input().isTriggered(num));
+  int num = getButtonArg(number);
+  return shState->input().isTriggered(num) ? Qtrue : Qfalse;
 }
 
-RB_METHOD(inputRepeat)
+static VALUE inputRepeat(VALUE self, VALUE number)
 {
-  RB_UNUSED_PARAM;
-  int num = getButtonArg(argc, argv);
-  return rb_bool_new(shState->input().isRepeated(num));
+  int num = getButtonArg(number);
+  return shState->input().isRepeated(num) ? Qtrue : Qfalse;
 }
 
-RB_METHOD(inputDir4)
+static VALUE inputDir4(VALUE self)
 {
-  RB_UNUSED_PARAM;
-  return rb_fix_new(shState->input().dir4Value());
+  return RB_INT2FIX(shState->input().dir4Value());
 }
 
-RB_METHOD(inputDir8)
+static VALUE inputDir8(VALUE self)
 {
-  RB_UNUSED_PARAM;
-  return rb_fix_new(shState->input().dir8Value());
+  return RB_INT2FIX(shState->input().dir8Value());
 }
 
 /* Non-standard extensions */
-RB_METHOD(inputMouseX)
+static VALUE inputMouseX(VALUE self)
 {
-  RB_UNUSED_PARAM;
-  return rb_fix_new(shState->input().mouseX());
+  return RB_INT2FIX(shState->input().mouseX());
 }
 
-RB_METHOD(inputMouseY)
+static VALUE inputMouseY(VALUE self)
 {
-  RB_UNUSED_PARAM;
-  return rb_fix_new(shState->input().mouseY());
+  return RB_INT2FIX(shState->input().mouseY());
+}
+
+static VALUE input_left_click(VALUE self)
+{
+  return shState->input().isLeftClick() ? Qtrue : Qfalse;
+}
+
+static VALUE input_middle_click(VALUE self)
+{
+  return shState->input().isMiddleClick() ? Qtrue : Qfalse;
+}
+
+static VALUE input_right_click(VALUE self)
+{
+  return shState->input().isRightClick() ? Qtrue : Qfalse;
 }
 
 struct
@@ -232,17 +237,22 @@ static buttonCodes[] =
 
 static elementsN(buttonCodes);
 
+#define RMF(func) ((VALUE (*)(ANYARGS))(func))
+
 void inputBindingInit()
 {
   VALUE module = rb_define_module("Input");
-  _rb_define_module_function(module, "update", inputUpdate);
-  _rb_define_module_function(module, "press?", inputPress);
-  _rb_define_module_function(module, "trigger?", inputTrigger);
-  _rb_define_module_function(module, "repeat?", inputRepeat);
-  _rb_define_module_function(module, "dir4", inputDir4);
-  _rb_define_module_function(module, "dir8", inputDir8);
-  _rb_define_module_function(module, "mouse_x", inputMouseX);
-  _rb_define_module_function(module, "mouse_y", inputMouseY);
+  rb_define_module_function(module, "update", RMF(inputUpdate), 0);
+  rb_define_module_function(module, "left_click?", RMF(input_left_click), 0);
+  rb_define_module_function(module, "middle_click?", RMF(input_middle_click), 0);
+  rb_define_module_function(module, "right_click?", RMF(input_right_click), 0);
+  rb_define_module_function(module, "press?", RMF(inputPress), 1);
+  rb_define_module_function(module, "trigger?", RMF(inputTrigger), 1);
+  rb_define_module_function(module, "repeat?", RMF(inputRepeat), 1);
+  rb_define_module_function(module, "dir4", RMF(inputDir4), 0);
+  rb_define_module_function(module, "dir8", RMF(inputDir8), 0);
+  rb_define_module_function(module, "mouse_x", RMF(inputMouseX), 0);
+  rb_define_module_function(module, "mouse_y", RMF(inputMouseY), 0);
   if (rgssVer >= 3) {
     VALUE symHash = rb_hash_new();
     for (size_t i = 0; i < buttonCodesN; ++i) {

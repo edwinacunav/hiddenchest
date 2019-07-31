@@ -122,9 +122,10 @@ int rgssThreadFun(void *userdata)
 
 static void printRgssVersion(int ver)
 {
-  Debug() << "HiddenChest The RGSS 1 2 & 3 Player Engine\n" <<
-    "Author:" << HIDDENAUTHOR << "HiddenChest Engine Version:" <<
-    HIDDENVERSION << "\nRelease Date:" << HIDDENDATE;
+  Debug() << "HiddenChest The RGSS 1 2 & 3 Player Engine";
+  Debug() << "Author:" << HIDDENAUTHOR;
+  Debug() << "HiddenChest Engine Version:" << HIDDENVERSION;
+  Debug() << "Release Date:" << HIDDENDATE;
   const char *const makers[] = { "HiddenChest", "XP", "VX", "VX Ace" };
   char buf[128];
   snprintf(buf, sizeof(buf), "Using RGSS Version %d (%s)", ver, makers[ver]);

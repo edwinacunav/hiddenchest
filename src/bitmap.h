@@ -68,6 +68,8 @@ public:
   void blur();
   void radialBlur(int angle, int divisions);
   void clear();
+  void makeSurface() const;
+  bool isAlphaPixel(int x, int y) const;
   Color getPixel(int x, int y) const;
   void setPixel(int x, int y, const Color &color);
   void hueChange(int hue);

@@ -85,6 +85,7 @@ public:
   bool isWidthReduced();
   bool isHeightReduced();
   bool isMouseInside();
+  bool isMouseAboveColorFound();
   void initDynAttribs();
 
 private:

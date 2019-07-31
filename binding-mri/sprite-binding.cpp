@@ -300,14 +300,14 @@ static VALUE SpriteSetZoomY(VALUE self, VALUE number)
 static VALUE SpriteGetAngle(VALUE self)
 {
   Sprite *s = static_cast<Sprite*>(RTYPEDDATA_DATA(self));
-  if (s == 0) return RB_INT2FIX(0);
+  if (!s) return RB_INT2FIX(0);
   return rb_float_new( s->getAngle() );
 }
 
 static VALUE SpriteSetAngle(VALUE self, VALUE number)
 {
   Sprite *s = static_cast<Sprite*>(RTYPEDDATA_DATA(self));
-  if (s == 0) return RB_INT2FIX(0);
+  if (!s) return RB_INT2FIX(0);
   GUARD_EXC( s->setAngle( NUM2DBL(number) ); )
   return rb_float_new( s->getAngle() );
 }
@@ -315,14 +315,14 @@ static VALUE SpriteSetAngle(VALUE self, VALUE number)
 static VALUE SpriteGetMirror(VALUE self)
 {
   Sprite *s = static_cast<Sprite*>(RTYPEDDATA_DATA(self));
-  if (s == 0) return Qfalse;
+  if (!s) return Qfalse;
   return s->getMirror() ? Qtrue : Qfalse;
 }
 
 static VALUE SpriteSetMirror(VALUE self, VALUE bln)
 {
   Sprite *s = static_cast<Sprite*>(RTYPEDDATA_DATA(self));
-  if (s == 0) return Qfalse;
+  if (!s) return Qfalse;
   GUARD_EXC( s->setMirror( bln == Qtrue ? true : false ); )
   return bln;
 }
@@ -330,14 +330,14 @@ static VALUE SpriteSetMirror(VALUE self, VALUE bln)
 static VALUE SpriteGetMirrorY(VALUE self)
 {
   Sprite *s = static_cast<Sprite*>(RTYPEDDATA_DATA(self));
-  if (s == 0) return Qfalse;
+  if (!s) return Qfalse;
   return s->getMirrorY() ? Qtrue : Qfalse;
 }
 
 static VALUE SpriteSetMirrorY(VALUE self, VALUE bln)
 {
   Sprite *s = static_cast<Sprite*>(RTYPEDDATA_DATA(self));
-  if (s == 0) return Qfalse;
+  if (!s) return Qfalse;
   GUARD_EXC( s->setMirrorY( bln == Qtrue ? true : false ); )
   return bln;
 }
@@ -345,28 +345,28 @@ static VALUE SpriteSetMirrorY(VALUE self, VALUE bln)
 static VALUE SpriteWidth(VALUE self)
 {
   Sprite *s = static_cast<Sprite*>(RTYPEDDATA_DATA(self));
-  if (s == 0) return RB_INT2FIX(0);
+  if (!s) return RB_INT2FIX(0);
   return RB_INT2FIX( s->getWidth() );
 }
 
 static VALUE SpriteHeight(VALUE self)
 {
   Sprite *s = static_cast<Sprite*>(RTYPEDDATA_DATA(self));
-  if (s == 0) return RB_INT2FIX(0);
+  if (!s) return RB_INT2FIX(0);
   return RB_INT2FIX( s->getHeight() );
 }
 
 static VALUE SpriteGetReduceSpeed(VALUE self)
 {
   Sprite *s = static_cast<Sprite*>(RTYPEDDATA_DATA(self));
-  if (s == 0) return RB_INT2FIX(0);
+  if (!s) return RB_INT2FIX(0);
   return RB_INT2FIX( s->getReduceSpeed() );
 }
 
 static VALUE SpriteSetReduceSpeed(VALUE self, VALUE rspeed)
 {
   Sprite *s = static_cast<Sprite*>(RTYPEDDATA_DATA(self));
-  if (s == 0) return RB_INT2FIX(0);
+  if (!s) return RB_INT2FIX(0);
   s->setReduceSpeed(RB_FIX2INT(rspeed));
   return rspeed;
 }
@@ -374,7 +374,7 @@ static VALUE SpriteSetReduceSpeed(VALUE self, VALUE rspeed)
 static VALUE SpriteIncreaseWidth(VALUE self)
 {
   Sprite *s = static_cast<Sprite*>(RTYPEDDATA_DATA(self));
-  if (s == 0) return Qfalse;
+  if (!s) return Qfalse;
   s->increaseWidth();
   return Qtrue;
 }
@@ -382,7 +382,7 @@ static VALUE SpriteIncreaseWidth(VALUE self)
 static VALUE SpriteIncreaseHeight(VALUE self)
 {
   Sprite *s = static_cast<Sprite*>(RTYPEDDATA_DATA(self));
-  if (s == 0) return Qfalse;
+  if (!s) return Qfalse;
   s->increaseHeight();
   return Qtrue;
 }
@@ -390,7 +390,7 @@ static VALUE SpriteIncreaseHeight(VALUE self)
 static VALUE SpriteIncreaseWidthHeight(VALUE self)
 {
   Sprite *s = static_cast<Sprite*>(RTYPEDDATA_DATA(self));
-  if (s == 0) return Qfalse;
+  if (!s) return Qfalse;
   s->increaseWidthHeight();
   return Qtrue;
 }
@@ -398,7 +398,7 @@ static VALUE SpriteIncreaseWidthHeight(VALUE self)
 static VALUE SpriteReduceWidth(VALUE self)
 {
   Sprite *s = static_cast<Sprite*>(RTYPEDDATA_DATA(self));
-  if (s == 0) return Qnil;
+  if (!s) return Qnil;
   s->reduceWidth();
   return Qtrue;
 }
@@ -406,7 +406,7 @@ static VALUE SpriteReduceWidth(VALUE self)
 static VALUE SpriteReduceHeight(VALUE self)
 {
   Sprite *s = static_cast<Sprite*>(RTYPEDDATA_DATA(self));
-  if (s == 0) return Qnil;
+  if (!s) return Qnil;
   s->reduceHeight();
   return Qtrue;
 }
@@ -414,7 +414,7 @@ static VALUE SpriteReduceHeight(VALUE self)
 static VALUE SpriteReduceWidthHeight(VALUE self)
 {
   Sprite *s = static_cast<Sprite*>(RTYPEDDATA_DATA(self));
-  if (s == 0) return Qnil;
+  if (!s) return Qnil;
   s->reduceWidthHeight();
   return Qtrue;
 }
@@ -422,36 +422,43 @@ static VALUE SpriteReduceWidthHeight(VALUE self)
 static VALUE SpriteIsWidthIncreased(VALUE self)
 {
   Sprite *s = static_cast<Sprite*>(RTYPEDDATA_DATA(self));
-  if (s == 0) return Qnil;
+  if (!s) return Qnil;
   return s->isWidthIncreased() ? Qtrue : Qfalse;
 }
 
 static VALUE SpriteIsHeightIncreased(VALUE self)
 {
   Sprite *s = static_cast<Sprite*>(RTYPEDDATA_DATA(self));
-  if (s == 0) return Qnil;
+  if (!s) return Qnil;
   return s->isHeightIncreased() ? Qtrue : Qfalse;
 }
 
 static VALUE SpriteIsWidthReduced(VALUE self)
 {
   Sprite *s = static_cast<Sprite*>(RTYPEDDATA_DATA(self));
-  if (s == 0) return Qnil;
+  if (!s) return Qnil;
   return s->isWidthReduced() ? Qtrue : Qfalse;
 }
 
 static VALUE SpriteIsHeightReduced(VALUE self)
 {
   Sprite *s = static_cast<Sprite*>(RTYPEDDATA_DATA(self));
-  if (s == 0) return Qnil;
+  if (!s) return Qnil;
   return s->isHeightReduced() ? Qtrue : Qfalse;
 }
 
 static VALUE SpriteisMouseInside(VALUE self)
 {
   Sprite *s = static_cast<Sprite*>(RTYPEDDATA_DATA(self));
-  if (s == 0) return Qnil;
+  if (!s) return Qnil;
   return s->isMouseInside() ? Qtrue : Qfalse;
+}
+
+static VALUE SpriteisMouseAboveColorFound(VALUE self)
+{
+  Sprite *s = static_cast<Sprite*>(RTYPEDDATA_DATA(self));
+  if (!s) return Qnil;
+  return s->isMouseAboveColorFound() ? Qtrue : Qfalse;
 }
 
 template<rb_data_type_t *SpriteType>
@@ -521,6 +528,7 @@ void spriteBindingInit() {
   rb_define_method(RSprite, "reduced_height?", RMF(SpriteIsHeightReduced), 0);
   rb_define_method(RSprite, "mouse_inside?", RMF(SpriteisMouseInside), 0);
   rb_define_method(RSprite, "mouse_above?", RMF(SpriteisMouseInside), 0);
+  rb_define_method(RSprite, "mouse_above_color?", RMF(SpriteisMouseAboveColorFound), 0);
   if (rgssVer >= 2) {
     rb_define_method(RSprite, "bush_opacity", RMF(SpriteGetBushOpacity), 0);
     rb_define_method(RSprite, "bush_opacity=", RMF(SpriteSetBushOpacity), 1);
