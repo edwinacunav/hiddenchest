@@ -26,12 +26,13 @@
 #include "keybindings.h"
 #include "exception.h"
 #include "util.h"
+#include <SDL_events.h>
 #include <SDL_scancode.h>
 #include <SDL_mouse.h>
 #include <vector>
 #include <string.h>
 #include <assert.h>
-
+#include "debugwriter.h"
 #define BUTTON_CODE_COUNT 24
 
 struct ButtonState
@@ -646,7 +647,7 @@ bool Input::isLeftClick()
   p->getStateCheck(MouseRight).pressed = false;
   p->getStateCheck(MouseLeft).pressed = false;
   bool state = p->getStateCheck(MouseLeft).pressed ? true : false;
-  return (trig && !state);
+  return (trig && !state && !shState->rtData().mouse_moved);
 }
 
 bool Input::isMiddleClick()
@@ -726,6 +727,24 @@ int Input::mouseY()
 {
   RGSSThreadData &rtData = shState->rtData();
   return (EventThread::mouseState.y - rtData.screenOffset.y) * rtData.sizeResoRatio.y;
+}
+
+bool Input::isAnyChar()
+{
+  return shState->rtData().any_char_found;
+}
+
+char* Input::string()
+{
+  return shState->rtData().text;
+}
+
+void Input::enableMode(bool state)
+{
+  Debug() << state;
+  shState->rtData().start_sdl_input = state;
+  state ? SDL_StartTextInput() : SDL_StopTextInput();
+  return;
 }
 
 Input::~Input()

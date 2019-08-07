@@ -46,6 +46,8 @@ static GlobalIBO *_globalIBO = 0;
 
 static const char *gameArchExt()
 {
+  if (rgssVer == 0)
+    return ".rhc";
   if (rgssVer == 1)
     return ".rgssad";
   else if (rgssVer == 2)

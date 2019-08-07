@@ -210,6 +210,10 @@ struct RGSSThreadData
   Vec2i screenOffset;
   const int refreshRate;
   Config config;
+  bool mouse_moved;
+  bool start_sdl_input;
+  bool any_char_found;
+  char* text;
   std::string rgssErrorMsg;
   RGSSThreadData(EventThread *ethread,
                  const char *argv0,
@@ -223,7 +227,9 @@ struct RGSSThreadData
     alcDev(alcDev),
     sizeResoRatio(1, 1),
     refreshRate(refreshRate),
-    config(newconf)
+    config(newconf),
+    start_sdl_input(false),
+    any_char_found(false)
   {}
 };
 

@@ -28,97 +28,78 @@
 #include "sharedstate.h"
 #include "global-ibo.h"
 #include "shader.h"
-
 #include <vector>
 #include <stdint.h>
 
 template<class VertexType>
 struct QuadArray
 {
-	std::vector<VertexType> vertices;
+  std::vector<VertexType> vertices;
+  VBO::ID vbo;
+  GLMeta::VAO vao;
+  size_t quadCount;
+  GLsizeiptr vboSize;
 
-	VBO::ID vbo;
-	GLMeta::VAO vao;
+  QuadArray() : quadCount(0), vboSize(-1)
+  {
+    vbo = VBO::gen();
+    GLMeta::vaoFillInVertexData<VertexType>(vao);
+    vao.vbo = vbo;
+    vao.ibo = shState->globalIBO().ibo;
+    GLMeta::vaoInit(vao);
+  }
 
-	size_t quadCount;
-	GLsizeiptr vboSize;
+  ~QuadArray()
+  {
+    GLMeta::vaoFini(vao);
+    VBO::del(vbo);
+  }
 
-	QuadArray()
-	    : quadCount(0),
-	      vboSize(-1)
-	{
-		vbo = VBO::gen();
+  void resize(size_t size)
+  {
+    vertices.resize(size * 4);
+    quadCount = size;
+  }
 
-		GLMeta::vaoFillInVertexData<VertexType>(vao);
-		vao.vbo = vbo;
-		vao.ibo = shState->globalIBO().ibo;
+  void clear()
+  {
+    vertices.clear();
+    quadCount = 0;
+  }
+  /* This needs to be called after the final 'append()' call
+   * and previous to the first 'draw()' call. */
+  void commit()
+  {
+    VBO::bind(vbo);
+    GLsizeiptr size = vertices.size() * sizeof(VertexType);
+    if (size > vboSize) {
+      // New data exceeds already allocated size. Reallocate VBO.
+      VBO::uploadData(size, dataPtr(vertices), GL_DYNAMIC_DRAW);
+      vboSize = size;
+      shState->ensureQuadIBO(quadCount);
+    } else {// New data fits in allocated size
+      VBO::uploadSubData(0, size, dataPtr(vertices));
+    }
+    VBO::unbind();
+  }
 
-		GLMeta::vaoInit(vao);
-	}
+  void draw(size_t offset, size_t count)
+  {
+    GLMeta::vaoBind(vao);
+    const char *_offset = (const char*) 0 + offset * 6 * sizeof(index_t);
+    gl.DrawElements(GL_TRIANGLES, count * 6, _GL_INDEX_TYPE, _offset);
+    GLMeta::vaoUnbind(vao);
+  }
 
-	~QuadArray()
-	{
-		GLMeta::vaoFini(vao);
-		VBO::del(vbo);
-	}
+  void draw()
+  {
+    draw(0, quadCount);
+  }
 
-	void resize(size_t size)
-	{
-		vertices.resize(size * 4);
-		quadCount = size;
-	}
-
-	void clear()
-	{
-		vertices.clear();
-		quadCount = 0;
-	}
-
-	/* This needs to be called after the final 'append()' call
-	 * and previous to the first 'draw()' call. */
-	void commit()
-	{
-		VBO::bind(vbo);
-
-		GLsizeiptr size = vertices.size() * sizeof(VertexType);
-
-		if (size > vboSize)
-		{
-			/* New data exceeds already allocated size.
-			 * Reallocate VBO. */
-			VBO::uploadData(size, dataPtr(vertices), GL_DYNAMIC_DRAW);
-			vboSize = size;
-
-			shState->ensureQuadIBO(quadCount);
-		}
-		else
-		{
-			/* New data fits in allocated size */
-			VBO::uploadSubData(0, size, dataPtr(vertices));
-		}
-
-		VBO::unbind();
-	}
-
-	void draw(size_t offset, size_t count)
-	{
-		GLMeta::vaoBind(vao);
-
-		const char *_offset = (const char*) 0 + offset * 6 * sizeof(index_t);
-		gl.DrawElements(GL_TRIANGLES, count * 6, _GL_INDEX_TYPE, _offset);
-
-		GLMeta::vaoUnbind(vao);
-	}
-
-	void draw()
-	{
-		draw(0, quadCount);
-	}
-
-	size_t count() const
-	{
-		return quadCount;
-	}
+  size_t count() const
+  {
+    return quadCount;
+  }
 };
 
 typedef QuadArray<Vertex> ColorQuadArray;

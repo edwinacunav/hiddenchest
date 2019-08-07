@@ -30,7 +30,7 @@
 inline void disposableAddChild(VALUE disp, VALUE child)
 {
   VALUE children = rb_iv_get(disp, "children");
-  if (NIL_P(children)) {
+  if (RB_NIL_P(children)) {
     children = rb_ary_new();
     rb_iv_set(disp, "children", children);
   } // Assumes children are never removed until destruction
@@ -40,10 +40,10 @@ inline void disposableAddChild(VALUE disp, VALUE child)
 inline void disposableDisposeChildren(VALUE disp)
 {
   VALUE children = rb_iv_get(disp, "children");
-  if (NIL_P(children)) return;
+  if (RB_NIL_P(children)) return;
   ID dispFun = rb_intern("_HC_dispose_alias");
   for (long i = 0; i < RARRAY_LEN(children); ++i)
-    rb_funcall2(rb_ary_entry(children, i), dispFun, 0, 0);
+    rb_funcall(rb_ary_entry(children, i), dispFun, 0);
 }
 
 template<class C>
@@ -66,7 +66,7 @@ RB_METHOD(disposableIsDisposed)
   RB_UNUSED_PARAM;
   C *d = getPrivateData<C>(self);
   if (!d) return Qtrue;
-  return rb_bool_new(d->isDisposed());
+  return d->isDisposed() ? Qtrue : Qfalse;
 }
 
 template<class C>

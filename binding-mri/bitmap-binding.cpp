@@ -65,10 +65,10 @@ static VALUE bitmapInitialize(int argc, VALUE* argv, VALUE self)
 inline void bitmapDisposeChildren(VALUE disp)
 {
   VALUE children = rb_iv_get(disp, "children");
-  if ( NIL_P(children) ) return;
+  if ( RB_NIL_P(children) ) return;
   ID dispFun = rb_intern("_HC_dispose_alias");
   for (long i = 0; i < RARRAY_LEN(children); ++i)
-    rb_funcall2(rb_ary_entry(children, i), dispFun, 0, 0);
+    rb_funcall(rb_ary_entry(children, i), dispFun, 0);
 }
 
 static VALUE bitmapDispose(VALUE self)
@@ -93,7 +93,7 @@ static VALUE bitmapWidth(VALUE self)
   Bitmap *b = getPrivateData<Bitmap>(self);
   int value = 0;
   GUARD_EXC( value = b->width(); );
-  return INT2FIX(value);
+  return RB_INT2FIX(value);
 }
 
 static VALUE bitmapHeight(VALUE self)
@@ -101,7 +101,7 @@ static VALUE bitmapHeight(VALUE self)
   Bitmap *b = getPrivateData<Bitmap>(self);
   int value = 0;
   GUARD_EXC( value = b->height(); );
-  return INT2FIX(value);
+  return RB_INT2FIX(value);
 }
 
 static VALUE bitmapRect(VALUE self)
@@ -184,7 +184,7 @@ static VALUE bitmap_is_alpha_pixel(VALUE self, VALUE rx, VALUE ry)
 static VALUE bitmapGetPixel(VALUE self, VALUE rx, VALUE ry)
 {
   Bitmap *b = getPrivateData<Bitmap>(self);
-  int x = NUM2INT(rx), y = NUM2INT(ry);
+  int x = RB_FIX2INT(rx), y = RB_FIX2INT(ry);
   Color value;
   GUARD_EXC( value = b->getPixel(x, y); );
   Color *color = new Color(value);
@@ -271,7 +271,7 @@ RB_METHOD(bitmapTextWidth)
   }
   int value;
   GUARD_EXC( value = b->textWidth(str); );
-  return RB_INT2NUM(value);
+  return RB_INT2FIX(value);
 }
 
 RB_METHOD(bitmapTextHeight)
@@ -287,7 +287,7 @@ RB_METHOD(bitmapTextHeight)
   }
   int value;
   GUARD_EXC( value = b->textHeight(str); );
-  return RB_INT2NUM(value);
+  return RB_INT2FIX(value);
 }
 
 static VALUE bitmapGetFont(VALUE self)
@@ -378,11 +378,11 @@ static VALUE bitmapInitializeCopy(int argc, VALUE* argv, VALUE self)
 
 static VALUE bitmapStormFillRect(VALUE self, VALUE i)
 {
-  VALUE rcolor1, rcolor2, max = INT2FIX(255), n = INT2FIX(i);
+  VALUE rcolor1, rcolor2, max = RB_INT2FIX(255), n = RB_INT2FIX(i);
   Color *color1, *color2;
   VALUE RColor = rb_const_get(rb_cObject, rb_intern("Color"));
   rcolor1 = rb_funcall(RColor, rb_intern("new"), 4, max, max, max, max);
-  rcolor2 = rb_funcall(RColor, rb_intern("new"), 4, max, max, max, INT2FIX(128));
+  rcolor2 = rb_funcall(RColor, rb_intern("new"), 4, max, max, max, RB_INT2FIX(128));
   color1 = getPrivateDataCheck<Color>(rcolor1, ColorType);
   color2 = getPrivateDataCheck<Color>(rcolor2, ColorType);
   Bitmap *b = getPrivateData<Bitmap>(self);
@@ -398,11 +398,11 @@ static VALUE bitmapStormFillRect(VALUE self, VALUE i)
 
 static VALUE bitmapSnowFillRect(VALUE self)
 {
-  VALUE rcolor1, rcolor2, max = INT2FIX(255);
+  VALUE rcolor1, rcolor2, max = RB_INT2FIX(255);
   Color *color1, *color2;
   VALUE RColor = rb_const_get(rb_cObject, rb_intern("Color"));
   rcolor1 = rb_funcall(RColor, rb_intern("new"), 4, max, max, max, max);
-  rcolor2 = rb_funcall(RColor, rb_intern("new"), 4, max, max, max, INT2FIX(128));
+  rcolor2 = rb_funcall(RColor, rb_intern("new"), 4, max, max, max, RB_INT2FIX(128));
   void *cobj1 = Check_TypedStruct(rcolor1, &ColorType);
   color1 = static_cast<Color*>(cobj1);
   void *cobj2 = Check_TypedStruct(rcolor2, &ColorType);

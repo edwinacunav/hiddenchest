@@ -36,7 +36,6 @@
 #include <math.h>
 #include <SDL_rect.h>
 #include <sigc++/connection.h>
-#include "debugwriter.h"
 
 #define ROWH 6
 
@@ -81,25 +80,25 @@ struct SpritePrivate
   EtcTemps tmp;
   sigc::connection prepareCon;
   SpritePrivate()
-      : bitmap(0),
-        srcRect(&tmp.rect),
-        mirrored(false),
-        mirroredY(false),
-        bushDepth(0),
-        efBushDepth(0),
-        bushOpacity(128),
-        opacity(255),
-        blendType(BlendNormal),
-        increaseWidth(false),
-        increaseHeight(false),
-        reduceWidth(false),
-        reduceHeight(false),
-        reducedWidth(0),
-        reducedHeight(0),
-        reduceSpeed(ROWH),
-        isVisible(false),
-        color(&tmp.color),
-        tone(&tmp.tone)
+  : bitmap(0),
+    srcRect(&tmp.rect),
+    mirrored(false),
+    mirroredY(false),
+    bushDepth(0),
+    efBushDepth(0),
+    bushOpacity(128),
+    opacity(255),
+    blendType(BlendNormal),
+    increaseWidth(false),
+    increaseHeight(false),
+    reduceWidth(false),
+    reduceHeight(false),
+    reducedWidth(0),
+    reducedHeight(0),
+    reduceSpeed(ROWH),
+    isVisible(false),
+    color(&tmp.color),
+    tone(&tmp.tone)
   {
     sceneRect.x = sceneRect.y = 0;
     updateSrcRectCon();
@@ -285,20 +284,72 @@ Sprite::Sprite(Viewport *viewport) : ViewportElement(viewport)
 
 Sprite::~Sprite() { dispose(); }
 
-DEF_ATTR_RD_SIMPLE(Sprite, Bitmap,     Bitmap*, p->bitmap)
-DEF_ATTR_RD_SIMPLE(Sprite, X,          int,     p->trans.getPosition().x)
-DEF_ATTR_RD_SIMPLE(Sprite, Y,          int,     p->trans.getPosition().y)
-DEF_ATTR_RD_SIMPLE(Sprite, OX,         int,     p->trans.getOrigin().x)
-DEF_ATTR_RD_SIMPLE(Sprite, OY,         int,     p->trans.getOrigin().y)
-DEF_ATTR_RD_SIMPLE(Sprite, ZoomX,      float,   p->trans.getScale().x)
-DEF_ATTR_RD_SIMPLE(Sprite, ZoomY,      float,   p->trans.getScale().y)
-DEF_ATTR_RD_SIMPLE(Sprite, Angle,      float,   p->trans.getRotation())
-DEF_ATTR_RD_SIMPLE(Sprite, Mirror,     bool,    p->mirrored)
-DEF_ATTR_RD_SIMPLE(Sprite, MirrorY,    bool,    p->mirroredY)
+Bitmap* Sprite::getBitmap()
+{
+  return p->bitmap;
+}
+
+int Sprite::getX() const
+{
+  return p->trans.getPosition().x;
+}
+
+int Sprite::getY() const
+{
+  return p->trans.getPosition().y;
+}
+
+int Sprite::getOX() const
+{
+  return p->trans.getOrigin().x;
+}
+
+int Sprite::getOY() const
+{
+  return p->trans.getOrigin().y;
+}
+
+float Sprite::getZoomX() const
+{
+  return p->trans.getScale().x;
+}
+
+float Sprite::getZoomY() const
+{
+  return p->trans.getScale().y;
+}
+
+float Sprite::getAngle() const
+{
+  return p->trans.getRotation();
+}
+
+bool Sprite::getMirror() const
+{
+  return p->mirrored;
+}
+
+bool Sprite::getMirrorY() const
+{
+  return p->mirroredY;
+}
+
+int Sprite::getBlendType() const
+{
+  return p->blendType;
+}
+
+int Sprite::getWidth() const
+{
+  return p->srcRect->width;
+}
+
+int Sprite::getHeight() const
+{
+  return p->srcRect->height;
+}
+
 DEF_ATTR_RD_SIMPLE(Sprite, BushDepth,  int,     p->bushDepth)
-DEF_ATTR_RD_SIMPLE(Sprite, BlendType,  int,     p->blendType)
-DEF_ATTR_RD_SIMPLE(Sprite, Width,      int,     p->srcRect->width)
-DEF_ATTR_RD_SIMPLE(Sprite, Height,     int,     p->srcRect->height)
 DEF_ATTR_RD_SIMPLE(Sprite, WaveAmp,    int,     p->wave.amp)
 DEF_ATTR_RD_SIMPLE(Sprite, WaveLength, int,     p->wave.length)
 DEF_ATTR_RD_SIMPLE(Sprite, WaveSpeed,  int,     p->wave.speed)

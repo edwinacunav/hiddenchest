@@ -111,6 +111,7 @@ set(MAIN_HEADERS
   src/plane.h
   src/scene.h
   src/sprite.h
+  src/msgboxsprite.h
   src/table.h
   src/texpool.h
   src/tilequad.h
@@ -168,6 +169,7 @@ set(MAIN_SOURCE
   src/plane.cpp
   src/scene.cpp
   src/sprite.cpp
+  src/msgboxsprite.cpp
   src/table.cpp
   src/tilequad.cpp
   src/viewport.cpp
@@ -291,6 +293,7 @@ if (BINDING STREQUAL "MRI")
     binding-mri/sceneelement-binding.h
     binding-mri/viewportelement-binding.h
     binding-mri/flashable-binding.h
+    binding-mri/msgboxsprite-binding.h
   )
   set(BINDING_SOURCE
     binding-mri/binding-mri.cpp
@@ -302,6 +305,7 @@ if (BINDING STREQUAL "MRI")
     binding-mri/graphics-binding.cpp
     binding-mri/input-binding.cpp
     binding-mri/sprite-binding.cpp
+    binding-mri/msgboxsprite-binding.cpp
     binding-mri/viewport-binding.cpp
     binding-mri/plane-binding.cpp
     binding-mri/window-binding.cpp

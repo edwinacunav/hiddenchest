@@ -35,6 +35,7 @@
 #include "settingsmenu.h"
 #include "al-util.h"
 #include "debugwriter.h"
+#include <iostream>
 #include <string.h>
 
 typedef void (ALC_APIENTRY *LPALCDEVICEPAUSESOFT) (ALCdevice *device);
@@ -124,6 +125,10 @@ void EventThread::process(RGSSThreadData &rtData)
   char pendingTitle[128];
   bool havePendingTitle = false;
   bool resetting = false;
+  char text[32] = { 0 };
+  char* composition;
+  uint32_t cursor;
+  uint32_t selection_len;
   int winW, winH, i;
   SDL_GetWindowSize(win, &winW, &winH);
   SettingsMenu *sMenu = 0;
@@ -141,6 +146,8 @@ void EventThread::process(RGSSThreadData &rtData)
       }
       continue;
     }
+    rtData.mouse_moved = false;
+    rtData.any_char_found = false;
     // Preselect and discard unwanted events here
     switch (event.type)
     {
@@ -154,10 +161,6 @@ void EventThread::process(RGSSThreadData &rtData)
     case SDL_FINGERMOTION :
       if (event.tfinger.fingerId >= MAX_FINGERS) continue;
       break;
-    }
-    // Now process the rest
-    switch (event.type)
-    {
     case SDL_WINDOWEVENT :
       switch (event.window.event)
       {
@@ -195,10 +198,43 @@ void EventThread::process(RGSSThreadData &rtData)
       terminate = true;
       Debug() << "EventThread termination requested";
       break;
+    }
+    if (rtData.start_sdl_input) {
+      switch (event.type)
+      {
+      case SDL_KEYUP :
+        if (event.key.keysym.scancode == SDL_SCANCODE_ESCAPE) {
+          rtData.start_sdl_input = false;
+          rtData.any_char_found = false;
+          rtData.text = 0;
+          composition = 0;
+          cursor = 0;
+          selection_len = 0;
+          break;
+        }
+        if (event.key.keysym.scancode == SDL_SCANCODE_KP_ENTER
+         || event.key.keysym.scancode == SDL_SCANCODE_RETURN) {
+          
+        }
+        break;
+      case SDL_TEXTINPUT:
+        rtData.any_char_found = true;
+        strcat(text, event.text.text);
+        rtData.text = text;
+        break;
+      case SDL_TEXTEDITING:
+        composition = event.edit.text;
+        cursor = event.edit.start;
+        selection_len = event.edit.length;
+        break;
+      }
+      continue;
+    }
+    switch (event.type)
+    {
     case SDL_KEYDOWN :
       if (event.key.keysym.scancode == SDL_SCANCODE_RETURN &&
-          (event.key.keysym.mod & toggleFSMod))
-      {
+          (event.key.keysym.mod & toggleFSMod)) {
         if (shState->graphics().getBlockFullscreen()) break;
         setFullscreen(win, !fullscreen);
         if (!fullscreen && havePendingTitle) {
@@ -243,6 +279,14 @@ void EventThread::process(RGSSThreadData &rtData)
         rtData.rqReset.set();
         break;
       }
+      /*if((event.key.keysym.sym >= 'A' && event.key.keysym.sym <= 'Z')
+        || (event.key.keysym.sym >= 'a' && event.key.keysym.sym <= 'z')
+        || (event.key.keysym.sym >= '0' && event.key.keysym.sym <= '9')
+        || event.key.keysym.sym == '-' || event.key.keysym.sym == '_'
+        || (event.key.keysym.sym == SDLK_SPACE))
+      {
+        new_char = event.key.keysym.sym;
+      }*/
       keyStates[event.key.keysym.scancode] = true;
       break;
     case SDL_KEYUP :
@@ -280,6 +324,7 @@ void EventThread::process(RGSSThreadData &rtData)
       mouseState.buttons[event.button.button] = false;
       break;
     case SDL_MOUSEMOTION :
+      rtData.mouse_moved = true;
       mouseState.x = event.motion.x;
       mouseState.y = event.motion.y;
       updateCursorState(cursorInWindow, gameScreen);
@@ -343,8 +388,7 @@ void EventThread::process(RGSSThreadData &rtData)
   }
   // Just in case
   rtData.syncPoint.resumeThreads();
-  if (SDL_JoystickGetAttached(js))
-    SDL_JoystickClose(js);
+  if (SDL_JoystickGetAttached(js)) SDL_JoystickClose(js);
   delete sMenu;
 }
 

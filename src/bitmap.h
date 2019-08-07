@@ -101,7 +101,7 @@ public:
 
 private:
   void releaseResources();
-  const char *klassName() const { return "bitmap"; }
+  const char *klassName() const { return "Bitmap"; }
   BitmapPrivate *p;
 };
 

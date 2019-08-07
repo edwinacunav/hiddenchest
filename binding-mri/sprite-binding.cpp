@@ -17,7 +17,7 @@
 ** GNU General Public License for more details.
 **
 ** You should have received a copy of the GNU General Public License
-** along with HiddenChest.  If not, see <http://www.gnu.org/licenses/>.
+** along with HiddenChest. If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "sprite.h"
@@ -28,6 +28,7 @@
 #include "viewportelement-binding.h"
 #include "binding-util.h"
 #include "binding-types.h"
+#include "debugwriter.h"
 
 rb_data_type_t SpriteType = { "Sprite",
   { 0, freeInstance<Sprite>, 0, { 0, 0 } }, 0, 0, 0 };
@@ -469,7 +470,7 @@ static VALUE SpriteAllocate(VALUE klass)
 
 #define RMF(func) ((VALUE (*)(ANYARGS))(func))
 
-void spriteBindingInit() {
+void SpriteBindingInit() {
   VALUE RSprite = rb_define_class("Sprite", rb_cObject);
   rb_define_alloc_func(RSprite, SpriteAllocate<&SpriteType>);
   disposableBindingInit<Sprite>(RSprite);

@@ -1,22 +1,23 @@
 /*
 ** input.h
 **
-** This file is part of mkxp.
+** This file is part of HiddenChest and mkxp.
 **
 ** Copyright (C) 2013 Jonas Kulla <Nyocurio@gmail.com>
+** 2019 Extended by Kyonides Arkanthes <kyonides@gmail.com>
 **
-** mkxp is free software: you can redistribute it and/or modify
+** HiddenChest is free software: you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
 ** the Free Software Foundation, either version 2 of the License, or
 ** (at your option) any later version.
 **
-** mkxp is distributed in the hope that it will be useful,
+** HiddenChest is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
 ** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ** GNU General Public License for more details.
 **
 ** You should have received a copy of the GNU General Public License
-** along with mkxp.  If not, see <http://www.gnu.org/licenses/>.
+** along with HiddenChest. If not, see <http://www.gnu.org/licenses/>.
 */
 
 #ifndef INPUT_H
@@ -43,7 +44,7 @@ public:
     Equals = 46, LeftBracket = 47, RightBracket = 48, BackSlash = 49, Semicolon = 51,
     Apostrophe = 52, Grave = 53, Comma = 54, Period = 55, Slash = 56, CapsLock = 57,
     F3 = 60, F4 = 61, F5 = 62, F6 = 63, F7 = 64, F8 = 65, F9 = 66, F10 = 67, F11 = 68, F12 = 69,
-    ScrollLock = 71, Pause = 72, Insert = 73, Home = 74, PageUp = 75, Delete = 76,
+    PrintScreen = 70, ScrollLock = 71, Pause = 72, Insert = 73, Home = 74, PageUp = 75, Delete = 76,
     End = 77, PageDown = 78, NumPadDivide = 84, NumPadMultiply = 85, NumPadMinus = 86,
     NumPadPlus = 87, Enter = 88, NumPad1 = 89, NumPad2 = 90, NumPad3 = 91, NumPad4 = 92,
     NumPad5 = 93, NumPad6 = 94, NumPad7 = 95, NumPad8 = 96, NumPad9 = 97, NumPad0 = 98,
@@ -67,6 +68,9 @@ public:
   /* Non-standard extensions */
   int mouseX();
   int mouseY();
+  bool isAnyChar();
+  char* string();
+  void enableMode(bool state);
 
 private:
   Input(const RGSSThreadData &rtData);

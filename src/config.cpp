@@ -272,7 +272,7 @@ void Config::readGameINI()
 {
   if (!customScript.empty()) {
     game.title = baseName(customScript);
-    if (rgssVersion == 0) rgssVersion = 1;
+    //if (rgssVersion == 0) rgssVersion = 1;
     setupScreenSize(*this);
     return;
   }
@@ -351,13 +351,14 @@ void Config::readGameINI()
     game.title = baseName(gameFolder);
   if (rgssVersion == 0) {
     /* Try to guess RGSS version based on Data/Scripts extension */
-    rgssVersion = 1;
     if (!game.scripts.empty()) {
       const char *p = &game.scripts[game.scripts.size()];
       const char *head = &game.scripts[0];
       while (--p != head)
         if (*p == '.') break;
-      if (!strcmp(p, ".rvdata"))
+      if (!strcmp(p, ".rxdata"))
+        rgssVersion = 1;
+      else if (!strcmp(p, ".rvdata"))
         rgssVersion = 2;
       else if (!strcmp(p, ".rvdata2"))
         rgssVersion = 3;

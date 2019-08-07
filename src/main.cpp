@@ -185,7 +185,7 @@ int main(int argc, char *argv[])
   conf.readGameINI();
   if (conf.windowTitle.empty())
     conf.windowTitle = conf.game.title;
-  assert(conf.rgssVersion >= 1 && conf.rgssVersion <= 3);
+  assert(conf.rgssVersion >= 0 && conf.rgssVersion < 4);
   printRgssVersion(conf.rgssVersion);
   int imgFlags = IMG_INIT_PNG | IMG_INIT_JPG;
   if (IMG_Init(imgFlags) != imgFlags) {

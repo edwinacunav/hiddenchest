@@ -127,14 +127,12 @@ struct QuadChunk
   Vertex *vert;
   int count; /* In quads */
 
-  QuadChunk()
-      : vert(0), count(0)
-  {}
+  QuadChunk() : vert(0), count(0) {}
 
   void setAlpha(float value)
   {
-          for (int i = 0; i < count*4; ++i)
-                  vert[i].color.w = value;
+    for (int i = 0; i < count*4; ++i)
+      vert[i].color.w = value;
   }
 };
 
@@ -201,7 +199,7 @@ struct WindowPrivate
     WindowPrivate *p;
 
     WindowControls(WindowPrivate *p, Viewport *viewport = 0)
-        : ViewportElement(viewport), p(p)
+    : ViewportElement(viewport), p(p)
     {
       setZ(2);
     }
@@ -220,47 +218,40 @@ struct WindowPrivate
   };
 
   WindowControls controlsElement;
-
   ColorQuadArray controlsQuadArray;
   int controlsQuadCount;
-
   Quad contentsQuad;
-
   QuadChunk pauseAniVert;
   QuadChunk cursorVert;
-
   uint8_t cursorAniAlphaIdx;
   uint8_t pauseAniAlphaIdx;
   uint8_t pauseAniQuadIdx;
-
   bool controlsVertDirty;
-
   EtcTemps tmp;
-
   sigc::connection prepareCon;
 
   WindowPrivate(Viewport *viewport = 0, int mode = 0)
-      : windowskin(0),
-        contents(0),
-        bgStretch(true),
-        cursorRect(&tmp.rect),
-        active(true),
-        pause(false),
-        opacity(255),
-        backOpacity(255),
-        contentsOpacity(255),
-        openness(100),
-        openMode(mode),
-        tempHeight(0),
-        baseVertDirty(true),
-        opacityDirty(true),
-        baseTexDirty(true),
-        needOpenness(true),
-        controlsElement(this, viewport),
-        cursorAniAlphaIdx(0),
-        pauseAniAlphaIdx(0),
-        pauseAniQuadIdx(0),
-        controlsVertDirty(true)
+  : windowskin(0),
+    contents(0),
+    bgStretch(true),
+    cursorRect(&tmp.rect),
+    active(true),
+    pause(false),
+    opacity(255),
+    backOpacity(255),
+    contentsOpacity(255),
+    openness(100),
+    openMode(mode),
+    tempHeight(0),
+    baseVertDirty(true),
+    opacityDirty(true),
+    baseTexDirty(true),
+    needOpenness(true),
+    controlsElement(this, viewport),
+    cursorAniAlphaIdx(0),
+    pauseAniAlphaIdx(0),
+    pauseAniQuadIdx(0),
+    controlsVertDirty(true)
   {
     refreshCursorRectCon();
     controlsQuadArray.resize(14);
@@ -375,12 +366,12 @@ struct WindowPrivate
     int newH = baseTex.height;
     bool resizeNeeded = false;
     if (size.x > baseTex.width) {
-            newW = findNextPow2(size.x);
-            resizeNeeded = true;
+      newW = findNextPow2(size.x);
+      resizeNeeded = true;
     }
     if (size.y > baseTex.height) {
-            newH = findNextPow2(size.y);
-            resizeNeeded = true;
+      newH = findNextPow2(size.y);
+      resizeNeeded = true;
     }
     if (!resizeNeeded) return;
     shState->texPool().release(baseTex);

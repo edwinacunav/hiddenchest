@@ -179,6 +179,11 @@ To alleviate possible porting of heavily Win32API reliant scripts, we have added
     - `Sprite#mouse_above?` alias `Sprite#mouse_inside?`
     - `Sprite#mouse_above_color?` - It will ignore pixels with alpha value set at 0.
     - `Window#mouse_above?(command_index)` alias `Window#mouse_inside?(command_index)`
+* The engine now sports the brand new `MsgBoxSprite` class!
+    - `bitmap` handles its base contents.
+    - `bar_bitmap` is made of the message box title bar.
+    - `close_icon` is nothing but the icon where you can click to close the box!
+    - `contents` stands for the actual container of all of your text messages printed on it!
 * The `Graphics` module has three additional properties: `fullscreen` represents the current fullscreen mode (`true` = fullscreen, `false` = windowed), `show_cursor` hides the system cursor inside the game window when `false` and `block_fullscreen` (`true` or `false`) will prevent the player from entering fullscreen mode or not even if they change the configuration file settings.
 * Graphics module also lets you take snapshots by calling the save_screenshot method.
 * The Backdrop module lets you create a temporary snapshot of a previous map to use it in any scene class at will. Use `keep_bitmap` or `blur_bitmap` to create the bitmap you will need in your (custom) scene. Later you can assign its bitmap to an instance variable of your choice by calling its `bitmap` method. After freezing the scene, call `clear_bitmap` to dispose it properly.

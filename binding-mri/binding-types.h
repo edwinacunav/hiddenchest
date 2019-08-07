@@ -31,6 +31,7 @@ DECL_TYPE(Tone);
 DECL_TYPE(Font);
 DECL_TYPE(Bitmap);
 DECL_TYPE(Sprite);
+DECL_TYPE(MsgBoxSprite);
 DECL_TYPE(Plane);
 DECL_TYPE(Viewport);
 DECL_TYPE(Tilemap);

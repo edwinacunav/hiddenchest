@@ -33,9 +33,7 @@
 class Disposable
 {
 public:
-  Disposable()
-      : disposed(false),
-        link(this)
+  Disposable() : disposed(false), link(this)
   {
     shState->graphics().addDisposable(this);
   }

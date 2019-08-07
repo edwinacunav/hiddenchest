@@ -278,8 +278,7 @@ FileSystem::~FileSystem()
 }
 
 void FileSystem::addPath(const char *path)
-{
-  // Try the normal mount first
+{// Try the normal mount first
   if (!PHYSFS_mount(path, 0, 1)) {
     // If it didn't work, try mounting via a wrapped SDL_RWops
     PHYSFS_Io *io = createSDLRWIo(path);
@@ -513,59 +512,43 @@ openReadEnumCB(void *d, const char *dirpath, const char *filename)
 
 void FileSystem::openRead(OpenHandler &handler, const char *filename)
 {
-	char buffer[512];
-	size_t len = strcpySafe(buffer, filename, sizeof(buffer), -1);
-	char *delim;
-
-	if (p->havePathCache)
-		for (size_t i = 0; i < len; ++i)
-			buffer[i] = tolower(buffer[i]);
-
-	/* Find the deliminator separating directory and file name */
-	for (delim = buffer + len; delim > buffer; --delim)
-		if (*delim == '/')
-			break;
-
-	const bool root = (delim == buffer);
-
-	const char *file = buffer;
-	const char *dir = "";
-
-	if (!root)
-	{
-		/* Cut the buffer in half so we can use it
-		 * for both filename and directory path */
-		*delim = '\0';
-		file = delim+1;
-		dir = buffer;
-	}
-
-	OpenReadEnumData data(handler, file, len + buffer - delim - !root,
-	                      p->havePathCache ? &p->pathCache : 0);
-
-	if (p->havePathCache)
-	{
-		/* Get the list of files contained in this directory
-		 * and manually iterate over them */
-		const std::vector<std::string> &fileList = p->fileLists[dir];
-
-		for (size_t i = 0; i < fileList.size(); ++i)
-			openReadEnumCB(&data, dir, fileList[i].c_str());
-	}
-	else
-	{
-		PHYSFS_enumerate(dir, openReadEnumCB, &data);
-	}
-
-	if (data.physfsError)
-		throw Exception(Exception::PHYSFSError, "PhysFS: %s", data.physfsError);
-
-	if (data.matchCount == 0)
-		throw Exception(Exception::NoFileError, "%s", filename);
+  char buffer[512];
+  size_t len = strcpySafe(buffer, filename, sizeof(buffer), -1);
+  char *delim;
+  if (p->havePathCache)
+    for (size_t i = 0; i < len; ++i)
+      buffer[i] = tolower(buffer[i]);
+/* Find the deliminator separating directory and file name */
+  for (delim = buffer + len; delim > buffer; --delim)
+    if (*delim == '/') break;
+    const bool root = (delim == buffer);
+    const char *file = buffer;
+    const char *dir = "";
+    if (!root) {
+    // Cut the buffer in half so we can use it for both filename and directory path
+      *delim = '\0';
+      file = delim+1;
+      dir = buffer;
+    }
+    OpenReadEnumData data(handler, file, len + buffer - delim - !root,
+      p->havePathCache ? &p->pathCache : 0);
+    if (p->havePathCache) {
+      /* Get the list of files contained in this directory
+       * and manually iterate over them */
+      const std::vector<std::string> &fileList = p->fileLists[dir];
+      for (size_t i = 0; i < fileList.size(); ++i)
+        openReadEnumCB(&data, dir, fileList[i].c_str());
+    } else {
+      PHYSFS_enumerate(dir, openReadEnumCB, &data);
+    }
+    if (data.physfsError)
+      throw Exception(Exception::PHYSFSError, "PhysFS: %s", data.physfsError);
+    if (data.matchCount == 0)
+      throw Exception(Exception::NoFileError, "%s", filename);
 }
 
 void FileSystem::openReadRaw(SDL_RWops &ops, const char *fn, bool freeOnClose)
-{
+{//Debug() << "openReadRaw" << fn;
   PHYSFS_File *handle = PHYSFS_openRead(fn);
   assert(handle);
   initReadOps(handle, ops, freeOnClose);

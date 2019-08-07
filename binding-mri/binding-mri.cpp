@@ -62,7 +62,8 @@ void tableBindingInit();
 void etcBindingInit();
 void fontBindingInit();
 void bitmapBindingInit();
-void spriteBindingInit();
+void SpriteBindingInit();
+void MsgBoxSpriteBindingInit();
 void viewportBindingInit();
 void planeBindingInit();
 void windowBindingInit();
@@ -91,10 +92,11 @@ static void mriBindingInit()
   etcBindingInit();
   fontBindingInit();
   bitmapBindingInit();
-  spriteBindingInit();
+  SpriteBindingInit();
+  MsgBoxSpriteBindingInit();
   viewportBindingInit();
   planeBindingInit();
-  if (rgssVer == 1) {
+  if (rgssVer < 2) {
     windowBindingInit();
     tilemapBindingInit();
   } else {
@@ -128,10 +130,12 @@ static void mriBindingInit()
   rb_define_module_function(mod, "puts", RUBY_METHOD_FUNC(HCPuts), -1);
   rb_define_module_function(mod, "raw_key_states", RUBY_METHOD_FUNC(HCRawKeyStates), -1);
   rb_define_module_function(mod, "mouse_in_window", RUBY_METHOD_FUNC(HCMouseInWindow), -1);
-  if (rgssVer == 1) {
+  if (rgssVer < 2) {
     Init_TermsBackdrop();
-    rb_eval_string(module_rpg1);
-    audio_setup_custom_se();
+    if (rgssVer == 1) {
+      rb_eval_string(module_rpg1);
+      audio_setup_custom_se();
+    }
   } else if (rgssVer == 2) {
     rb_eval_string(module_rpg2);
   } else if (rgssVer == 3) {
@@ -346,12 +350,9 @@ static void runRMXPScripts(BacktraceData &btData)
   }
   VALUE scriptArray;
   // We checked if Scripts.rxdata exists, but something might still go wrong
-  try
-  {
+  try {
     scriptArray = kernelLoadDataInt(scriptPack.c_str(), false);
-  }
-  catch (const Exception &e)
-  {
+  } catch (const Exception &e) {
     showMsg(std::string("Failed to read script data: ") + e.msg);
     return;
   }
@@ -360,49 +361,59 @@ static void runRMXPScripts(BacktraceData &btData)
     return;
   }
   rb_gv_set("$RGSS_SCRIPTS", scriptArray);
+  Debug() << "Set Scripts";
   long scriptCount = RARRAY_LEN(scriptArray);
   std::string decodeBuffer;
-  decodeBuffer.resize(0x1000);
-  for (long i = 0; i < scriptCount; ++i) {
-    VALUE script = rb_ary_entry(scriptArray, i);
-    if (!RB_TYPE_P(script, RUBY_T_ARRAY)) continue;
-    VALUE scriptName   = rb_ary_entry(script, 1);
-    VALUE scriptString = rb_ary_entry(script, 2);
-    int result = Z_OK;
-    unsigned long bufferLen;
-    while (true) {
-      unsigned char *bufferPtr =
-              reinterpret_cast<unsigned char*>(const_cast<char*>(decodeBuffer.c_str()));
-      const unsigned char *sourcePtr =
-              reinterpret_cast<const unsigned char*>(RSTRING_PTR(scriptString));
-      bufferLen = decodeBuffer.length();
-      result = uncompress(bufferPtr, &bufferLen, sourcePtr, RSTRING_LEN(scriptString));
-      bufferPtr[bufferLen] = '\0';
-      if (result != Z_BUF_ERROR) break;
-      decodeBuffer.resize(decodeBuffer.size()*2);
-    }
-    if (result != Z_OK) {
-      static char buffer[256];
-      snprintf(buffer, sizeof(buffer), "Error decoding script %ld: '%s'",
-               i, RSTRING_PTR(scriptName));
-      showMsg(buffer);
-      break;
-    }
-    rb_ary_store(script, 3, rb_str_new_cstr(decodeBuffer.c_str()));
-  } // Execute preloaded scripts
+  decodeBuffer.resize(0x4000);
+  int run_hiddenchest = rgssVer == 0;
+  if (!run_hiddenchest) {
+    for (long i = 0; i < scriptCount; ++i) {
+      VALUE script = rb_ary_entry(scriptArray, i);
+      if (!RB_TYPE_P(script, RUBY_T_ARRAY)) continue;
+      VALUE scriptName   = rb_ary_entry(script, 1);
+      VALUE scriptString = rb_ary_entry(script, 2);
+      int result = Z_OK;
+      unsigned long bufferLen;
+      while (true) {
+        unsigned char *bufferPtr =
+                reinterpret_cast<unsigned char*>(const_cast<char*>(decodeBuffer.c_str()));
+        const unsigned char *sourcePtr =
+                reinterpret_cast<const unsigned char*>(RSTRING_PTR(scriptString));
+        bufferLen = decodeBuffer.length();
+        result = uncompress(bufferPtr, &bufferLen, sourcePtr, RSTRING_LEN(scriptString));
+        bufferPtr[bufferLen] = '\0';
+        if (result != Z_BUF_ERROR) break;
+        decodeBuffer.resize(decodeBuffer.size()*2);
+      }
+      if (result != Z_OK) {
+        static char buffer[256];
+        snprintf(buffer, sizeof(buffer), "Error decoding script %ld: '%s'",
+                 i, RSTRING_PTR(scriptName));
+        showMsg(buffer);
+        break;
+      }
+      rb_ary_store(script, 3, rb_str_new_cstr(decodeBuffer.c_str()));
+    } // Execute preloaded scripts
+  }
   for (std::set<std::string>::iterator i = conf.preloadScripts.begin();
        i != conf.preloadScripts.end(); ++i)
     runCustomScript(*i);
   VALUE exc = rb_gv_get("$!");
   if (exc != Qnil) return;
+  int script_pos = run_hiddenchest ? 1 : 3;
+  int name_pos = run_hiddenchest ? 0 : 1;
   while (true) {
     for (long i = 0; i < scriptCount; ++i) {
       VALUE script = rb_ary_entry(scriptArray, i);
-      VALUE scriptDecoded = rb_ary_entry(script, 3);
-      VALUE string = newStringUTF8(RSTRING_PTR(scriptDecoded),
+      VALUE scriptDecoded = rb_ary_entry(script, script_pos);
+      VALUE string;
+      if (run_hiddenchest)
+        string = scriptDecoded;
+      else
+        string = newStringUTF8(RSTRING_PTR(scriptDecoded),
                                    RSTRING_LEN(scriptDecoded));
       VALUE fname;
-      const char *scriptName = RSTRING_PTR(rb_ary_entry(script, 1));
+      const char *scriptName = RSTRING_PTR(rb_ary_entry(script, name_pos));
       char buf[512];
       int len;
       if (conf.useScriptNames)

@@ -101,6 +101,23 @@ static VALUE input_right_click(VALUE self)
   return shState->input().isRightClick() ? Qtrue : Qfalse;
 }
 
+static VALUE input_is_any_char(VALUE self)
+{
+  return shState->input().isAnyChar() ? Qtrue : Qfalse;
+}
+
+static VALUE input_string(VALUE self)
+{
+  VALUE str = rb_utf8_str_new_cstr(shState->input().string());
+  return rb_funcall(str, rb_intern("strip"), 0);
+}//return rb_funcall(str, rb_intern("gsub"), 2, rb_str_new_cstr("\x00"), rb_str_new_cstr(""));
+
+static VALUE input_enable_edit(VALUE self, VALUE boolean)
+{
+  shState->input().enableMode(boolean == Qtrue);
+  return boolean;
+}
+
 struct
 {
   const char *str;
@@ -112,6 +129,10 @@ static buttonCodes[] =
   { "LEFT",           Input::Left  },
   { "RIGHT",          Input::Right },
   { "UP",             Input::Up    },
+  { "Down",           Input::Down  },
+  { "Left",           Input::Left  },
+  { "Right",          Input::Right },
+  { "Up",             Input::Up    },
   { "A",              Input::A     },
   { "B",              Input::B     },
   { "C",              Input::C     },
@@ -185,6 +206,7 @@ static buttonCodes[] =
   { "F10",            Input::F10            },
   { "F11",            Input::F11            },
   { "F12",            Input::F12            },
+  { "PrintScreen",    Input::PrintScreen    },
   { "ScrollLock",     Input::ScrollLock     },
   { "CapsLock",       Input::CapsLock       },
   { "Pause",          Input::Pause          },
@@ -253,11 +275,14 @@ void inputBindingInit()
   rb_define_module_function(module, "dir8", RMF(inputDir8), 0);
   rb_define_module_function(module, "mouse_x", RMF(inputMouseX), 0);
   rb_define_module_function(module, "mouse_y", RMF(inputMouseY), 0);
+  rb_define_module_function(module, "any_char?", RMF(input_is_any_char), 0);
+  rb_define_module_function(module, "string", RMF(input_string), 0);
+  rb_define_module_function(module, "enable_edit=", RMF(input_enable_edit), 1);
   if (rgssVer >= 3) {
     VALUE symHash = rb_hash_new();
     for (size_t i = 0; i < buttonCodesN; ++i) {
       ID sym = rb_intern(buttonCodes[i].str);
-      VALUE val = INT2FIX(buttonCodes[i].val);
+      VALUE val = RB_INT2FIX(buttonCodes[i].val);
       /* In RGSS3 all Input::XYZ constants are equal to :XYZ symbols,
        * to be compatible with the previous convention */
       rb_const_set(module, sym, ID2SYM(sym));
@@ -268,7 +293,7 @@ void inputBindingInit()
   } else {
     for (size_t i = 0; i < buttonCodesN; ++i) {
       ID sym = rb_intern(buttonCodes[i].str);
-      VALUE val = INT2FIX(buttonCodes[i].val);
+      VALUE val = RB_INT2FIX(buttonCodes[i].val);
       rb_const_set(module, sym, val);
     }
   }

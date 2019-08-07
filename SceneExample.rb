@@ -1,6 +1,6 @@
 # * Scene_Example Script
 #   Scripter : Kyonides-Arkanthes
-#   2019-07-29
+#   2019-08-06
 
 #   This script consists of ideas on How To Implement HiddenChest's
 #   New Script calls like...
@@ -13,12 +13,75 @@
 #   Scene Script Call: $scene = Scene_Example.new
 
 module Examples
-  PICTURE = "equipbox"
+  PICTURE = 'equipbox'
+  TITLEBAR = 'leather bar'
+  CLOSEICON = 'cancel24'
   FACES = Dir['Graphics/Faces/*'].sort[0..3].map{|s| s.sub(".png","") }
   FACES.map!{|s| s.sub("Graphics/Faces/","") }
 end
 
-class Scene_Example
+class BaseScene
+  def main_loop
+    loop do
+      Graphics.update
+      Input.update
+      update
+      break if $scene != self
+    end
+  end
+end
+
+class MessageScene < BaseScene
+  def main
+    @stage = 0
+    @mbox = MsgBoxSprite.new
+    @mbox.x = (Graphics.width - 160) / 2
+    @mbox.y = 300
+    @mbox.bitmap = RPG::Cache.picture(Examples::PICTURE)
+    @mbox.bar_bitmap = RPG::Cache.picture(Examples::TITLEBAR)
+    @mbox.close_icon = RPG::Cache.icon(Examples::CLOSEICON)
+    @mbox.contents.draw_text(0, 0, 132, 26, "Greetings!", 1)
+    @mbox.contents.draw_text(4, 32, 160, 24, "It's a nice day!")
+    @mbox.contents.draw_text(4, 56, 160, 24, "Isn't it, guys?")
+    Graphics.transition
+    main_loop
+    Graphics.freeze
+    @mbox.dispose
+  end
+
+  def update
+    if @stage == 0
+      update_greetings
+    else
+      update_news
+    end
+  end
+
+  def update_greetings
+    if Input.trigger?(Input::B) or Input.trigger?(Input::C) or
+      (Input.left_click? and @mbox.mouse_above_close?)
+      Audio.play_cancel
+      return $scene = Scene_Title.new
+    elsif Input.trigger?(Input::KeyP)
+      Audio.play_ok
+      @mbox.contents.clear
+      @mbox.contents.draw_text(0, 0, 132, 26, "Great News!", 1)
+      @mbox.contents.draw_text(4, 32, 160, 24, 'The snapshot was saved!')
+      Graphics.save_screenshot
+      @stage = 1
+    end
+  end
+
+  def update_news
+    if Input.trigger?(Input::B) or Input.trigger?(Input::C) or
+      (Input.left_click? and @mbox.mouse_above_close?)
+      Audio.play_cancel
+      return $scene = Scene_Title.new
+    end
+  end
+end
+
+class Scene_Example < BaseScene
   include Examples
   def main
     song = RPG::AudioFile.new("The Field of Dreams")
@@ -26,12 +89,7 @@ class Scene_Example
     create_interphase
     Graphics.transition
     entry_animations
-    loop do
-      Graphics.update
-      Input.update
-      update
-      break if $scene != self
-    end
+    main_loop
     exit_animations
     Graphics.freeze
     terminate # Disposal of all windows and sprites
