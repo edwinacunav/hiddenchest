@@ -200,6 +200,22 @@ private:
   GLint u_gray;
 };
 
+class SepiaShader : public ShaderBase
+{
+public:
+  SepiaShader();
+};
+
+class BasicColorShader : public ShaderBase
+{
+public:
+  BasicColorShader();
+  void set_color(float r, float g, float b);
+
+private:
+  GLint u_red, u_green, u_blue;
+};
+
 class TilemapShader : public ShaderBase
 {
 public:
@@ -296,6 +312,8 @@ struct ShaderSet
   SpriteShader sprite;
   PlaneShader plane;
   GrayShader gray;
+  SepiaShader sepia;
+  BasicColorShader basic_color;
   TilemapShader tilemap;
   FlashMapShader flashMap;
   TransShader trans;

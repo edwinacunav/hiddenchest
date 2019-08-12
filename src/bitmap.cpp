@@ -48,11 +48,11 @@ else*/
 //endif */
 // End of addition
 #define GUARD_MEGA \
-	{ \
-		if (p->megaSurface) \
-			throw Exception(Exception::HIDDENCHESTError, \
-                            "Operation not supported for mega surfaces"); \
-	}
+{ \
+  if (p->megaSurface) \
+    throw Exception(Exception::HIDDENCHESTError, \
+                    "Operation not supported for mega surfaces"); \
+}
 
 #define OUTLINE_SIZE 1
 
@@ -341,8 +341,7 @@ void Bitmap::stretchBlt(const IntRect &destRect,
     return;
   } else if (srcSurf) {
     // Blit from software surface - Don't do transparent blits for now
-    if (opacity < 255)
-      source.ensureNonMega();
+    if (opacity < 255) source.ensureNonMega();
     SDL_Rect srcRect = sourceRect;
     SDL_Rect dstRect = destRect;
     SDL_Rect btmRect = { 0, 0, width(), height() };
@@ -394,49 +393,6 @@ void Bitmap::stretchBlt(const IntRect &destRect,
     quad.setTexPosRect(sourceRect, destRect);
     quad.setColor(Vec4(1, 1, 1, normOpacity));
     source.p->bindTexture(shader);
-    p->bindFBO();
-    p->pushSetViewport(shader);
-    p->blitQuad(quad);
-    p->popViewport();
-  }
-  p->addTaintedArea(destRect);
-  p->onModified();
-}
-
-void Bitmap::vertex_blt(const IntRect &destRect, int opacity)
-{
-  //glBegin(GL_QUADS);
-  //glEnd();
-  std::cout << "Quads" << std::endl;
-  IntRect source_rect = rect();
-  if (opacity == 255 && !p->touchesTaintedArea(destRect)) {
-    // Fast blit
-    std::cout << "Fast Blit" << std::endl;
-    GLMeta::blitBegin(p->gl);
-    GLMeta::blitSource(p->gl);
-    GLMeta::blitRectangle(source_rect, destRect);
-    GLMeta::blitEnd();
-  } else { // Fragment pipeline
-    std::cout << "Fragment Pipeline" << std::endl;
-    float normOpacity = (float) opacity / 255.0f;
-    TEXFBO &gpTex = shState->gpTexFBO(destRect.w, destRect.h);
-    GLMeta::blitBegin(gpTex);
-    GLMeta::blitSource(p->gl);
-    GLMeta::blitRectangle(destRect, Vec2i());
-    GLMeta::blitEnd();
-    FloatRect bltSubRect((float) source_rect.x / width(),
-                         (float) source_rect.y / height(),
-                         ((float) width() / source_rect.w) * ((float) destRect.w / gpTex.width),
-                         ((float) height() / source_rect.h) * ((float) destRect.h / gpTex.height));
-    BltShader &shader = shState->shaders().blt;
-    shader.bind();
-    shader.setDestination(gpTex.tex);
-    shader.setSubRect(bltSubRect);
-    shader.setOpacity(normOpacity);
-    Quad &quad = shState->gpQuad();
-    quad.setTexPosRect(source_rect, destRect);
-    quad.setColor(Vec4(1, 1, 1, normOpacity));
-    p->bindTexture(shader);
     p->bindFBO();
     p->pushSetViewport(shader);
     p->blitQuad(quad);

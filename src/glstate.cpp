@@ -81,6 +81,10 @@ void GLBlendMode::apply(const BlendType &value)
     gl.BlendEquation(GL_FUNC_REVERSE_SUBTRACT);
     gl.BlendFuncSeparate(GL_SRC_ALPHA, GL_ONE, GL_ONE, GL_ONE);
     break;
+  case BlendInvert :
+    gl.BlendEquation(GL_FUNC_ADD);
+    gl.BlendFunc(GL_ONE_MINUS_SRC_COLOR, GL_ZERO);
+    break;
   }
 }
 
@@ -113,6 +117,11 @@ GLState::GLState(const Config &conf)
   scissorTest.init(false);
   scissorBox.init(IntRect(0, 0, WIDTH_MAX, HEIGHT_MAX)); // Implement a real higher resolution than usual
   program.init(0);
-  if (conf.maxTextureSize > 0)
-    caps.maxTexSize = conf.maxTextureSize;
+  if (conf.maxTextureSize > 0) caps.maxTexSize = conf.maxTextureSize;
 }
+
+bool GLState::stack_not_null() const
+{
+  return viewport.stack_size() > 0;
+}
+

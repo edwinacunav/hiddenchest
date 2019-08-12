@@ -172,66 +172,96 @@ static VALUE audio_play_buzzer(VALUE self)
 {
   VALUE ose = rb_iv_get(self, "@se");
   VALUE se = rb_iv_get(self, "@buzzer");
-  VALUE se_name = rb_str_plus(ose, rb_funcall(se, rb_intern("name"), 0));
-  VALUE se_volume = rb_funcall(se, rb_intern("volume"), 0);
-  VALUE se_pitch = rb_funcall(se, rb_intern("pitch"), 0);
-  VALUE se_ary[3] = { se_name, se_volume, se_pitch };
-  return audio_sePlay(3, se_ary, self);
+  VALUE se_name = rb_str_plus(ose, rb_iv_get(se, "@name"));
+  const char *filename = StringValueCStr(se_name);
+  int volume = RB_FIX2INT(rb_iv_get(se, "@volume"));
+  int pitch = RB_FIX2INT(rb_iv_get(se, "@pitch"));
+  GUARD_EXC( shState->audio().sePlay(filename, volume, pitch); )
+  return Qnil;
 }
 
 static VALUE audio_play_cancel(VALUE self)
 {
   VALUE ose = rb_iv_get(self, "@se");
   VALUE se = rb_iv_get(self, "@cancel");
-  VALUE se_name = rb_str_plus(ose, rb_funcall(se, rb_intern("name"), 0));
-  VALUE se_volume = rb_funcall(se, rb_intern("volume"), 0);
-  VALUE se_pitch = rb_funcall(se, rb_intern("pitch"), 0);
-  VALUE se_ary[3] = { se_name, se_volume, se_pitch };
-  return audio_sePlay(3, se_ary, self);
-}
-
-static VALUE audio_play_cursor(VALUE self)
-{
-  VALUE ose = rb_iv_get(self, "@se");
-  VALUE se = rb_iv_get(self, "@cursor");
-  VALUE se_name = rb_str_plus(ose, rb_funcall(se, rb_intern("name"), 0));
-  VALUE se_volume = rb_funcall(se, rb_intern("volume"), 0);
-  VALUE se_pitch = rb_funcall(se, rb_intern("pitch"), 0);
-  VALUE se_ary[3] = { se_name, se_volume, se_pitch };
-  return audio_sePlay(3, se_ary, self);
+  VALUE se_name = rb_str_plus(ose, rb_iv_get(se, "@name"));
+  const char *filename = StringValueCStr(se_name);
+  int volume = RB_FIX2INT(rb_iv_get(se, "@volume"));
+  int pitch = RB_FIX2INT(rb_iv_get(se, "@pitch"));
+  GUARD_EXC( shState->audio().sePlay(filename, volume, pitch); )
+  return Qnil;
 }
 
 static VALUE audio_play_ok(VALUE self)
 {
   VALUE ose = rb_iv_get(self, "@se");
   VALUE se = rb_iv_get(self, "@ok");
-  VALUE se_name = rb_str_plus(ose, rb_funcall(se, rb_intern("name"), 0));
-  VALUE se_volume = rb_funcall(se, rb_intern("volume"), 0);
-  VALUE se_pitch = rb_funcall(se, rb_intern("pitch"), 0);
-  VALUE se_ary[3] = { se_name, se_volume, se_pitch };
-  return audio_sePlay(3, se_ary, self);
+  VALUE se_name = rb_str_plus(ose, rb_iv_get(se, "@name"));
+  const char *filename = StringValueCStr(se_name);
+  int volume = RB_FIX2INT(rb_iv_get(se, "@volume"));
+  int pitch = RB_FIX2INT(rb_iv_get(se, "@pitch"));
+  GUARD_EXC( shState->audio().sePlay(filename, volume, pitch); )
+  return Qnil;
+}
+
+static VALUE audio_play_cursor(VALUE self)
+{
+  VALUE ose = rb_iv_get(self, "@se");
+  VALUE se = rb_iv_get(self, "@cursor");
+  VALUE se_name = rb_str_plus(ose, rb_iv_get(se, "@name"));
+  const char *filename = StringValueCStr(se_name);
+  int volume = RB_FIX2INT(rb_iv_get(se, "@volume"));
+  int pitch = RB_FIX2INT(rb_iv_get(se, "@pitch"));
+  GUARD_EXC( shState->audio().sePlay(filename, volume, pitch); )
+  return Qnil;
 }
 
 static VALUE audio_play_shop(VALUE self)
 {
   VALUE ose = rb_iv_get(self, "@se");
   VALUE se = rb_iv_get(self, "@shop");
-  VALUE se_name = rb_str_plus(ose, rb_funcall(se, rb_intern("name"), 0));
-  VALUE se_volume = rb_funcall(se, rb_intern("volume"), 0);
-  VALUE se_pitch = rb_funcall(se, rb_intern("pitch"), 0);
-  VALUE se_ary[3] = { se_name, se_volume, se_pitch };
-  return audio_sePlay(3, se_ary, self);
+  VALUE se_name = rb_str_plus(ose, rb_iv_get(se, "@name"));
+  const char *filename = StringValueCStr(se_name);
+  int volume = RB_FIX2INT(rb_iv_get(se, "@volume"));
+  int pitch = RB_FIX2INT(rb_iv_get(se, "@pitch"));
+  GUARD_EXC( shState->audio().sePlay(filename, volume, pitch); )
+  return Qnil;
 }
 
 static VALUE audio_play_equip(VALUE self)
 {
   VALUE ose = rb_iv_get(self, "@se");
   VALUE se = rb_iv_get(self, "@equip");
-  VALUE se_name = rb_str_plus(ose, rb_funcall(se, rb_intern("name"), 0));
-  VALUE se_volume = rb_funcall(se, rb_intern("volume"), 0);
-  VALUE se_pitch = rb_funcall(se, rb_intern("pitch"), 0);
-  VALUE se_ary[3] = { se_name, se_volume, se_pitch };
-  return audio_sePlay(3, se_ary, self);
+  VALUE se_name = rb_str_plus(ose, rb_iv_get(se, "@name"));
+  const char *filename = StringValueCStr(se_name);
+  int volume = RB_FIX2INT(rb_iv_get(se, "@volume"));
+  int pitch = RB_FIX2INT(rb_iv_get(se, "@pitch"));
+  GUARD_EXC( shState->audio().sePlay(filename, volume, pitch); )
+  return Qnil;
+}
+
+static VALUE audio_play_save(VALUE self)
+{
+  VALUE ose = rb_iv_get(self, "@se");
+  VALUE se = rb_iv_get(self, "@save");
+  VALUE se_name = rb_str_plus(ose, rb_iv_get(se, "@name"));
+  const char *filename = StringValueCStr(se_name);
+  int volume = RB_FIX2INT(rb_iv_get(se, "@volume"));
+  int pitch = RB_FIX2INT(rb_iv_get(se, "@pitch"));
+  GUARD_EXC( shState->audio().sePlay(filename, volume, pitch); )
+  return Qnil;
+}
+
+static VALUE audio_play_load(VALUE self)
+{
+  VALUE ose = rb_iv_get(self, "@se");
+  VALUE se = rb_iv_get(self, "@load");
+  VALUE se_name = rb_str_plus(ose, rb_iv_get(se, "@name"));
+  const char *filename = StringValueCStr(se_name);
+  int volume = RB_FIX2INT(rb_iv_get(se, "@volume"));
+  int pitch = RB_FIX2INT(rb_iv_get(se, "@pitch"));
+  GUARD_EXC( shState->audio().sePlay(filename, volume, pitch); )
+  return Qnil;
 }
 
 static VALUE rpg_audio_file_initialize(int argc, VALUE* argv, VALUE self)
@@ -255,14 +285,15 @@ void audio_setup_custom_se()
   VALUE filename = rb_str_new_cstr("Data/System.rxdata");
   VALUE ds = rb_funcall(rb_mKernel, rb_intern("load_data"), 1, filename);
   if ( RB_NIL_P(ds) ) return;
-  VALUE mess[1] = { rb_str_new_cstr("Initializing extra Audio methods now...") };
-  rb_io_puts(1, mess, rb_stdout);
-  VALUE buzzer = rb_iv_set(mod, "@buzzer", rb_funcall(ds, rb_intern("buzzer_se"), 0));
-  VALUE cancel = rb_iv_set(mod, "@cancel", rb_funcall(ds, rb_intern("cancel_se"), 0));
-  VALUE cursor = rb_iv_set(mod, "@cursor", rb_funcall(ds, rb_intern("cursor_se"), 0));
-  VALUE ok = rb_iv_set(mod, "@ok", rb_funcall(ds, rb_intern("decision_se"), 0));
-  VALUE shop = rb_iv_set(mod, "@shop", rb_funcall(ds, rb_intern("shop_se"), 0));
-  VALUE equip = rb_iv_set(mod, "@equip", rb_funcall(ds, rb_intern("equip_se"), 0));
+  rb_p(rb_str_new_cstr("Initializing extra Audio methods now..."));
+  rb_iv_set(mod, "@buzzer", rb_iv_get(ds, "@buzzer_se"));
+  rb_iv_set(mod, "@cancel", rb_iv_get(ds, "@cancel_se"));
+  rb_iv_set(mod, "@cursor", rb_iv_get(ds, "@cursor_se"));
+  rb_iv_set(mod, "@ok", rb_iv_get(ds, "@decision_se"));
+  rb_iv_set(mod, "@shop", rb_iv_get(ds, "@shop_se"));
+  rb_iv_set(mod, "@equip", rb_iv_get(ds, "@equip_se"));
+  rb_iv_set(mod, "@save", rb_iv_get(ds, "@save_se"));
+  rb_iv_set(mod, "@load", rb_iv_get(ds, "@load_se"));
 }
 
 void audioBindingInit()
@@ -288,6 +319,8 @@ void audioBindingInit()
     rb_define_module_function(module, "play_ok", RUBY_METHOD_FUNC(audio_play_ok), 0);
     rb_define_module_function(module, "play_shop", RUBY_METHOD_FUNC(audio_play_shop), 0);
     rb_define_module_function(module, "play_equip", RUBY_METHOD_FUNC(audio_play_equip), 0);
+    rb_define_module_function(module, "play_save", RUBY_METHOD_FUNC(audio_play_save), 0);
+    rb_define_module_function(module, "play_load", RUBY_METHOD_FUNC(audio_play_load), 0);
     rb_define_module_function(module, "play_se", RUBY_METHOD_FUNC(audio_play_se), -1);
     VALUE rpg = rb_define_module("RPG");
     VALUE file = rb_define_class_under(rpg, "AudioFile", rb_cObject);

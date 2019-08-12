@@ -1,4 +1,4 @@
-#define SET_RES_OPTION 3
+#define SET_RES_OPTION 1
 
 #if SET_RES_OPTION==1
 

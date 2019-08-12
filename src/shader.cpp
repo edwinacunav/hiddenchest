@@ -34,6 +34,9 @@
 #include "bitmapBlit.frag.xxd"
 #include "plane.frag.xxd"
 #include "gray.frag.xxd"
+#include "basic_color.frag.xxd"
+#include "sepia.frag.xxd"
+#include "oil.frag.xxd"
 #include "flatColor.frag.xxd"
 #include "simple.frag.xxd"
 #include "simpleColor.frag.xxd"
@@ -43,6 +46,7 @@
 #include "minimal.vert.xxd"
 #include "simple.vert.xxd"
 #include "simpleColor.vert.xxd"
+#include "invert.vert.xxd"
 #include "sprite.vert.xxd"
 #include "tilemap.vert.xxd"
 #include "blur.frag.xxd"
@@ -53,8 +57,8 @@
 
 #define INIT_SHADER(vert, frag, name) \
 { \
-  Shader::init(shader_##vert##_vert, shader_##vert##_vert_len, shader_##frag##_frag, shader_##frag##_frag_len, \
-  #vert, #frag, #name); \
+  Shader::init(shader_##vert##_vert, shader_##vert##_vert_len, shader_##frag##_frag, \
+  shader_##frag##_frag_len, #vert, #frag, #name); \
 }
 
 #define GET_U(name) u_##name = gl.GetUniformLocation(program, #name)
@@ -143,8 +147,8 @@ void Shader::init(const unsigned char *vert, int vertSize,
   if (!success) {
     printShaderLog(vertShader);
     throw Exception(Exception::HIDDENCHESTError,
-                "GLSL: An error occured while compiling vertex shader '%s' in program '%s'",
-                vertName, programName);
+      "GLSL: An error occured while compiling vertex shader '%s' in program '%s'",
+      vertName, programName);
   }
   /* Compile fragment shader */
   setupShaderSource(fragShader, GL_FRAGMENT_SHADER, frag, fragSize);
@@ -154,8 +158,8 @@ void Shader::init(const unsigned char *vert, int vertSize,
   {
     printShaderLog(fragShader);
     throw Exception(Exception::HIDDENCHESTError,
-                "GLSL: An error occured while compiling fragment shader '%s' in program '%s'",
-                fragName, programName);
+      "GLSL: An error occured while compiling fragment shader '%s' in program '%s'",
+      fragName, programName);
   }
   /* Link shader program */
   gl.AttachShader(program, vertShader);
@@ -168,8 +172,8 @@ void Shader::init(const unsigned char *vert, int vertSize,
   if (!success) {
     printProgramLog(program);
     throw Exception(Exception::HIDDENCHESTError,
-                "GLSL: An error occured while linking program '%s' (vertex '%s', fragment '%s')",
-                programName, vertName, fragName);
+      "GLSL: An error occured while linking program '%s' (vertex '%s', fragment '%s')",
+      programName, vertName, fragName);
   }
 }
 
@@ -206,10 +210,10 @@ void ShaderBase::GLProjMat::apply(const Vec2i &value)
   const float c = -2.f;
   GLfloat mat[16] =
   {
-           a,  0,  0,  0,
-           0,  b,  0,  0,
-           0,  0,  c,  0,
-          -1, -1, -1,  1
+     a,  0,  0,  0,
+     0,  b,  0,  0,
+     0,  0,  c,  0,
+    -1, -1, -1,  1
   };
   gl.UniformMatrix4fv(u_mat, 1, GL_FALSE, mat);
 }
@@ -237,7 +241,6 @@ void ShaderBase::setTranslation(const Vec2i &value)
   gl.Uniform2f(u_translation, value.x, value.y);
 }
 
-
 FlatColorShader::FlatColorShader()
 {
   INIT_SHADER(minimal, flatColor, FlatColorShader);
@@ -249,7 +252,6 @@ void FlatColorShader::setColor(const Vec4 &value)
 {
   setVec4Uniform(u_color, value);
 }
-
 
 SimpleShader::SimpleShader()
 {
@@ -263,20 +265,17 @@ void SimpleShader::setTexOffsetX(int value)
   gl.Uniform1f(u_texOffsetX, value);
 }
 
-
 SimpleColorShader::SimpleColorShader()
 {
   INIT_SHADER(simpleColor, simpleColor, SimpleColorShader);
   ShaderBase::init();
 }
 
-
 SimpleAlphaShader::SimpleAlphaShader()
 {
   INIT_SHADER(simpleColor, simpleAlpha, SimpleAlphaShader);
   ShaderBase::init();
 }
-
 
 SimpleSpriteShader::SimpleSpriteShader()
 {
@@ -289,7 +288,6 @@ void SimpleSpriteShader::setSpriteMat(const float value[16])
 {
   gl.UniformMatrix4fv(u_spriteMat, 1, GL_FALSE, value);
 }
-
 
 AlphaSpriteShader::AlphaSpriteShader()
 {
@@ -308,7 +306,6 @@ void AlphaSpriteShader::setAlpha(float value)
 {
   gl.Uniform1f(u_alpha, value);
 }
-
 
 TransShader::TransShader()
 {
@@ -346,7 +343,6 @@ void TransShader::setVague(float value)
   gl.Uniform1f(u_vague, value);
 }
 
-
 SimpleTransShader::SimpleTransShader()
 {
   INIT_SHADER(simple, transSimple, SimpleTransShader);
@@ -370,7 +366,6 @@ void SimpleTransShader::setProg(float value)
 {
   gl.Uniform1f(u_prog, value);
 }
-
 
 SpriteShader::SpriteShader()
 {
@@ -414,7 +409,6 @@ void SpriteShader::setBushOpacity(float value)
   gl.Uniform1f(u_bushOpacity, value);
 }
 
-
 PlaneShader::PlaneShader()
 {
   INIT_SHADER(simple, plane, PlaneShader);
@@ -445,7 +439,6 @@ void PlaneShader::setOpacity(float value)
   gl.Uniform1f(u_opacity, value);
 }
 
-
 GrayShader::GrayShader()
 {
   INIT_SHADER(simple, gray, GrayShader);
@@ -458,6 +451,27 @@ void GrayShader::setGray(float value)
   gl.Uniform1f(u_gray, value);
 }
 
+BasicColorShader::BasicColorShader()
+{
+  INIT_SHADER(simple, basic_color, BasicColorShader);
+  ShaderBase::init();
+  GET_U(red);
+  GET_U(green);
+  GET_U(blue);
+}
+
+void BasicColorShader::set_color(float r, float g, float b)
+{
+  gl.Uniform1f(u_red, r);
+  gl.Uniform1f(u_green, g);
+  gl.Uniform1f(u_blue, b);
+}
+
+SepiaShader::SepiaShader()
+{
+  INIT_SHADER(simple, sepia, SepiaShader);
+  ShaderBase::init();
+}
 
 TilemapShader::TilemapShader()
 {

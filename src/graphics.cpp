@@ -146,13 +146,72 @@ public:
     glState.viewport.set(IntRect(0, 0, w, h));
     FBO::clear();
     Scene::composite();
-    if (brightEffect) {
-      SimpleColorShader &shader = shState->shaders().simpleColor;
-      shader.bind();
-      shader.applyViewportProj();
-      shader.setTranslation(Vec2i());
-      brightnessQuad.draw();
+    if (!brightEffect) return;
+    SimpleColorShader &shader = shState->shaders().simpleColor;
+    shader.bind();
+    shader.applyViewportProj();
+    shader.setTranslation(Vec2i());
+    brightnessQuad.draw();
+  }
+
+  void apply_scissors()
+  {
+    composite();
+    Scene::composite();
+    const IntRect &viewpRect = glState.scissorBox.get();
+    const IntRect &screenRect = geometry.rect;
+    pp.swapRender();
+    glState.scissorTest.pushSet(true);
+    glState.scissorBox.pushSet(screenRect);
+  }
+
+  void apply_shader(ShaderBase &shader)
+  {
+    shader.applyViewportProj();
+    shader.setTexSize(Vec2i(geometry.rect.w, geometry.rect.h));
+    TEX::bind(pp.backBuffer().tex);
+    glState.blend.pushSet(false);
+    screenQuad.draw();
+    glState.blend.pop();
+    glState.scissorBox.pop();
+    glState.scissorTest.pop();
+  }
+
+  void composite_gray()
+  {
+    apply_scissors();
+    GrayShader &shader = shState->shaders().gray;
+    shader.bind();
+    shader.setGray(1.0);
+    apply_shader(shader);
+  }
+
+  void composite_color(int c)
+  {
+    float r = 0.0, g = 0.0, b = 0.0;
+    if (c == 0)
+      r = 1.0;
+    else if (c == 1)
+      g = 1.0;
+    else if (c == 2)
+      b = 1.0;
+    else {
+      r = 0.85;
+      g = 0.85;
     }
+    apply_scissors();
+    BasicColorShader &shader = shState->shaders().basic_color;
+    shader.bind();
+    shader.set_color(r, g, b);
+    apply_shader(shader);
+  }
+
+  void composite_sepia()
+  {
+    apply_scissors();
+    SepiaShader &shader = shState->shaders().sepia;
+    shader.bind();
+    apply_shader(shader);
   }
 
   void requestViewportRender(const Vec4 &c, const Vec4 &f, const Vec4 &t)
@@ -337,8 +396,7 @@ struct FPSLimiter
   }
   /* If we're more than a full frame's worth
    * of ticks behind the ideal timestep,
-   * there's no choice but to skip frame(s)
-   * to catch up */
+   * there's no choice but to skip frame(s) to catch up */
   bool frameSkipRequired() const
   {
     if (disabled) return false;
@@ -351,23 +409,6 @@ private:
     SDL_Delay(ticks / tickFreqMS);
   }
 };
-/*if defined(HAVE_NANOSLEEP)
-    std::cout << "Nano Delay" << std::endl;
-    struct timespec req;
-    uint64_t nsec = ticks / tickFreqNS;
-    req.tv_sec = nsec / NS_PER_S;
-    req.tv_nsec = nsec % NS_PER_S;
-    errno = 0;
-    while (nanosleep(&req, &req) == -1)
-    {
-      int err = errno;
-      errno = 0;
-      if (err == EINTR) continue;
-      Debug() << "nanosleep failed. errno:" << err;
-      SDL_Delay(ticks / tickFreqMS);
-      break;
-    }
-else std::cout << "Easy Delay" << std::endl; endif }*/
 
 struct GraphicsPrivate
 {
@@ -391,7 +432,7 @@ struct GraphicsPrivate
   int frameCount;
   int brightness;
   FPSLimiter fpsLimiter;
-  bool blockFullscreen;
+  bool block_fullscreen;
   bool frozen;
   TEXFBO frozenScene;
   Quad screenQuad;
@@ -400,18 +441,18 @@ struct GraphicsPrivate
   IntruList<Disposable> dispList;
 
   GraphicsPrivate(RGSSThreadData *rtData)
-      : scRes(START_WIDTH, START_HEIGHT),// scRes(WIDTH_MAX, HEIGHT_MAX),
-        scSize(scRes),
-        winSize(rtData->config.defScreenW, rtData->config.defScreenH),
-        screen(scRes.x, scRes.y),
-        threadData(rtData),
-        glCtx(SDL_GL_GetCurrentContext()),
-        frameRate(DEF_FRAMERATE),
-        frameCount(0),
-        brightness(255),
-        fpsLimiter(frameRate),
-        frozen(false),
-        blockFullscreen(false)
+  : scRes(START_WIDTH, START_HEIGHT),// scRes(WIDTH_MAX, HEIGHT_MAX),
+    scSize(scRes),
+    winSize(rtData->config.defScreenW, rtData->config.defScreenH),
+    screen(scRes.x, scRes.y),
+    threadData(rtData),
+    glCtx(SDL_GL_GetCurrentContext()),
+    frameRate(DEF_FRAMERATE),
+    frameCount(0),
+    brightness(255),
+    fpsLimiter(frameRate),
+    frozen(false),
+    block_fullscreen(false)
   {
     winSize.x = START_WIDTH;
     winSize.y = START_HEIGHT;
@@ -488,20 +529,43 @@ struct GraphicsPrivate
     threadData->ethread->notifyFrame();
   }
 
-  void compositeToBuffer(TEXFBO &buffer)
+  void set_buffer(TEXFBO &buffer)
   {
-    screen.composite();
     GLMeta::blitBegin(buffer);
     GLMeta::blitSource(screen.getPP().frontBuffer());
     GLMeta::blitRectangle(IntRect(0, 0, scRes.x, scRes.y), Vec2i());
     GLMeta::blitEnd();
   }
 
+  void compositeToBuffer(TEXFBO &buffer)
+  {
+    screen.composite();
+    set_buffer(buffer);
+  }
+
+  void composite_to_gray_buffer(TEXFBO &buffer)
+  {
+    screen.composite_gray();
+    set_buffer(buffer);
+  }
+
+  void composite_to_sepia_buffer(TEXFBO &buffer)
+  {
+    screen.composite_sepia();
+    set_buffer(buffer);
+  }
+
+  void composite_to_color_buffer(TEXFBO &buffer, int c)
+  {
+    screen.composite_color(c);
+    set_buffer(buffer);
+  }
+
   void metaBlitBufferFlippedScaled()
   {
     GLMeta::blitRectangle(IntRect(0, 0, scRes.x, scRes.y),
-                          IntRect(scOffset.x, scSize.y+scOffset.y, scSize.x, -scSize.y),
-                          threadData->config.smoothScaling);
+        IntRect(scOffset.x, scSize.y+scOffset.y, scSize.x, -scSize.y),
+        threadData->config.smoothScaling);
   }
 
   void redrawScreen()
@@ -528,7 +592,7 @@ struct GraphicsPrivate
   }
 };
 
-Graphics::Graphics(RGSSThreadData *data)
+Graphics::Graphics(RGSSThreadData *data) : screenshot_format(0)
 {
   p = new GraphicsPrivate(data);
   if (data->config.syncToRefreshrate) {
@@ -544,6 +608,11 @@ Graphics::Graphics(RGSSThreadData *data)
 Graphics::~Graphics()
 {
   delete p;
+}
+
+void Graphics::set_screenshot_format(int format)
+{
+  screenshot_format = format;
 }
 
 void Graphics::update()
@@ -570,7 +639,6 @@ void Graphics::freeze()
   p->frozen = true;
   p->checkShutDownReset();
   p->checkResize();
-  // Capture scene into frozen buffer
   p->compositeToBuffer(p->frozenScene);
 }
 
@@ -589,8 +657,7 @@ void Graphics::transition(int duration, const char *filename, int vague)
    * the final rendered image. */
   TEXFBO &currentScene = p->screen.getPP().frontBuffer();
   TEXFBO &transBuffer  = p->screen.getPP().backBuffer();
-  /* If no transition bitmap is provided,
-   * we can use a simplified shader */
+  // If no transition bitmap is provided, we can use a simplified shader
   TransShader &transShader = shState->shaders().trans;
   SimpleTransShader &simpleShader = shState->shaders().simpleTrans;
   if (transMap) {
@@ -663,7 +730,10 @@ void Graphics::frameReset()
 
 static void guardDisposed() {}
 
-DEF_ATTR_RD_SIMPLE(Graphics, FrameRate, int, p->frameRate)
+int Graphics::getFrameRate() const
+{
+  return p->frameRate;
+}
 
 DEF_ATTR_SIMPLE(Graphics, FrameCount, int, p->frameCount)
 
@@ -731,27 +801,58 @@ Bitmap *Graphics::snapToBitmap()
   return bitmap;
 }
 
-bool Graphics::saveScreenShot()
+Bitmap *Graphics::snap_to_gray_bitmap()
+{
+  Bitmap *bitmap = new Bitmap(width(), height());
+  p->composite_to_gray_buffer(bitmap->getGLTypes());
+  bitmap->taintArea(IntRect(0, 0, width(), height()));
+  return bitmap;
+}
+
+Bitmap *Graphics::snap_to_sepia_bitmap()
+{
+  Bitmap *bitmap = new Bitmap(width(), height());
+  p->composite_to_sepia_buffer(bitmap->getGLTypes());
+  bitmap->taintArea(IntRect(0, 0, width(), height()));
+  return bitmap;
+}
+
+Bitmap *Graphics::snap_to_color_bitmap(int c)
+{
+  Bitmap *bitmap = new Bitmap(width(), height());
+  p->composite_to_color_buffer(bitmap->getGLTypes(), c);
+  bitmap->taintArea(IntRect(0, 0, width(), height()));
+  return bitmap;
+}
+
+bool Graphics::save_screenshot()
 {
   fs::create_directory("Screenshots");
   time_t rt = time(NULL);
   tm *tmp = localtime(&rt);
   char str[90];
-  sprintf(str, "Screenshots/shot%d-%02d-%02d%02d%02d%02d.png", tmp->tm_year+1900,
-          tmp->tm_mon+1, tmp->tm_mday, tmp->tm_hour, tmp->tm_min, tmp->tm_sec);
-  /*for (int i = 1; i < 100 ; i++){ if ( !fs::exists(str) ) break; }*/
-  // Debug() << str;
+  std::string format;
+  format += screenshot_format == 0 ? "jpg" : "png";
+  sprintf(str, "Screenshots/shot%d-%02d-%02d%02d%02d%02d.%s", tmp->tm_year+1900,
+          tmp->tm_mon+1, tmp->tm_mday, tmp->tm_hour, tmp->tm_min, tmp->tm_sec, format.c_str());
   Bitmap *bmp = snapToBitmap();
   SDL_Surface *surf = bmp->surface();//Fast
   SDL_LockSurface(surf);
-  if ( IMG_SavePNG(surf, str) != 0 ) {
-    Debug() << "Freeing surface after failure";
-    SDL_FreeSurface(surf);
-    return false;
+  bool failed = false;
+  if (screenshot_format == 0) {
+    if ( IMG_SaveJPG(surf, str, 95) != 0 ) {
+      Debug() << "Freeing JPG surface after failure";
+      failed = true;
+    }
+  } else {
+    if ( IMG_SavePNG(surf, str) != 0 ) {
+      Debug() << "Freeing PNG surface after failure";
+      failed = true;
+    }
   }
-  SDL_FreeSurface(surf);// bmp->releaseResources();
+  SDL_FreeSurface(surf);
   delete bmp;
-  return true;
+  return !failed;
 }
 
 int Graphics::width() const
@@ -811,14 +912,14 @@ void Graphics::reset()
   setBrightness(255);
 }
 
-bool Graphics::getBlockFullscreen() const
+bool Graphics::get_block_fullscreen() const
 {
-  return p->blockFullscreen;
+  return p->block_fullscreen;
 }
 
-void Graphics::setBlockFullscreen(bool value)
+void Graphics::set_block_fullscreen(bool value)
 {
-  p->blockFullscreen = value;
+  p->block_fullscreen = value;
 }
 
 bool Graphics::getFullscreen() const
@@ -831,12 +932,12 @@ void Graphics::setFullscreen(bool value)
   p->threadData->ethread->requestFullscreenMode(value);
 }
 
-bool Graphics::getShowCursor() const
+bool Graphics::get_show_cursor() const
 {
   return p->threadData->ethread->getShowCursor();
 }
 
-void Graphics::setShowCursor(bool value)
+void Graphics::set_show_cursor(bool value)
 {
   p->threadData->ethread->requestShowCursor(value);
 }

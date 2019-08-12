@@ -29,21 +29,21 @@
 #define DEF_GL_ID \
 struct ID \
 { \
-	GLuint gl; \
-	explicit ID(GLuint gl = 0) : gl(gl) {} \
-	ID &operator=(const ID &o)  \
-	{  \
-		gl = o.gl;  \
-		return *this; \
-	}  \
-	bool operator==(const ID &o) const  \
-	{  \
-		return gl == o.gl;  \
-	}  \
-	bool operator!=(const ID &o) const \
-	{ \
-		return !(*this == o); \
-	} \
+  GLuint gl; \
+  explicit ID(GLuint gl = 0) : gl(gl) {} \
+  ID &operator=(const ID &o)  \
+  {  \
+    gl = o.gl;  \
+    return *this; \
+  }  \
+  bool operator==(const ID &o) const  \
+  {  \
+    return gl == o.gl;  \
+  }  \
+  bool operator!=(const ID &o) const \
+  { \
+    return !(*this == o); \
+  } \
 };
 
 /* 2D Texture */

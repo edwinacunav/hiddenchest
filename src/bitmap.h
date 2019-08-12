@@ -54,7 +54,6 @@ public:
   void fillRect(int x, int y,
                 int width, int height,
                 const Vec4 &color);
-  void vertex_blt(const IntRect &destRect, int opacity);
   void fillRect(const IntRect &rect, const Vec4 &color);
   void gradientFillRect(int x, int y,
                         int width, int height,

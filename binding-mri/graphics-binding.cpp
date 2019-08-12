@@ -20,6 +20,7 @@
 ** along with mkxp.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "hcsymbol.h"
 #include "graphics.h"
 #include "sharedstate.h"
 #include "binding-util.h"
@@ -44,7 +45,8 @@ RB_METHOD(graphicsTransition)
   int duration = 8;
   const char *filename = "";
   int vague = 40;
-  rb_get_args(argc, argv, "|izi", &duration, &filename, &vague RB_ARG_END);
+  if (argc > 0)
+    rb_get_args(argc, argv, "|izi", &duration, &filename, &vague RB_ARG_END);
   GUARD_EXC( shState->graphics().transition(duration, filename, vague); )
   return Qnil;
 }
@@ -57,15 +59,15 @@ static VALUE graphicsFrameReset(VALUE self)
 
 static VALUE graphicsWidth(VALUE self)
 {
-  return rb_fix_new(shState->graphics().width());
+  return RB_INT2FIX(shState->graphics().width());
 }
 
 static VALUE graphicsHeight(VALUE self)
 {
-  return rb_fix_new(shState->graphics().height());
+  return RB_INT2FIX(shState->graphics().height());
 }
 
-static VALUE graphicsDimensions(VALUE self)
+static VALUE graphics_dimensions(VALUE self)
 {
   VALUE width = RB_INT2NUM( shState->graphics().width() );
   VALUE height = RB_INT2NUM( shState->graphics().height() );
@@ -110,10 +112,48 @@ static VALUE graphicsSnapToBitmap(VALUE self)
   return obj;
 }
 
-static VALUE graphicsSaveScreenShot(VALUE self)
+static VALUE graphics_snap_to_gray_bitmap(VALUE self)
+{
+  Bitmap *result = 0;
+  GUARD_EXC( result = shState->graphics().snap_to_gray_bitmap(); );
+  VALUE obj = wrapObject(result, BitmapType);
+  bitmapInitProps(result, obj);
+  return obj;
+}
+
+static VALUE graphics_snap_to_sepia_bitmap(VALUE self)
+{
+  Bitmap *result = 0;
+  GUARD_EXC( result = shState->graphics().snap_to_sepia_bitmap(); );
+  VALUE obj = wrapObject(result, BitmapType);
+  bitmapInitProps(result, obj);
+  return obj;
+}
+
+static VALUE graphics_snap_to_color_bitmap(VALUE self, VALUE color)
+{
+  Bitmap *b = 0;
+  if (color == hc_symbol("red"))
+    GUARD_EXC( b = shState->graphics().snap_to_color_bitmap(0); )
+  else if (color == hc_symbol("green"))
+    GUARD_EXC( b = shState->graphics().snap_to_color_bitmap(1); )
+  else if (color == hc_symbol("blue"))
+    GUARD_EXC( b = shState->graphics().snap_to_color_bitmap(2); )
+  else if (color == hc_symbol("yellow"))
+    GUARD_EXC( b = shState->graphics().snap_to_color_bitmap(3); )
+  else if (color == hc_symbol("sepia"))
+    GUARD_EXC( b = shState->graphics().snap_to_sepia_bitmap(); )
+  else if (color == hc_symbol("gray"))
+    GUARD_EXC( b = shState->graphics().snap_to_gray_bitmap(); )
+  VALUE obj = wrapObject(b, BitmapType);
+  bitmapInitProps(b, obj);
+  return obj;
+}
+
+static VALUE graphics_save_screenshot(VALUE self)
 {
   bool result = false;
-  GUARD_EXC( result = shState->graphics().saveScreenShot(); );
+  GUARD_EXC( result = shState->graphics().save_screenshot(); );
   return result;
 }
 
@@ -170,15 +210,15 @@ static VALUE graphicsSetBrightness(VALUE self, VALUE num)
   return rb_fix_new(shState->graphics().getBrightness());
 }
 
-static VALUE graphicsGetBlockFullscreen(VALUE self)
+static VALUE graphics_get_block_fullscreen(VALUE self)
 {
   return rb_iv_get(self, "@block_fullscreen");
 }
 
-static VALUE graphicsSetBlockFullscreen(VALUE self, VALUE boolean)
+static VALUE graphics_set_block_fullscreen(VALUE self, VALUE boolean)
 {
   rb_iv_set(self, "@block_fullscreen", boolean);
-  shState->graphics().setBlockFullscreen(boolean == Qtrue ? true : false);
+  shState->graphics().set_block_fullscreen(boolean == Qtrue ? true : false);
   return boolean;
 }
 
@@ -194,46 +234,51 @@ static VALUE graphicsSetFullscreen(VALUE self, VALUE boolean)
   return shState->graphics().getFullscreen() ? Qtrue : Qfalse;
 }
 
-static VALUE graphicsGetShowCursor(VALUE self)
+static VALUE graphics_get_show_cursor(VALUE self)
 {
-  return shState->graphics().getShowCursor() ? Qtrue : Qfalse;
+  return shState->graphics().get_show_cursor() ? Qtrue : Qfalse;
 }
 
-static VALUE graphicsSetShowCursor(VALUE self, VALUE boolean)
+static VALUE graphics_set_show_cursor(VALUE self, VALUE boolean)
 {
-  shState->graphics().setShowCursor(boolean == Qtrue ? true : false);
+  shState->graphics().set_show_cursor(boolean == Qtrue ? true : false);
   return boolean;
 }
+
+#define RMF(func) ((VALUE (*)(ANYARGS))(func))
 
 void graphicsBindingInit()
 {
   VALUE module = rb_define_module("Graphics");
   rb_iv_set(module, "@block_fullscreen", Qfalse);
-  rb_define_module_function(module, "update", RUBY_METHOD_FUNC(graphicsUpdate), 0);
-  rb_define_module_function(module, "freeze", RUBY_METHOD_FUNC(graphicsFreeze), 0);
-  rb_define_module_function(module, "transition", RUBY_METHOD_FUNC(graphicsTransition), -1);
-  rb_define_module_function(module, "frame_reset", RUBY_METHOD_FUNC(graphicsFrameReset), 0);
-  rb_define_module_function(module, "__reset__", RUBY_METHOD_FUNC(graphicsReset), 0);
-  rb_define_module_function(module, "frame_rate", RUBY_METHOD_FUNC(graphicsGetFrameRate), 0);
-  rb_define_module_function(module, "frame_rate=", RUBY_METHOD_FUNC(graphicsSetFrameRate), 1);
-  rb_define_module_function(module, "frame_count", RUBY_METHOD_FUNC(graphicsGetFrameCount), 0);
-  rb_define_module_function(module, "frame_count=", RUBY_METHOD_FUNC(graphicsSetFrameCount), 1);
-  rb_define_module_function(module, "width", RUBY_METHOD_FUNC(graphicsWidth), 0);
-  rb_define_module_function(module, "height", RUBY_METHOD_FUNC(graphicsHeight), 0);
-  rb_define_module_function(module, "dimensions", RUBY_METHOD_FUNC(graphicsDimensions), 0);
-  rb_define_module_function(module, "wait", RUBY_METHOD_FUNC(graphicsWait), -1);
-  rb_define_module_function(module, "fadeout", RUBY_METHOD_FUNC(graphicsFadeout), -1);
-  rb_define_module_function(module, "fadein", RUBY_METHOD_FUNC(graphicsFadein), -1);
-  rb_define_module_function(module, "snap_to_bitmap", RUBY_METHOD_FUNC(graphicsSnapToBitmap), 0);
-  rb_define_module_function(module, "save_screenshot", RUBY_METHOD_FUNC(graphicsSaveScreenShot), 0);
-  rb_define_module_function(module, "resize_screen", RUBY_METHOD_FUNC(graphicsResizeScreen), 2);
-  rb_define_module_function(module, "brightness", RUBY_METHOD_FUNC(graphicsGetBrightness), 0);
-  rb_define_module_function(module, "brightness=", RUBY_METHOD_FUNC(graphicsSetBrightness), 1);
-  rb_define_module_function(module, "play_movie", RUBY_METHOD_FUNC(graphicsPlayMovie), 1);
-  rb_define_module_function(module, "block_fullscreen", RUBY_METHOD_FUNC(graphicsGetBlockFullscreen), 0);
-  rb_define_module_function(module, "block_fullscreen=", RUBY_METHOD_FUNC(graphicsSetBlockFullscreen), 1);
-  rb_define_module_function(module, "fullscreen", RUBY_METHOD_FUNC(graphicsGetFullscreen), 0);
-  rb_define_module_function(module, "fullscreen=", RUBY_METHOD_FUNC(graphicsSetFullscreen), 1);
-  rb_define_module_function(module, "show_cursor", RUBY_METHOD_FUNC(graphicsGetShowCursor), 0);
-  rb_define_module_function(module, "show_cursor=", RUBY_METHOD_FUNC(graphicsSetShowCursor), 1);
+  rb_define_module_function(module, "update", RMF(graphicsUpdate), 0);
+  rb_define_module_function(module, "freeze", RMF(graphicsFreeze), 0);
+  rb_define_module_function(module, "transition", RMF(graphicsTransition), -1);
+  rb_define_module_function(module, "frame_reset", RMF(graphicsFrameReset), 0);
+  rb_define_module_function(module, "__reset__", RMF(graphicsReset), 0);
+  rb_define_module_function(module, "frame_rate", RMF(graphicsGetFrameRate), 0);
+  rb_define_module_function(module, "frame_rate=", RMF(graphicsSetFrameRate), 1);
+  rb_define_module_function(module, "frame_count", RMF(graphicsGetFrameCount), 0);
+  rb_define_module_function(module, "frame_count=", RMF(graphicsSetFrameCount), 1);
+  rb_define_module_function(module, "width", RMF(graphicsWidth), 0);
+  rb_define_module_function(module, "height", RMF(graphicsHeight), 0);
+  rb_define_module_function(module, "dimensions", RMF(graphics_dimensions), 0);
+  rb_define_module_function(module, "wait", RMF(graphicsWait), -1);
+  rb_define_module_function(module, "fadeout", RMF(graphicsFadeout), -1);
+  rb_define_module_function(module, "fadein", RMF(graphicsFadein), -1);
+  rb_define_module_function(module, "snap_to_bitmap", RMF(graphicsSnapToBitmap), 0);
+  rb_define_module_function(module, "snap_to_gray_bitmap", RMF(graphics_snap_to_gray_bitmap), 0);
+  rb_define_module_function(module, "snap_to_sepia_bitmap", RMF(graphics_snap_to_sepia_bitmap), 0);
+  rb_define_module_function(module, "snap_to_color_bitmap", RMF(graphics_snap_to_color_bitmap), 1);
+  rb_define_module_function(module, "save_screenshot", RMF(graphics_save_screenshot), 0);
+  rb_define_module_function(module, "resize_screen", RMF(graphicsResizeScreen), 2);
+  rb_define_module_function(module, "brightness", RMF(graphicsGetBrightness), 0);
+  rb_define_module_function(module, "brightness=", RMF(graphicsSetBrightness), 1);
+  rb_define_module_function(module, "play_movie", RMF(graphicsPlayMovie), 1);
+  rb_define_module_function(module, "block_fullscreen", RMF(graphics_get_block_fullscreen), 0);
+  rb_define_module_function(module, "block_fullscreen=", RMF(graphics_set_block_fullscreen), 1);
+  rb_define_module_function(module, "fullscreen", RMF(graphicsGetFullscreen), 0);
+  rb_define_module_function(module, "fullscreen=", RMF(graphicsSetFullscreen), 1);
+  rb_define_module_function(module, "show_cursor", RMF(graphics_get_show_cursor), 0);
+  rb_define_module_function(module, "show_cursor=", RMF(graphics_set_show_cursor), 1);
 }

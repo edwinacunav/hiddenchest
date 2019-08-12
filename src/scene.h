@@ -51,6 +51,7 @@ public:
   Scene();
   virtual ~Scene();
   virtual void composite();
+  virtual void composite_gray() {}
   virtual void requestViewportRender(const Vec4& /* color */,
                                      const Vec4& /* flash */,
                                      const Vec4& /* tone */) {}

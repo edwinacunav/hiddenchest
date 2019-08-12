@@ -157,10 +157,8 @@ Tone::Tone(const Tone &o)
 
 bool Tone::operator==(const Tone &o) const
 {
-  return red   == o.red   &&
-         green == o.green &&
-         blue  == o.blue  &&
-         gray  == o.gray;
+  return red  == o.red   && green == o.green &&
+         blue == o.blue  && gray  == o.gray;
 }
 
 void Tone::set(double red, double green, double blue, double gray)

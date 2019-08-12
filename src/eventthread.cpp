@@ -145,10 +145,9 @@ void EventThread::process(RGSSThreadData &rtData)
         updateCursorState(cursorInWindow && windowFocused, gameScreen);
       }
       continue;
-    }
+    }// Preselect and discard unwanted events here
     rtData.mouse_moved = false;
     rtData.any_char_found = false;
-    // Preselect and discard unwanted events here
     switch (event.type)
     {
     case SDL_MOUSEBUTTONDOWN :
@@ -161,6 +160,9 @@ void EventThread::process(RGSSThreadData &rtData)
     case SDL_FINGERMOTION :
       if (event.tfinger.fingerId >= MAX_FINGERS) continue;
       break;
+    }// Now process the rest
+    switch (event.type)
+    {
     case SDL_WINDOWEVENT :
       switch (event.window.event)
       {
@@ -198,44 +200,10 @@ void EventThread::process(RGSSThreadData &rtData)
       terminate = true;
       Debug() << "EventThread termination requested";
       break;
-    }
-    if (rtData.start_sdl_input) {
-      switch (event.type)
-      {
-      case SDL_KEYUP :
-        if (event.key.keysym.scancode == SDL_SCANCODE_ESCAPE) {
-          rtData.start_sdl_input = false;
-          rtData.any_char_found = false;
-          rtData.text = 0;
-          composition = 0;
-          cursor = 0;
-          selection_len = 0;
-          break;
-        }
-        if (event.key.keysym.scancode == SDL_SCANCODE_KP_ENTER
-         || event.key.keysym.scancode == SDL_SCANCODE_RETURN) {
-          
-        }
-        break;
-      case SDL_TEXTINPUT:
-        rtData.any_char_found = true;
-        strcat(text, event.text.text);
-        rtData.text = text;
-        break;
-      case SDL_TEXTEDITING:
-        composition = event.edit.text;
-        cursor = event.edit.start;
-        selection_len = event.edit.length;
-        break;
-      }
-      continue;
-    }
-    switch (event.type)
-    {
     case SDL_KEYDOWN :
       if (event.key.keysym.scancode == SDL_SCANCODE_RETURN &&
-          (event.key.keysym.mod & toggleFSMod)) {
-        if (shState->graphics().getBlockFullscreen()) break;
+         (event.key.keysym.mod & toggleFSMod)) {
+        if (shState->graphics().get_block_fullscreen()) break;
         setFullscreen(win, !fullscreen);
         if (!fullscreen && havePendingTitle) {
           SDL_SetWindowTitle(win, pendingTitle);
@@ -258,10 +226,8 @@ void EventThread::process(RGSSThreadData &rtData)
           displayingFPS = true;
         } else {
           displayingFPS = false;
-          if (!rtData.config.printFPS)
-            fps.sendUpdates.clear();
+          if (!rtData.config.printFPS) fps.sendUpdates.clear();
           if (fullscreen) {
-            /* Prevent fullscreen flicker */
             strncpy(pendingTitle, rtData.config.windowTitle.c_str(),
                     sizeof(pendingTitle));
             havePendingTitle = true;
@@ -279,14 +245,6 @@ void EventThread::process(RGSSThreadData &rtData)
         rtData.rqReset.set();
         break;
       }
-      /*if((event.key.keysym.sym >= 'A' && event.key.keysym.sym <= 'Z')
-        || (event.key.keysym.sym >= 'a' && event.key.keysym.sym <= 'z')
-        || (event.key.keysym.sym >= '0' && event.key.keysym.sym <= '9')
-        || event.key.keysym.sym == '-' || event.key.keysym.sym == '_'
-        || (event.key.keysym.sym == SDLK_SPACE))
-      {
-        new_char = event.key.keysym.sym;
-      }*/
       keyStates[event.key.keysym.scancode] = true;
       break;
     case SDL_KEYUP :
@@ -341,11 +299,11 @@ void EventThread::process(RGSSThreadData &rtData)
       i = event.tfinger.fingerId;
       memset(&touchState.fingers[i], 0, sizeof(touchState.fingers[0]));
       break;
-    default : // Handle user events
+    default :
       switch(event.type - usrIdStart)
       {
       case REQUEST_SETFULLSCREEN :
-        if (shState->graphics().getBlockFullscreen()) break;
+        if (shState->graphics().get_block_fullscreen()) break;
         setFullscreen(win, static_cast<bool>(event.user.code));
         break;
       case REQUEST_WINRESIZE :
@@ -362,8 +320,7 @@ void EventThread::process(RGSSThreadData &rtData)
         updateCursorState(cursorInWindow, gameScreen);
         break;
       case UPDATE_FPS :
-        if (rtData.config.printFPS)
-          Debug() << "FPS:" << event.user.code;
+        if (rtData.config.printFPS) Debug() << "FPS:" << event.user.code;
         if (!fps.sendUpdates) break;
         snprintf(buffer, sizeof(buffer), "%s - %d FPS",
                  rtData.config.windowTitle.c_str(), event.user.code);
@@ -374,7 +331,7 @@ void EventThread::process(RGSSThreadData &rtData)
           break;
         }
         SDL_SetWindowTitle(win, buffer);
-        break;
+          break;
       case UPDATE_SCREEN_RECT :
         gameScreen.x = event.user.windowID;
         gameScreen.y = event.user.code;
@@ -385,8 +342,7 @@ void EventThread::process(RGSSThreadData &rtData)
       }
     }
     if (terminate) break;
-  }
-  // Just in case
+  }// Just in case
   rtData.syncPoint.resumeThreads();
   if (SDL_JoystickGetAttached(js)) SDL_JoystickClose(js);
   delete sMenu;

@@ -1,22 +1,23 @@
 /*
 ** graphics.h
 **
-** This file is part of mkxp.
+** This file is part of HiddenChest and mkxp.
 **
 ** Copyright (C) 2013 Jonas Kulla <Nyocurio@gmail.com>
+** Extended 2019 by Kyonides Arkanthers <kyonides@gmail.com>
 **
-** mkxp is free software: you can redistribute it and/or modify
+** HiddenChest is free software: you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
 ** the Free Software Foundation, either version 2 of the License, or
 ** (at your option) any later version.
 **
-** mkxp is distributed in the hope that it will be useful,
+** HiddenChest is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
 ** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ** GNU General Public License for more details.
 **
 ** You should have received a copy of the GNU General Public License
-** along with mkxp.  If not, see <http://www.gnu.org/licenses/>.
+** along with HiddenChest. If not, see <http://www.gnu.org/licenses/>.
 */
 
 #ifndef GRAPHICS_H
@@ -36,27 +37,38 @@ class Graphics
 public:
   void update();
   void freeze();
+  void freeze_invert();
   void transition(int duration = 8,
                   const char *filename = "",
                   int vague = 40);
   void frameReset();
-  DECL_ATTR( FrameRate,  int )
-  DECL_ATTR( FrameCount, int )
-  DECL_ATTR( Brightness, int )
+  int getFrameRate() const;
+  int getFrameCount() const;
+  int getBrightness() const;
+  void setFrameRate(int);
+  void setFrameCount(int);
+  void setBrightness(int);
+  void set_screenshot_format(int);
   void wait(int duration);
   void fadeout(int duration);
   void fadein(int duration);
   Bitmap *snapToBitmap();
-  bool saveScreenShot();
+  Bitmap *snap_to_gray_bitmap();
+  Bitmap *snap_to_sepia_bitmap();
+  Bitmap *snap_to_color_bitmap(int c);
+  bool save_screenshot();
   int width() const;
   int height() const;
   void resizeScreen(int width, int height);
   void playMovie(const char *filename);
   void reset();
   /* Non-standard extension */
-  DECL_ATTR( BlockFullscreen, bool )
-  DECL_ATTR( Fullscreen, bool )
-  DECL_ATTR( ShowCursor, bool )
+  bool getFullscreen() const;
+  bool get_block_fullscreen() const;
+  bool get_show_cursor() const;
+  void setFullscreen(bool value);
+  void set_block_fullscreen(bool value);
+  void set_show_cursor(bool value);
   /* <internal> */
   Scene *getScreen() const;
   /* Repaint screen with static image until exitCond
@@ -66,6 +78,7 @@ public:
   void call_delay();
 
 private:
+  int screenshot_format;
   Graphics(RGSSThreadData *data);
   ~Graphics();
   void addDisposable(Disposable *);

@@ -222,6 +222,8 @@ set(EMBEDDED_INPUT
   shader/sprite.frag
   shader/plane.frag
   shader/gray.frag
+  shader/sepia.frag
+  shader/basic_color.frag
   shader/bitmapBlit.frag
   shader/flatColor.frag
   shader/simple.frag
@@ -232,6 +234,7 @@ set(EMBEDDED_INPUT
   shader/minimal.vert
   shader/simple.vert
   shader/simpleColor.vert
+  shader/invert.vert
   shader/sprite.vert
   shader/tilemap.vert
   shader/tilemapvx.vert
