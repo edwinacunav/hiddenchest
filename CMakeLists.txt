@@ -234,7 +234,6 @@ set(EMBEDDED_INPUT
   shader/minimal.vert
   shader/simple.vert
   shader/simpleColor.vert
-  shader/invert.vert
   shader/sprite.vert
   shader/tilemap.vert
   shader/tilemapvx.vert
