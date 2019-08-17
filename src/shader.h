@@ -216,6 +216,16 @@ private:
   GLint u_red, u_green, u_blue;
 };
 
+/*class OilShader : public ShaderBase
+{
+public:
+  OilShader();
+  void set_radius(int value);
+
+private:
+  GLint u_radius;
+};*/
+
 class TilemapShader : public ShaderBase
 {
 public:
@@ -314,6 +324,7 @@ struct ShaderSet
   GrayShader gray;
   SepiaShader sepia;
   BasicColorShader basic_color;
+  //OilShader oil;
   TilemapShader tilemap;
   FlashMapShader flashMap;
   TransShader trans;

@@ -434,6 +434,16 @@ void Sprite::setBitmap(Bitmap *bitmap)
   if (p->wave.active) p->wave.dirty = true;
 }
 
+void Sprite::gray_out()
+{
+  p->bitmap->gray_out();
+}
+
+void Sprite::turn_sepia()
+{
+  p->bitmap->turn_sepia();
+}
+
 void Sprite::setX(int value)
 {
   guardDisposed();

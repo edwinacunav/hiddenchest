@@ -72,6 +72,8 @@ public:
   Color getPixel(int x, int y) const;
   void setPixel(int x, int y, const Color &color);
   void hueChange(int hue);
+  void gray_out();
+  void turn_sepia();
   enum TextAlign
   {
     Left = 0,
@@ -99,6 +101,7 @@ public:
   sigc::signal<void> modified;
 
 private:
+  void apply_this_shader(ShaderBase &shader, bool enable, Vec4 vec);
   void releaseResources();
   const char *klassName() const { return "Bitmap"; }
   BitmapPrivate *p;

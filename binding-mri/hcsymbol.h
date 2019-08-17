@@ -29,4 +29,11 @@ static VALUE hc_symbol(const char* str)
   return rb_id2sym(rb_intern(str));
 }
 
+static VALUE hc_str2sym(VALUE str)
+{
+  return rb_id2sym(rb_intern_str(str));
+}
+
+#define RMF(func) ((VALUE (*)(ANYARGS))(func))
+
 #endif

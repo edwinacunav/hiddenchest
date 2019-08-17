@@ -68,6 +68,8 @@ public:
   void setMirrorY(bool);
   Bitmap* getBitmap();
   void setBitmap(Bitmap*);
+  void gray_out();
+  void turn_sepia();
   Rect& getSrcRect() const;
   void setSrcRect(Rect& rect);
   int getBushOpacity() const;

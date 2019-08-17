@@ -20,6 +20,7 @@
 */
 
 #include "disposable.h"
+#include "hcsymbol.h"
 #include "msgboxsprite.h"
 #include "msgboxsprite-binding.h"
 #include "debugwriter.h"
@@ -487,8 +488,6 @@ static VALUE MsgBoxSpriteAllocate(VALUE klass)
 {
   return rb_data_typed_object_wrap(klass, 0, MsgBoxSpriteType);
 }
-
-#define RMF(func) ((VALUE (*)(ANYARGS))(func))
 
 void MsgBoxSpriteBindingInit() {
   VALUE RSBox = rb_define_class("MsgBoxSprite", rb_cObject);

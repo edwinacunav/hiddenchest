@@ -190,12 +190,17 @@ To alleviate possible porting of heavily Win32API reliant scripts, we have added
     - `image_format` and `image_format=` let you check out or assign a preferred image format for your screenshots. Available options are:
          - :jpg or 0 for JPG format - default option
          - :png or 1 for PNG format
-* The Backdrop module, available on RGSS 1 and 2, lets you create a temporary snapshot of a previous map to use it in any scene class at will. Use any of the following calls to create the bitmap you will need in your (custom) scene. Later you can assign its bitmap to an instance variable of your choice by calling its `bitmap` or `bitmap_dup` method. After freezing the scene, call `clear_bitmap` to dispose it properly or dispose your sprite's bitmap directly in case you want to keep it for later use and you previously used the `bitmap_dup` method.
+* The Backdrop module, available on all RGSS versions, lets you create a temporary snapshot of a previous map to use it in any scene class at will. Use any of the following calls to create the bitmap you will need in your (custom) scene. Later you can assign its bitmap to an instance variable of your choice by calling its `bitmap` or `bitmap_dup` method. After freezing the scene, call `clear_bitmap` to dispose it properly or dispose your sprite's bitmap directly in case you want to keep it for later use and you previously used the `bitmap_dup` method.
     - `keep_bitmap` - Your map without any special effects.
     - `gray_bitmap` - Grayish version of your map.
     - `sepia_bitmap` - Sepia colored version of your map.
     - `blur_bitmap` - Blurred version of your map.
     - `color_bitmap` - Pick a single color to taint your map. options are:  :red, :green, :blue, :yellow, :sepia and :gray
+* Sprites now support grayed out and sepia colored versions of their bitmaps! Use a boolean (true or false) to toggle the color effect.
+    - `gray_out(boolean)`
+    - `turn_sepia(boolean)`
+    - `grayed_out?` - In case you need to verify this via script call
+    * `sepia?` - In case you need to verify this via script call
 * Use the `module_attr_accessor` or `module_accessor` method to create module methods, getters and setters all in one! Example: module_attr_accessor :meow will create the self.meow and self.meow=(value) methods in a single step.
 * The Scripts module allows you to store a Ruby string or symbol as a script ID via Scripts << :script_name. Once it has been stored there, you can call its methods, i.e. Scripts.all or Scripts.include?(:script_name) to access the Scripts IDs Array and confirm if it has been included respectively.
 * Font class now lets you use its `underline` and `strikethrough` or `strikethru` options the same way you used `bold` or `italic`.

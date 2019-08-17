@@ -25,6 +25,7 @@
 #include "exception.h"
 #include "binding-util.h"
 #include "util.h"
+#include "hcsymbol.h"
 
 static VALUE inputUpdate(VALUE self)
 {
@@ -259,8 +260,6 @@ static buttonCodes[] =
 
 static elementsN(buttonCodes);
 
-#define RMF(func) ((VALUE (*)(ANYARGS))(func))
-
 void inputBindingInit()
 {
   VALUE module = rb_define_module("Input");
@@ -285,8 +284,8 @@ void inputBindingInit()
       VALUE val = RB_INT2FIX(buttonCodes[i].val);
       /* In RGSS3 all Input::XYZ constants are equal to :XYZ symbols,
        * to be compatible with the previous convention */
-      rb_const_set(module, sym, ID2SYM(sym));
-      rb_hash_aset(symHash, ID2SYM(sym), val);
+      rb_const_set(module, sym, rb_id2sym(sym));
+      rb_hash_aset(symHash, rb_id2sym(sym), val);
     }
     rb_iv_set(module, "buttoncodes", symHash);
     getRbData()->buttoncodeHash = symHash;

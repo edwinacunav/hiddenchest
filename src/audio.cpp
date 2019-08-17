@@ -20,112 +20,94 @@
 */
 
 #include "audio.h"
-
 #include "audiostream.h"
 #include "soundemitter.h"
 #include "sharedstate.h"
 #include "sharedmidistate.h"
 #include "eventthread.h"
 #include "sdl-util.h"
-
 #include <string>
-
 #include <SDL_thread.h>
 #include <SDL_timer.h>
 
 struct AudioPrivate
 {
-	AudioStream bgm;
-	AudioStream bgs;
-	AudioStream me;
+  AudioStream bgm;
+  AudioStream bgs;
+  AudioStream me;
+  SoundEmitter se;
+  SyncPoint &syncPoint;
+  /* The 'MeWatch' is responsible for detecting
+   * a playing ME, quickly fading out the BGM and
+   * keeping it paused/stopped while the ME plays,
+   * and unpausing/fading the BGM back in again
+   * afterwards */
+  enum MeWatchState
+  {
+    MeNotPlaying,
+    BgmFadingOut,
+    MePlaying,
+    BgmFadingIn
+  };
 
-	SoundEmitter se;
+  struct
+  {
+    SDL_Thread *thread;
+    AtomicFlag termReq;
+    MeWatchState state;
+  } meWatch;
 
-	SyncPoint &syncPoint;
+  AudioPrivate(RGSSThreadData &rtData)
+  : bgm(ALStream::Looped, "bgm"),
+    bgs(ALStream::Looped, "bgs"),
+    me(ALStream::NotLooped, "me"),
+    se(rtData.config),
+    syncPoint(rtData.syncPoint)
+  {
+    meWatch.state = MeNotPlaying;
+    meWatch.thread = createSDLThread
+        <AudioPrivate, &AudioPrivate::meWatchFun>(this, "audio_mewatch");
+  }
 
-	/* The 'MeWatch' is responsible for detecting
-	 * a playing ME, quickly fading out the BGM and
-	 * keeping it paused/stopped while the ME plays,
-	 * and unpausing/fading the BGM back in again
-	 * afterwards */
-	enum MeWatchState
-	{
-		MeNotPlaying,
-		BgmFadingOut,
-		MePlaying,
-		BgmFadingIn
-	};
+  ~AudioPrivate()
+  {
+    meWatch.termReq.set();
+    SDL_WaitThread(meWatch.thread, 0);
+  }
 
-	struct
-	{
-		SDL_Thread *thread;
-		AtomicFlag termReq;
-		MeWatchState state;
-	} meWatch;
-
-	AudioPrivate(RGSSThreadData &rtData)
-	    : bgm(ALStream::Looped, "bgm"),
-	      bgs(ALStream::Looped, "bgs"),
-	      me(ALStream::NotLooped, "me"),
-	      se(rtData.config),
-	      syncPoint(rtData.syncPoint)
-	{
-		meWatch.state = MeNotPlaying;
-		meWatch.thread = createSDLThread
-			<AudioPrivate, &AudioPrivate::meWatchFun>(this, "audio_mewatch");
-	}
-
-	~AudioPrivate()
-	{
-		meWatch.termReq.set();
-		SDL_WaitThread(meWatch.thread, 0);
-	}
-
-	void meWatchFun()
-	{
-		const float fadeOutStep = 1.f / (200  / AUDIO_SLEEP);
-		const float fadeInStep  = 1.f / (1000 / AUDIO_SLEEP);
-
-		while (true)
-		{
-			syncPoint.passSecondarySync();
-
-			if (meWatch.termReq)
-				return;
-
-			switch (meWatch.state)
-			{
-			case MeNotPlaying:
-			{
-				me.lockStream();
-
-				if (me.stream.queryState() == ALStream::Playing)
-				{
-					/* ME playing detected. -> FadeOutBGM */
-					bgm.extPaused = true;
-					meWatch.state = BgmFadingOut;
-				}
-
-				me.unlockStream();
-
-				break;
-			}
-
-			case BgmFadingOut :
-			{
-				me.lockStream();
-
-				if (me.stream.queryState() != ALStream::Playing)
-				{
-					/* ME has ended while fading OUT BGM. -> FadeInBGM */
-					me.unlockStream();
-					meWatch.state = BgmFadingIn;
-
-					break;
-				}
-
-				bgm.lockStream();
-
+  void meWatchFun()
+  {
+    const float fadeOutStep = 1.f / (200  / AUDIO_SLEEP);
+    const float fadeInStep  = 1.f / (1000 / AUDIO_SLEEP);
+    while (true) {
+      syncPoint.passSecondarySync();
+      if (meWatch.termReq)
+          return;
+      switch (meWatch.state)
+        {
+        case MeNotPlaying:
+        {
+            me.lockStream();
+            if (me.stream.queryState() == ALStream::Playing)
+            {
+                /* ME playing detected. -> FadeOutBGM */
+                bgm.extPaused = true;
+                meWatch.state = BgmFadingOut;
+            }
+            me.unlockStream();
+            break;
+        }
+        case BgmFadingOut :
+        {
+            me.lockStream();
+            if (me.stream.queryState() != ALStream::Playing)
+            {
+                /* ME has ended while fading OUT BGM. -> FadeInBGM */
+                me.unlockStream();
+                meWatch.state = BgmFadingIn;
+              break;
+            }
+              bgm.lockStream();
 				float vol = bgm.getVolume(AudioStream::External);
 				vol -= fadeOutStep;
 
@@ -238,58 +220,50 @@ struct AudioPrivate
 };
 
 Audio::Audio(RGSSThreadData &rtData)
-	: p(new AudioPrivate(rtData))
+: p(new AudioPrivate(rtData))
 {}
 
 
-void Audio::bgmPlay(const char *filename,
-                    int volume,
-                    int pitch,
-                    float pos)
+void Audio::bgmPlay(const char *filename, int volume, int pitch, float pos)
 {
-	p->bgm.play(filename, volume, pitch, pos);
+  p->bgm.play(filename, volume, pitch, pos);
 }
 
 void Audio::bgmStop()
 {
-	p->bgm.stop();
+  p->bgm.stop();
 }
 
 void Audio::bgmFade(int time)
 {
-	p->bgm.fadeOut(time);
+  p->bgm.fadeOut(time);
 }
 
 
-void Audio::bgsPlay(const char *filename,
-                    int volume,
-                    int pitch,
-                    float pos)
+void Audio::bgsPlay(const char *filename, int volume, int pitch, float pos)
 {
-	p->bgs.play(filename, volume, pitch, pos);
+  p->bgs.play(filename, volume, pitch, pos);
 }
 
 void Audio::bgsStop()
 {
-	p->bgs.stop();
+  p->bgs.stop();
 }
 
 void Audio::bgsFade(int time)
 {
-	p->bgs.fadeOut(time);
+  p->bgs.fadeOut(time);
 }
 
 
-void Audio::mePlay(const char *filename,
-                   int volume,
-                   int pitch)
+void Audio::mePlay(const char *filename, int volume, int pitch)
 {
-	p->me.play(filename, volume, pitch);
+  p->me.play(filename, volume, pitch);
 }
 
 void Audio::meStop()
 {
-	p->me.stop();
+  p->me.stop();
 }
 
 void Audio::meFade(int time)
@@ -302,35 +276,35 @@ void Audio::sePlay(const char *filename,
                    int volume,
                    int pitch)
 {
-	p->se.play(filename, volume, pitch);
+  p->se.play(filename, volume, pitch);
 }
 
 void Audio::seStop()
 {
-	p->se.stop();
+  p->se.stop();
 }
 
 void Audio::setupMidi()
 {
-	shState->midiState().initIfNeeded(shState->config());
+  shState->midiState().initIfNeeded(shState->config());
 }
 
 float Audio::bgmPos()
 {
-	return p->bgm.playingOffset();
+  return p->bgm.playingOffset();
 }
 
 float Audio::bgsPos()
 {
-	return p->bgs.playingOffset();
+  return p->bgs.playingOffset();
 }
 
 void Audio::reset()
 {
-	p->bgm.stop();
-	p->bgs.stop();
-	p->me.stop();
-	p->se.stop();
+  p->bgm.stop();
+  p->bgs.stop();
+  p->me.stop();
+  p->se.stop();
 }
 
 Audio::~Audio() { delete p; }

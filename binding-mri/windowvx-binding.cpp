@@ -24,6 +24,7 @@
 #include "viewportelement-binding.h"
 #include "binding-util.h"
 #include "bitmap.h"
+#include "hcsymbol.h"
 
 DEF_TYPE_CUSTOMNAME(WindowVX, "Window");
 
@@ -117,8 +118,6 @@ DEF_PROP_I(WindowVX, Openness)
 DEF_PROP_B(WindowVX, Active)
 DEF_PROP_B(WindowVX, ArrowsVisible)
 DEF_PROP_B(WindowVX, Pause)
-
-#define RMF(func) ((VALUE (*)(ANYARGS))(func))
 
 void windowVXBindingInit()
 {

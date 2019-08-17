@@ -25,7 +25,6 @@
 #include "exception.h"
 #include "binding-util.h"
 #include "filesystem.h"
-#include <ruby.h>
 
 static VALUE audio_bgmPlay(int argc, VALUE* argv, VALUE self)
 {
@@ -33,6 +32,7 @@ static VALUE audio_bgmPlay(int argc, VALUE* argv, VALUE self)
   int volume = 100;
   int pitch = 100;
   double pos = 0.0;
+  rb_iv_set(self, "@old_bgm_name", argv[0]);
   rb_get_args(argc, argv, "z|iif", &filename, &volume, &pitch, &pos RB_ARG_END);
   GUARD_EXC( shState->audio().bgmPlay(filename, volume, pitch, pos); )
   return Qnil;
@@ -73,14 +73,37 @@ static VALUE audio_bgsPos(VALUE self)
   return rb_iv_set(self, "@bgs_pos", pos);
 }
 
-static VALUE audio_bgm_pos_set(VALUE self, VALUE pos)
+static VALUE audio_old_bgm_pos_get(VALUE self)
 {
-  return rb_iv_set(self, "@bgm_pos", pos);
+  return rb_iv_get(self, "@old_bgm_pos");
 }
 
-static VALUE audio_bgs_pos_set(VALUE self, VALUE pos)
+static VALUE audio_old_bgs_pos_get(VALUE self)
 {
-  return rb_iv_set(self, "@bgs_pos", pos);
+  return rb_iv_get(self, "@old_bgs_pos");
+}
+
+static VALUE audio_old_bgm_name(VALUE self)
+{
+  return rb_iv_get(self, "@old_bgm_name");
+}
+
+static VALUE audio_old_bgs_name(VALUE self)
+{
+  return rb_iv_get(self, "@old_bgs_name");
+}
+
+static VALUE audio_save_bgm_data(VALUE self)
+{
+  rb_iv_set(self, "@old_bgm_name", audio_bgmPos(self));
+  rb_iv_set(self, "@old_bgm_pos", audio_bgmPos(self));
+  return true;
+}
+
+static VALUE audio_save_bgs_data(VALUE self)
+{
+  rb_iv_set(self, "@old_bgs_pos", audio_bgsPos(self));
+  return true;
 }
 
 void raiseRbExc(const Exception &exc);
@@ -264,6 +287,42 @@ static VALUE audio_play_load(VALUE self)
   return Qnil;
 }
 
+static VALUE audio_play_escape(VALUE self)
+{
+  VALUE ose = rb_iv_get(self, "@se");
+  VALUE se = rb_iv_get(self, "@escape");
+  VALUE se_name = rb_str_plus(ose, rb_iv_get(se, "@name"));
+  const char *filename = StringValueCStr(se_name);
+  int volume = RB_FIX2INT(rb_iv_get(se, "@volume"));
+  int pitch = RB_FIX2INT(rb_iv_get(se, "@pitch"));
+  GUARD_EXC( shState->audio().sePlay(filename, volume, pitch); )
+  return Qnil;
+}
+
+static VALUE audio_play_actor_ko(VALUE self)
+{
+  VALUE ose = rb_iv_get(self, "@se");
+  VALUE se = rb_iv_get(self, "@actor_ko");
+  VALUE se_name = rb_str_plus(ose, rb_iv_get(se, "@name"));
+  const char *filename = StringValueCStr(se_name);
+  int volume = RB_FIX2INT(rb_iv_get(se, "@volume"));
+  int pitch = RB_FIX2INT(rb_iv_get(se, "@pitch"));
+  GUARD_EXC( shState->audio().sePlay(filename, volume, pitch); )
+  return Qnil;
+}
+
+static VALUE audio_play_enemy_ko(VALUE self)
+{
+  VALUE ose = rb_iv_get(self, "@se");
+  VALUE se = rb_iv_get(self, "@enemy_ko");
+  VALUE se_name = rb_str_plus(ose, rb_iv_get(se, "@name"));
+  const char *filename = StringValueCStr(se_name);
+  int volume = RB_FIX2INT(rb_iv_get(se, "@volume"));
+  int pitch = RB_FIX2INT(rb_iv_get(se, "@pitch"));
+  GUARD_EXC( shState->audio().sePlay(filename, volume, pitch); )
+  return Qnil;
+}
+
 static VALUE rpg_audio_file_initialize(int argc, VALUE* argv, VALUE self)
 {
   VALUE name, volume, pitch, pos;
@@ -294,49 +353,65 @@ void audio_setup_custom_se()
   rb_iv_set(mod, "@equip", rb_iv_get(ds, "@equip_se"));
   rb_iv_set(mod, "@save", rb_iv_get(ds, "@save_se"));
   rb_iv_set(mod, "@load", rb_iv_get(ds, "@load_se"));
+  rb_iv_set(mod, "@escape", rb_iv_get(ds, "@escape_se"));
+  rb_iv_set(mod, "@actor_ko", rb_iv_get(ds, "@actor_collapse_se"));
+  rb_iv_set(mod, "@enemy_ko", rb_iv_get(ds, "@enemy_collapse_se"));
 }
+
+#define RMF(func) ((VALUE (*)(ANYARGS))(func))
 
 void audioBindingInit()
 {
-  VALUE module = rb_define_module("Audio");
-  rb_iv_set(module, "@bgm_pos", rb_float_new(0.0));
-  rb_iv_set(module, "@bgs_pos", rb_float_new(0.0));
-  rb_iv_set(module, "@se", rb_str_new_cstr("Audio/SE/"));
-  rb_define_module_function(module, "bgm_play", RUBY_METHOD_FUNC(audio_bgmPlay), -1);
-  rb_define_module_function(module, "bgm_stop", RUBY_METHOD_FUNC(audio_bgmStop), 0);
-  rb_define_module_function(module, "bgm_fade", RUBY_METHOD_FUNC(audio_bgmFade), -1);
-  rb_define_module_function(module, "bgs_play", RUBY_METHOD_FUNC(audio_bgsPlay), -1);
-  rb_define_module_function(module, "bgs_stop", RUBY_METHOD_FUNC(audio_bgsStop), 0);
-  rb_define_module_function(module, "bgs_fade", RUBY_METHOD_FUNC(audio_bgsFade), -1);
-  rb_define_module_function(module, "me_play", RUBY_METHOD_FUNC(audio_mePlay), -1);
-  rb_define_module_function(module, "me_stop", RUBY_METHOD_FUNC(audio_meStop), 0);
-  rb_define_module_function(module, "me_fade", RUBY_METHOD_FUNC(audio_meFade), -1);
+  VALUE md = rb_define_module("Audio");
+  rb_iv_set(md, "@bgm_pos", rb_float_new(0.0));
+  rb_iv_set(md, "@bgs_pos", rb_float_new(0.0));
+  rb_iv_set(md, "@old_bgm_pos", rb_float_new(0.0));
+  rb_iv_set(md, "@old_bgs_pos", rb_float_new(0.0));
+  rb_iv_set(md, "@old_bgm_name", rb_str_new_cstr(""));
+  rb_iv_set(md, "@old_bgs_name", rb_str_new_cstr(""));
+  rb_iv_set(md, "@se", rb_str_new_cstr("Audio/SE/"));
+  rb_define_module_function(md, "bgm_play", RMF(audio_bgmPlay), -1);
+  rb_define_module_function(md, "bgm_stop", RMF(audio_bgmStop), 0);
+  rb_define_module_function(md, "bgm_fade", RMF(audio_bgmFade), -1);
+  rb_define_module_function(md, "bgs_play", RMF(audio_bgsPlay), -1);
+  rb_define_module_function(md, "bgs_stop", RMF(audio_bgsStop), 0);
+  rb_define_module_function(md, "bgs_fade", RMF(audio_bgsFade), -1);
+  rb_define_module_function(md, "me_play", RMF(audio_mePlay), -1);
+  rb_define_module_function(md, "me_stop", RMF(audio_meStop), 0);
+  rb_define_module_function(md, "me_fade", RMF(audio_meFade), -1);
   if (rgssVer == 1) {
-    rb_define_module_function(module, "play_buzzer", RUBY_METHOD_FUNC(audio_play_buzzer), 0);
-    rb_define_module_function(module, "play_cancel", RUBY_METHOD_FUNC(audio_play_cancel), 0);
-    rb_define_module_function(module, "play_cursor", RUBY_METHOD_FUNC(audio_play_cursor), 0);
-    rb_define_module_function(module, "play_decision", RUBY_METHOD_FUNC(audio_play_ok), 0);
-    rb_define_module_function(module, "play_ok", RUBY_METHOD_FUNC(audio_play_ok), 0);
-    rb_define_module_function(module, "play_shop", RUBY_METHOD_FUNC(audio_play_shop), 0);
-    rb_define_module_function(module, "play_equip", RUBY_METHOD_FUNC(audio_play_equip), 0);
-    rb_define_module_function(module, "play_save", RUBY_METHOD_FUNC(audio_play_save), 0);
-    rb_define_module_function(module, "play_load", RUBY_METHOD_FUNC(audio_play_load), 0);
-    rb_define_module_function(module, "play_se", RUBY_METHOD_FUNC(audio_play_se), -1);
+    rb_define_module_function(md, "play_buzzer", RMF(audio_play_buzzer), 0);
+    rb_define_module_function(md, "play_cancel", RMF(audio_play_cancel), 0);
+    rb_define_module_function(md, "play_cursor", RMF(audio_play_cursor), 0);
+    rb_define_module_function(md, "play_decision", RMF(audio_play_ok), 0);
+    rb_define_module_function(md, "play_ok", RMF(audio_play_ok), 0);
+    rb_define_module_function(md, "play_shop", RMF(audio_play_shop), 0);
+    rb_define_module_function(md, "play_equip", RMF(audio_play_equip), 0);
+    rb_define_module_function(md, "play_save", RMF(audio_play_save), 0);
+    rb_define_module_function(md, "play_load", RMF(audio_play_load), 0);
+    rb_define_module_function(md, "play_escape", RMF(audio_play_escape), 0);
+    rb_define_module_function(md, "play_actor_ko", RMF(audio_play_actor_ko), 0);
+    rb_define_module_function(md, "play_enemy_ko", RMF(audio_play_enemy_ko), 0);
+    rb_define_module_function(md, "play_se", RMF(audio_play_se), -1);
     VALUE rpg = rb_define_module("RPG");
     VALUE file = rb_define_class_under(rpg, "AudioFile", rb_cObject);
-    rb_define_method(file, "initialize", RUBY_METHOD_FUNC(rpg_audio_file_initialize), -1);
+    rb_define_method(file, "initialize", RMF(rpg_audio_file_initialize), -1);
     rb_define_attr(file, "name", 1, 1);
     rb_define_attr(file, "volume", 1, 1);
     rb_define_attr(file, "pitch", 1, 1);
     rb_define_attr(file, "pos", 1, 1);
   }
-  rb_define_module_function(module, "bgm_pos", RUBY_METHOD_FUNC(audio_bgmPos), 0);
-  rb_define_module_function(module, "bgs_pos", RUBY_METHOD_FUNC(audio_bgsPos), 0);
-  rb_define_module_function(module, "bgm_pos=", RUBY_METHOD_FUNC(audio_bgm_pos_set), 1);
-  rb_define_module_function(module, "bgs_pos=", RUBY_METHOD_FUNC(audio_bgs_pos_set), 1);
+  rb_define_module_function(md, "bgm_pos", RMF(audio_bgmPos), 0);
+  rb_define_module_function(md, "bgs_pos", RMF(audio_bgsPos), 0);
+  rb_define_module_function(md, "old_bgm_pos", RMF(audio_old_bgm_pos_get), 0);
+  rb_define_module_function(md, "old_bgs_pos", RMF(audio_old_bgs_pos_get), 0);
+  rb_define_module_function(md, "old_bgm_name", RMF(audio_old_bgm_name), 0);
+  rb_define_module_function(md, "old_bgs_name", RMF(audio_old_bgs_name), 0);
+  rb_define_module_function(md, "save_bgm_data", RMF(audio_save_bgm_data), 0);
+  rb_define_module_function(md, "save_bgs_data", RMF(audio_save_bgs_data), 0);
   if (rgssVer >= 3)
-    rb_define_module_function(module, "setup_midi", RUBY_METHOD_FUNC(audioSetupMidi), 0);
-  rb_define_module_function(module, "se_play", RUBY_METHOD_FUNC(audio_sePlay), -1);
-  rb_define_module_function(module, "se_stop", RUBY_METHOD_FUNC(audio_seStop), 0);
-  rb_define_module_function(module, "__reset__", RUBY_METHOD_FUNC(audioReset), 0);
+    rb_define_module_function(md, "setup_midi", RMF(audioSetupMidi), 0);
+  rb_define_module_function(md, "se_play", RMF(audio_sePlay), -1);
+  rb_define_module_function(md, "se_stop", RMF(audio_seStop), 0);
+  rb_define_module_function(md, "__reset__", RMF(audioReset), 0);
 }

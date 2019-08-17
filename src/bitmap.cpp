@@ -662,8 +662,55 @@ void Bitmap::hueChange(int hue)
   p->onModified();
 }
 
-void Bitmap::drawText(int x, int y,
-                      int width, int height,
+void Bitmap::gray_out()
+{
+  guardDisposed();
+  TEXFBO newTex = shState->texPool().request(width(), height());
+  FloatRect texRect(rect());
+  Quad &quad = shState->gpQuad();
+  quad.setTexPosRect(texRect, texRect);
+  quad.setColor(Vec4(1, 1, 1, 1));
+  GrayShader &shader = shState->shaders().gray;
+  shader.bind();
+  shader.setGray(1.0);
+  FBO::bind(newTex.fbo);
+  p->pushSetViewport(shader);
+  p->bindTexture(shader);
+  p->blitQuad(quad);
+  p->popViewport();
+  TEX::unbind();
+  shState->texPool().release(p->gl);
+  p->gl = newTex;
+  p->onModified();
+}
+
+void Bitmap::apply_this_shader(ShaderBase &shader, bool enable=false, Vec4 vec=Vec4())
+{
+  TEXFBO text = shState->texPool().request(p->gl.width, p->gl.height);
+  Quad &quad = shState->gpQuad();
+  FloatRect r(IntRect(0, 0, p->gl.width, p->gl.height));
+  quad.setTexPosRect(r, r);
+  enable ? quad.setColor(vec) : quad.setColor(Vec4(1, 1, 1, 1));
+  shader.bind();
+  FBO::bind(text.fbo);
+  p->pushSetViewport(shader);
+  p->bindTexture(shader);
+  p->blitQuad(quad);
+  p->popViewport();
+  TEX::unbind();
+  shState->texPool().release(p->gl);
+  p->gl = text;
+  p->onModified();
+}
+
+void Bitmap::turn_sepia()
+{
+  guardDisposed();
+  SepiaShader &shader = shState->shaders().sepia;
+  apply_this_shader(shader);
+}
+
+void Bitmap::drawText(int x, int y, int width, int height,
                       const char *str, int align)
 {
   drawText(IntRect(x, y, width, height), str, align);

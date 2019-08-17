@@ -117,94 +117,90 @@ namespace Source
 
 	inline void detachBuffer(Source::ID id)
 	{
-		attachBuffer(id, Buffer::ID(0));
-	}
+    attachBuffer(id, Buffer::ID(0));
+  }
 
-	inline void queueBuffer(Source::ID id, Buffer::ID buffer)
-	{
-		alSourceQueueBuffers(id.al, 1, &buffer.al);
-	}
+  inline void queueBuffer(Source::ID id, Buffer::ID buffer)
+  {
+    alSourceQueueBuffers(id.al, 1, &buffer.al);
+  }
 
-	inline Buffer::ID unqueueBuffer(Source::ID id)
-	{
-		Buffer::ID buffer;
-		alSourceUnqueueBuffers(id.al, 1, &buffer.al);
+  inline Buffer::ID unqueueBuffer(Source::ID id)
+  {
+    Buffer::ID buffer;
+    alSourceUnqueueBuffers(id.al, 1, &buffer.al);
+    return buffer;
+  }
 
-		return buffer;
-	}
+  inline void clearQueue(Source::ID id)
+  {
+    attachBuffer(id, Buffer::ID(0));
+  }
 
-	inline void clearQueue(Source::ID id)
-	{
-		attachBuffer(id, Buffer::ID(0));
-	}
+  inline ALint getInteger(Source::ID id, ALenum prop)
+  {
+    ALint value;
+    alGetSourcei(id.al, prop, &value);
+    return value;
+  }
 
-	inline ALint getInteger(Source::ID id, ALenum prop)
-	{
-		ALint value;
-		alGetSourcei(id.al, prop, &value);
+  inline ALint getProcBufferCount(Source::ID id)
+  {
+    return getInteger(id, AL_BUFFERS_PROCESSED);
+  }
 
-		return value;
-	}
+  inline ALenum getState(Source::ID id)
+  {
+    return getInteger(id, AL_SOURCE_STATE);
+  }
 
-	inline ALint getProcBufferCount(Source::ID id)
-	{
-		return getInteger(id, AL_BUFFERS_PROCESSED);
-	}
+  inline ALfloat getSecOffset(Source::ID id)
+  {
+    ALfloat value;
+    alGetSourcef(id.al, AL_SEC_OFFSET, &value);
+    return value;
+  }
 
-	inline ALenum getState(Source::ID id)
-	{
-		return getInteger(id, AL_SOURCE_STATE);
-	}
+  inline void setVolume(Source::ID id, float value)
+  {
+    alSourcef(id.al, AL_GAIN, value);
+  }
 
-	inline ALfloat getSecOffset(Source::ID id)
-	{
-		ALfloat value;
-		alGetSourcef(id.al, AL_SEC_OFFSET, &value);
+  inline void setPitch(Source::ID id, float value)
+  {
+    alSourcef(id.al, AL_PITCH, value);
+  }
 
-		return value;
-	}
+  inline void play(Source::ID id)
+  {
+    alSourcePlay(id.al);
+  }
 
-	inline void setVolume(Source::ID id, float value)
-	{
-		alSourcef(id.al, AL_GAIN, value);
-	}
+  inline void stop(Source::ID id)
+  {
+    alSourceStop(id.al);
+  }
 
-	inline void setPitch(Source::ID id, float value)
-	{
-		alSourcef(id.al, AL_PITCH, value);
-	}
-
-	inline void play(Source::ID id)
-	{
-		alSourcePlay(id.al);
-	}
-
-	inline void stop(Source::ID id)
-	{
-		alSourceStop(id.al);
-	}
-
-	inline void pause(Source::ID id)
-	{
-		alSourcePause(id.al);
-	}
+  inline void pause(Source::ID id)
+  {
+    alSourcePause(id.al);
+  }
 }
 
 }
 
 inline uint8_t formatSampleSize(int sdlFormat)
 {
-	switch (sdlFormat)
-	{
-	case AUDIO_U8 :
-	case AUDIO_S8 :
-		return 1;
-
-	case AUDIO_U16LSB :
-	case AUDIO_U16MSB :
-	case AUDIO_S16LSB :
-	case AUDIO_S16MSB :
-		return 2;
+  switch (sdlFormat)
+  {
+  case AUDIO_U8 :
+  case AUDIO_S8 :
+    return 1;
+  case AUDIO_U16LSB :
+  case AUDIO_U16MSB :
+  case AUDIO_S16LSB :
+  case AUDIO_S16MSB :
+    return 2;
 
 	default :
 		assert(!"Unhandled sample format");

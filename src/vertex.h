@@ -25,45 +25,41 @@
 #include "etc-internal.h"
 #include "gl-fun.h"
 #include "shader.h"
-
 /* Simple Vertex */
 struct SVertex
 {
-	Vec2 pos;
-	Vec2 texPos;
+  Vec2 pos;
+  Vec2 texPos;
 };
-
 /* Color Vertex */
 struct CVertex
 {
-	Vec2 pos;
-	Vec4 color;
-
-	CVertex();
+  Vec2 pos;
+  Vec4 color;
+  CVertex();
 };
 
 struct Vertex
 {
-	Vec2 pos;
-	Vec2 texPos;
-	Vec4 color;
-
-	Vertex();
+  Vec2 pos;
+  Vec2 texPos;
+  Vec4 color;
+  Vertex();
 };
 
 struct VertexAttribute
 {
-	Shader::Attribute index;
-	GLint size;
-	GLenum type;
-	const GLvoid *offset;
+  Shader::Attribute index;
+  GLint size;
+  GLenum type;
+  const GLvoid *offset;
 };
 
 template<class VertType>
 struct VertexTraits
 {
-	static const VertexAttribute *attr;
-	static const GLsizei attrCount;
+  static const VertexAttribute *attr;
+  static const GLsizei attrCount;
 };
 
 #endif // VERTEX_H

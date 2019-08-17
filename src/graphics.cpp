@@ -64,7 +64,7 @@ struct PingPong
   int screenW, screenH;
 
   PingPong(int screenW, int screenH)
-      : srcInd(0), dstInd(1), screenW(screenW), screenH(screenH)
+  : srcInd(0), dstInd(1), screenW(screenW), screenH(screenH)
   {
     for (int i = 0; i < 2; ++i) {
       TEXFBO::init(rt[i]);
@@ -213,6 +213,15 @@ public:
     shader.bind();
     apply_shader(shader);
   }
+
+  /*void composite_oil()
+  {
+    apply_scissors();
+    OilShader &shader = shState->shaders().oil;
+    shader.bind();
+    shader.set_radius(geometry.rect.w / 5);
+    apply_shader(shader);
+  }*/
 
   void requestViewportRender(const Vec4 &c, const Vec4 &f, const Vec4 &t)
   {
@@ -433,6 +442,7 @@ struct GraphicsPrivate
   int brightness;
   FPSLimiter fpsLimiter;
   bool block_fullscreen;
+  bool block_ftwelve;
   bool frozen;
   TEXFBO frozenScene;
   Quad screenQuad;
@@ -452,7 +462,8 @@ struct GraphicsPrivate
     brightness(255),
     fpsLimiter(frameRate),
     frozen(false),
-    block_fullscreen(false)
+    block_fullscreen(false),
+    block_ftwelve(false)
   {
     winSize.x = START_WIDTH;
     winSize.y = START_HEIGHT;
@@ -560,6 +571,12 @@ struct GraphicsPrivate
     screen.composite_color(c);
     set_buffer(buffer);
   }
+
+  /*void composite_to_oil_buffer(TEXFBO &buffer)
+  {
+    screen.composite_oil();
+    set_buffer(buffer);
+  }*/
 
   void metaBlitBufferFlippedScaled()
   {
@@ -825,6 +842,14 @@ Bitmap *Graphics::snap_to_color_bitmap(int c)
   return bitmap;
 }
 
+/*Bitmap *Graphics::snap_to_oil_bitmap()
+{
+  Bitmap *bitmap = new Bitmap(width(), height());
+  p->composite_to_oil_buffer(bitmap->getGLTypes());
+  bitmap->taintArea(IntRect(0, 0, width(), height()));
+  return bitmap;
+}*/
+
 bool Graphics::save_screenshot()
 {
   fs::create_directory("Screenshots");
@@ -912,6 +937,16 @@ void Graphics::reset()
   setBrightness(255);
 }
 
+bool Graphics::getFullscreen() const
+{
+  return p->threadData->ethread->getFullscreen();
+}
+
+void Graphics::setFullscreen(bool value)
+{
+  p->threadData->ethread->requestFullscreenMode(value);
+}
+
 bool Graphics::get_block_fullscreen() const
 {
   return p->block_fullscreen;
@@ -922,14 +957,14 @@ void Graphics::set_block_fullscreen(bool value)
   p->block_fullscreen = value;
 }
 
-bool Graphics::getFullscreen() const
+bool Graphics::get_block_ftwelve() const
 {
-  return p->threadData->ethread->getFullscreen();
+  return p->block_ftwelve;
 }
 
-void Graphics::setFullscreen(bool value)
+void Graphics::set_block_ftwelve(bool value)
 {
-  p->threadData->ethread->requestFullscreenMode(value);
+  p->block_ftwelve = value;
 }
 
 bool Graphics::get_show_cursor() const

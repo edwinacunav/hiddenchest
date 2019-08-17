@@ -33,17 +33,17 @@ namespace TileAtlas
  * operation with undefined rect width */
 struct Blit
 {
-	Vec2i src;
-	Vec2i dst;
-	int h;
+  Vec2i src;
+  Vec2i dst;
+  int h;
 
-	Blit(int sx, int sy,
-	     int dx, int dy,
-	     int h)
-	    : src(sx, sy),
-	      dst(dx, dy),
-	      h(h)
-	{}
+  Blit(int sx, int sy,
+       int dx, int dy,
+       int h)
+  : src(sx, sy),
+    dst(dx, dy),
+    h(h)
+  {}
 };
 
 typedef std::vector<Blit> BlitVec;

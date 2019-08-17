@@ -6,10 +6,9 @@
 ** Copyright (C) 2018-2019 Kyonides-Arkanthes
 */
 
-#include <ruby.h>
+#include "hcsymbol.h"
 
 #define CMF(func) ((int (*)(ANYARGS))(func))
-#define RMF(func) ((VALUE (*)(ANYARGS))(func))
 
 static int get_keys(VALUE key, VALUE value, VALUE ary)
 {
@@ -116,10 +115,9 @@ static VALUE module_attr_accessor(int argc, VALUE* argv, VALUE self)
     const char* func_name = StringValueCStr(basic_str);
     rb_define_attr(self, func_name, 1, 1);
     new_str = rb_str_plus(basic_str, rb_str_new_cstr("="));
-    args[m+1] = rb_id2sym( rb_intern_str(new_str) );
-    rb_io_puts(1, &args[m+1], rb_stdout);
+    args[m + 1] = hc_str2sym(new_str);
   }
-  VALUE meth = rb_obj_method(self, rb_id2sym(rb_intern("module_function")));
+  VALUE meth = rb_obj_method(self, hc_symbol("module_function"));
   rb_method_call(count, args, meth);
   return Qnil;
 }

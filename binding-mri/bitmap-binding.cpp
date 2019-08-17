@@ -210,6 +210,21 @@ static VALUE bitmapHueChange(VALUE self, VALUE hue)
   return self;
 }
 
+static VALUE bitmap_gray_out(VALUE self)
+{
+  Bitmap *b = getPrivateData<Bitmap>(self);
+  GUARD_EXC( b->gray_out(); );
+  return self;
+}
+
+static VALUE bitmap_turn_sepia(VALUE self)
+{
+  Bitmap *b = getPrivateData<Bitmap>(self);
+  GUARD_EXC( b->turn_sepia(); );
+  return self;
+}
+
+
 RB_METHOD(bitmapDrawText)
 {
   Bitmap *b = getPrivateData<Bitmap>(self);
@@ -442,6 +457,8 @@ void bitmapBindingInit()
   rb_define_method(klass, "get_pixel", RMF(bitmapGetPixel), 2);
   rb_define_method(klass, "set_pixel", RMF(bitmapSetPixel), -1);
   rb_define_method(klass, "hue_change", RMF(bitmapHueChange), 1);
+  rb_define_method(klass, "gray_out", RMF(bitmap_gray_out), 1),
+  rb_define_method(klass, "turn_sepia", RMF(bitmap_turn_sepia), 1);
   rb_define_method(klass, "draw_text", RMF(bitmapDrawText), -1);
   rb_define_method(klass, "text_size", RMF(bitmapTextSize), -1);
   rb_define_method(klass, "text_width", RMF(bitmapTextWidth), -1);

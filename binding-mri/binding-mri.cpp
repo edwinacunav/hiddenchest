@@ -32,7 +32,6 @@
 #include "graphics.h"
 #include "audio.h"
 #include "boost-hash.h"
-#include <ruby.h>
 #include <ruby/encoding.h>
 #include <ruby/io.h>
 #include <assert.h>
@@ -130,12 +129,10 @@ static void mriBindingInit()
   rb_define_module_function(mod, "puts", RUBY_METHOD_FUNC(HCPuts), -1);
   rb_define_module_function(mod, "raw_key_states", RUBY_METHOD_FUNC(HCRawKeyStates), -1);
   rb_define_module_function(mod, "mouse_in_window", RUBY_METHOD_FUNC(HCMouseInWindow), -1);
-  if (rgssVer < 2) {
-    Init_TermsBackdrop();
-    if (rgssVer == 1) {
-      rb_eval_string(module_rpg1);
-      audio_setup_custom_se();
-    }
+  Init_TermsBackdrop();
+  if (rgssVer == 1) {
+    rb_eval_string(module_rpg1);
+    audio_setup_custom_se();
   } else if (rgssVer == 2) {
     rb_eval_string(module_rpg2);
   } else if (rgssVer == 3) {

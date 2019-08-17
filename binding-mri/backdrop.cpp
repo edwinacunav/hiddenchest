@@ -6,7 +6,6 @@
 ** Copyright (C) 2018-2019 Kyonides-Arkanthes
 */
 
-#include <ruby.h>
 #include "hcsymbol.h"
 #include "bitmap.h"
 #include "graphics.h"
@@ -111,8 +110,6 @@ static VALUE backdrop_clear_bitmap(VALUE self)
   d->dispose();
   return rb_iv_set(self, "@bitmap", Qnil);
 }
-
-#define RMF(func) ((VALUE (*)(ANYARGS))(func))
 
 void Init_TermsBackdrop()
 {

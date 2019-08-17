@@ -211,12 +211,10 @@ DEF_PROP_I(Window, Opacity)
 DEF_PROP_I(Window, BackOpacity)
 DEF_PROP_I(Window, ContentsOpacity)
 
-#define RMF(func) ((VALUE (*)(ANYARGS))(func))
-
 void windowBindingInit()
 {
   VALUE klass = rb_define_class("Window", rb_cObject);
-  rb_iv_set(klass, "@open_mode", rb_id2sym(rb_intern("center")));
+  rb_iv_set(klass, "@open_mode", hc_symbol("center"));
   rb_define_alloc_func(klass, classAllocate<&WindowType>);
   disposableBindingInit     <Window>(klass);
   viewportElementBindingInit<Window>(klass);

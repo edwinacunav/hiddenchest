@@ -28,7 +28,7 @@
 #include "viewportelement-binding.h"
 #include "binding-util.h"
 #include "binding-types.h"
-#include "debugwriter.h"
+#include "hcsymbol.h"
 
 rb_data_type_t SpriteType = { "Sprite",
   { 0, freeInstance<Sprite>, 0, { 0, 0 } }, 0, 0, 0 };
@@ -77,6 +77,56 @@ static VALUE SpriteSetSrcRect(VALUE self, VALUE rect)
     r = getPrivateDataCheck<Rect>(rect, RectType);
   GUARD_EXC( s->setSrcRect(*r); )
   return rb_iv_set(self, "src_rect", rect);
+}
+
+static VALUE sprite_gray_out(VALUE self, VALUE boolean)
+{
+  checkDisposed<Sprite>(self);
+  VALUE bit = rb_iv_get(self, "bitmap");
+  if (RB_NIL_P(bit)) return Qnil;
+  Sprite *s = static_cast<Sprite*>(RTYPEDDATA_DATA(self));
+  if (boolean == Qtrue) {
+    rb_iv_set(self, "before_gray", rb_obj_dup(bit));
+    GUARD_EXC( s->gray_out(); )
+  } else {
+    VALUE gray = rb_iv_get(self, "before_gray");
+    Bitmap* b = getPrivateDataCheck<Bitmap>(gray, BitmapType);
+    GUARD_EXC( s->setBitmap(b); )
+    rb_iv_set(self, "bitmap", gray);
+    rb_iv_set(self, "before_gray", Qnil);
+  }
+  return rb_iv_set(self, "@grayed_out", boolean);
+}
+
+static VALUE sprite_turn_sepia(VALUE self, VALUE boolean)
+{
+  checkDisposed<Sprite>(self);
+  VALUE bit = rb_iv_get(self, "bitmap");
+  if (RB_NIL_P(bit)) return Qnil;
+  Sprite *s = static_cast<Sprite*>(RTYPEDDATA_DATA(self));
+  if (boolean == Qtrue) {
+    rb_iv_set(self, "before_sepia", rb_obj_dup(bit));
+    GUARD_EXC( s->turn_sepia(); )
+  } else {
+    VALUE sepia = rb_iv_get(self, "before_sepia");
+    Bitmap* b = getPrivateDataCheck<Bitmap>(sepia, BitmapType);
+    GUARD_EXC( s->setBitmap(b); )
+    rb_iv_set(self, "bitmap", sepia);
+    rb_iv_set(self, "before_sepia", Qnil);
+  }
+  return rb_iv_set(self, "@sepia", boolean);
+}
+
+static VALUE sprite_is_grayed_out(VALUE self)
+{
+  checkDisposed<Sprite>(self);
+  return rb_iv_get(self, "@grayed_out");
+}
+
+static VALUE sprite_is_sepia(VALUE self)
+{
+  checkDisposed<Sprite>(self);
+  return rb_iv_get(self, "@sepia");
 }
 
 static VALUE SpriteGetColor(VALUE self)
@@ -468,8 +518,6 @@ static VALUE SpriteAllocate(VALUE klass)
   return rb_data_typed_object_wrap(klass, 0, SpriteType);
 }
 
-#define RMF(func) ((VALUE (*)(ANYARGS))(func))
-
 void SpriteBindingInit() {
   VALUE RSprite = rb_define_class("Sprite", rb_cObject);
   rb_define_alloc_func(RSprite, SpriteAllocate<&SpriteType>);
@@ -530,6 +578,10 @@ void SpriteBindingInit() {
   rb_define_method(RSprite, "mouse_inside?", RMF(SpriteisMouseInside), 0);
   rb_define_method(RSprite, "mouse_above?", RMF(SpriteisMouseInside), 0);
   rb_define_method(RSprite, "mouse_above_color?", RMF(SpriteisMouseAboveColorFound), 0);
+  rb_define_method(RSprite, "gray_out", RMF(sprite_gray_out), 1);
+  rb_define_method(RSprite, "turn_sepia", RMF(sprite_turn_sepia), 1);
+  rb_define_method(RSprite, "grayed_out?", RMF(sprite_is_grayed_out), 0);
+  rb_define_method(RSprite, "sepia?", RMF(sprite_is_sepia), 0);
   if (rgssVer >= 2) {
     rb_define_method(RSprite, "bush_opacity", RMF(SpriteGetBushOpacity), 0);
     rb_define_method(RSprite, "bush_opacity=", RMF(SpriteSetBushOpacity), 1);

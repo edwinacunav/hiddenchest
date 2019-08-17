@@ -56,6 +56,7 @@ public:
   Bitmap *snap_to_gray_bitmap();
   Bitmap *snap_to_sepia_bitmap();
   Bitmap *snap_to_color_bitmap(int c);
+  //Bitmap *snap_to_oil_bitmap();
   bool save_screenshot();
   int width() const;
   int height() const;
@@ -65,9 +66,11 @@ public:
   /* Non-standard extension */
   bool getFullscreen() const;
   bool get_block_fullscreen() const;
+  bool get_block_ftwelve() const;
   bool get_show_cursor() const;
   void setFullscreen(bool value);
   void set_block_fullscreen(bool value);
+  void set_block_ftwelve(bool value);
   void set_show_cursor(bool value);
   /* <internal> */
   Scene *getScreen() const;

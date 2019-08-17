@@ -53,24 +53,19 @@ RB_METHOD(tilemapAutotilesGet)
 
 DEF_TYPE(Tilemap);
 
-RB_METHOD(tilemapInitialize)
+static VALUE tilemapInitialize(int argc, VALUE *argv, VALUE self)
 {
   Tilemap *t;
-  // Get parameters
-  VALUE viewportObj = Qnil;
   Viewport *viewport = 0;
-  rb_get_args(argc, argv, "|o", &viewportObj RB_ARG_END);
-  if (!NIL_P(viewportObj))
-    viewport = getPrivateDataCheck<Viewport>(viewportObj, ViewportType);
-  // Construct object
+  if (!RB_NIL_P(argv[0]))
+    viewport = getPrivateDataCheck<Viewport>(argv[0], ViewportType);
   t = new Tilemap(viewport);
   setPrivateData(self, t);
-  rb_iv_set(self, "viewport", viewportObj);
+  rb_iv_set(self, "viewport", argv[0]);
   wrapProperty(self, &t->getAutotiles(), "autotiles", TilemapAutotilesType);
   VALUE autotilesObj = rb_iv_get(self, "autotiles");
   VALUE ary = rb_ary_new2(7);
-  for (int i = 0; i < 7; ++i)
-    rb_ary_push(ary, Qnil);
+  for (int i = 0; i < 7; ++i) { rb_ary_push(ary, Qnil); }
   rb_iv_set(autotilesObj, "array", ary);
   // Circular reference so both objects are always alive at the same time
   rb_iv_set(autotilesObj, "tilemap", self);
@@ -120,11 +115,11 @@ void tilemapBindingInit()
   _rb_define_method(klass, "autotiles", tilemapGetAutotiles);
   _rb_define_method(klass, "update", tilemapUpdate);
   _rb_define_method(klass, "viewport", tilemapGetViewport);
-  INIT_PROP_BIND( Tilemap, Tileset,    "tileset"    );
-  INIT_PROP_BIND( Tilemap, MapData,    "map_data"   );
-  INIT_PROP_BIND( Tilemap, FlashData,  "flash_data" );
-  INIT_PROP_BIND( Tilemap, Priorities, "priorities" );
-  INIT_PROP_BIND( Tilemap, Visible,    "visible"    );
-  INIT_PROP_BIND( Tilemap, OX,         "ox"         );
-  INIT_PROP_BIND( Tilemap, OY,         "oy"         );
+  INIT_PROP_BIND( Tilemap, Tileset,    "tileset"   );
+  INIT_PROP_BIND( Tilemap, MapData,    "map_data"  );
+  INIT_PROP_BIND( Tilemap, FlashData,  "flash_data");
+  INIT_PROP_BIND( Tilemap, Priorities, "priorities");
+  INIT_PROP_BIND( Tilemap, Visible,    "visible"   );
+  INIT_PROP_BIND( Tilemap, OX,         "ox"        );
+  INIT_PROP_BIND( Tilemap, OY,         "oy"        );
 }

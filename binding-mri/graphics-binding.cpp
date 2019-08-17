@@ -150,6 +150,15 @@ static VALUE graphics_snap_to_color_bitmap(VALUE self, VALUE color)
   return obj;
 }
 
+/*static VALUE graphics_snap_to_oil_bitmap(VALUE self)
+{
+  Bitmap *result = 0;
+  GUARD_EXC( result = shState->graphics().snap_to_oil_bitmap(); );
+  VALUE obj = wrapObject(result, BitmapType);
+  bitmapInitProps(result, obj);
+  return obj;
+}*/
+
 static VALUE graphics_save_screenshot(VALUE self)
 {
   bool result = false;
@@ -222,6 +231,18 @@ static VALUE graphics_set_block_fullscreen(VALUE self, VALUE boolean)
   return boolean;
 }
 
+static VALUE graphics_get_block_ftwelve(VALUE self)
+{
+  return rb_iv_get(self, "@block_f12");
+}
+
+static VALUE graphics_set_block_ftwelve(VALUE self, VALUE boolean)
+{
+  rb_iv_set(self, "@block_f12", boolean);
+  shState->graphics().set_block_ftwelve(boolean == Qtrue ? true : false);
+  return boolean;
+}
+
 static VALUE graphicsGetFullscreen(VALUE self)
 {
   return shState->graphics().getFullscreen() ? Qtrue : Qfalse;
@@ -245,12 +266,11 @@ static VALUE graphics_set_show_cursor(VALUE self, VALUE boolean)
   return boolean;
 }
 
-#define RMF(func) ((VALUE (*)(ANYARGS))(func))
-
 void graphicsBindingInit()
 {
   VALUE module = rb_define_module("Graphics");
   rb_iv_set(module, "@block_fullscreen", Qfalse);
+  rb_iv_set(module, "@block_f12", Qfalse);
   rb_define_module_function(module, "update", RMF(graphicsUpdate), 0);
   rb_define_module_function(module, "freeze", RMF(graphicsFreeze), 0);
   rb_define_module_function(module, "transition", RMF(graphicsTransition), -1);
@@ -270,6 +290,7 @@ void graphicsBindingInit()
   rb_define_module_function(module, "snap_to_gray_bitmap", RMF(graphics_snap_to_gray_bitmap), 0);
   rb_define_module_function(module, "snap_to_sepia_bitmap", RMF(graphics_snap_to_sepia_bitmap), 0);
   rb_define_module_function(module, "snap_to_color_bitmap", RMF(graphics_snap_to_color_bitmap), 1);
+  //rb_define_module_function(module, "snap_to_oil_bitmap", RMF(graphics_snap_to_oil_bitmap), 0);
   rb_define_module_function(module, "save_screenshot", RMF(graphics_save_screenshot), 0);
   rb_define_module_function(module, "resize_screen", RMF(graphicsResizeScreen), 2);
   rb_define_module_function(module, "brightness", RMF(graphicsGetBrightness), 0);
@@ -277,6 +298,8 @@ void graphicsBindingInit()
   rb_define_module_function(module, "play_movie", RMF(graphicsPlayMovie), 1);
   rb_define_module_function(module, "block_fullscreen", RMF(graphics_get_block_fullscreen), 0);
   rb_define_module_function(module, "block_fullscreen=", RMF(graphics_set_block_fullscreen), 1);
+  rb_define_module_function(module, "block_f12", RMF(graphics_get_block_ftwelve), 0);
+  rb_define_module_function(module, "block_f12=", RMF(graphics_set_block_ftwelve), 1);
   rb_define_module_function(module, "fullscreen", RMF(graphicsGetFullscreen), 0);
   rb_define_module_function(module, "fullscreen=", RMF(graphicsSetFullscreen), 1);
   rb_define_module_function(module, "show_cursor", RMF(graphics_get_show_cursor), 0);

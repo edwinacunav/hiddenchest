@@ -1,23 +1,23 @@
 /*
 ** tilemap.cpp
 **
-** This file is part of mkxpplus and mkxp.
+** This file is part of HiddenChest and mkxp.
 **
 ** Copyright (C) 2013 Jonas Kulla <Nyocurio@gmail.com>
 ** 2018 Modified by Kyonides-Arkanthes
 **
-** mkxp is free software: you can redistribute it and/or modify
+** HiddenChest is free software: you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
 ** the Free Software Foundation, either version 2 of the License, or
 ** (at your option) any later version.
 **
-** mkxp is distributed in the hope that it will be useful,
+** HiddenChest is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
 ** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ** GNU General Public License for more details.
 **
 ** You should have received a copy of the GNU General Public License
-** along with mkxp.  If not, see <http://www.gnu.org/licenses/>.
+** along with HiddenChest. If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "resolution.h"
@@ -46,7 +46,7 @@
 #include <SDL_surface.h>
 
 extern const StaticRect autotileRects[];
-typedef std::vector<SVertex> SVVector;
+//typedef std::vector<SVertex> SVVector;
 static const int tilesetW  = 8 * 32;
 static const int autotileW = 3 * 32;
 static const int autotileH = 4 * 32;
@@ -55,9 +55,6 @@ static const int atAreaW = autotileW * 4;
 static const int atAreaH = autotileH * autotileCount;
 static const int tsLaneW = tilesetW / 2;
 /* Map viewport size - Original Width: 21, Original Height: 16 (Add 1 to some XP Max W or H Coord)*/
-static const int viewpW = TILE_WIDTH_MAX;
-static const int viewpH = TILE_HEIGHT_MAX;
-static const size_t zlayersMax = viewpH + 5;
 /* Vocabulary:
  *
  * Atlas: A texture containing both the tileset and all
@@ -146,244 +143,207 @@ static const size_t zlayersMax = viewpH + 5;
 /* Autotile animation */
 static const uint8_t atAnimation[16*4] =
 {
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-    3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+  2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+  3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3
 };
 
 static elementsN(atAnimation);
 
 /* Flash tiles pulsing opacity */
 static const uint8_t flashAlpha[] =
-{
-	/* Fade in */
-	0x3C, 0x3C, 0x3C, 0x3C, 0x4B, 0x4B, 0x4B, 0x4B,
-	0x5A, 0x5A, 0x5A, 0x5A, 0x69, 0x69, 0x69, 0x69,
-	/* Fade out */
-	0x78, 0x78, 0x78, 0x78, 0x69, 0x69, 0x69, 0x69,
-	0x5A, 0x5A, 0x5A, 0x5A, 0x4B, 0x4B, 0x4B, 0x4B
+{/* Fade in */
+  0x3C, 0x3C, 0x3C, 0x3C, 0x4B, 0x4B, 0x4B, 0x4B,
+  0x5A, 0x5A, 0x5A, 0x5A, 0x69, 0x69, 0x69, 0x69,
+ /* Fade out */
+  0x78, 0x78, 0x78, 0x78, 0x69, 0x69, 0x69, 0x69,
+  0x5A, 0x5A, 0x5A, 0x5A, 0x4B, 0x4B, 0x4B, 0x4B
 };
 
 static elementsN(flashAlpha);
 
 struct GroundLayer : public ViewportElement
 {
-	GLsizei vboCount;
-	TilemapPrivate *p;
-
-	GroundLayer(TilemapPrivate *p, Viewport *viewport);
-
-	void updateVboCount();
-
-	void draw();
-	void drawInt();
-
-	void onGeometryChange(const Scene::Geometry &geo);
-
-	ABOUT_TO_ACCESS_NOOP
+  GLsizei vboCount;
+  TilemapPrivate *p;
+  GroundLayer(TilemapPrivate *p, Viewport *viewport);
+  void updateVboCount();
+  void draw();
+  void drawInt();
+  void onGeometryChange(const Scene::Geometry &geo);
+  ABOUT_TO_ACCESS_NOOP
 };
 
 struct ZLayer : public ViewportElement
 {
-	size_t index;
-	GLintptr vboOffset;
-	GLsizei vboCount;
-	TilemapPrivate *p;
-
-	/* If this layer is part of a batch and not
-	 * the head, it is 'muted' via this flag */
-	bool batchedFlag;
-
-	/* If this layer is a batch head, this variable
-	 * holds the element count of the entire batch */
-	GLsizei vboBatchCount;
-
-	ZLayer(TilemapPrivate *p, Viewport *viewport);
-
-	void setIndex(int value);
-
-	void draw();
-	void drawInt();
-
-	static int calculateZ(TilemapPrivate *p, int index);
-
-	void initUpdateZ();
-	void finiUpdateZ(ZLayer *prev);
-
-	ABOUT_TO_ACCESS_NOOP
+  size_t index;
+  GLintptr vboOffset;
+  GLsizei vboCount;
+  TilemapPrivate *p;
+  /* If this layer is part of a batch and not
+   * the head, it is 'muted' via this flag */
+  bool batchedFlag;
+  /* If this layer is a batch head, this variable
+   * holds the element count of the entire batch */
+  GLsizei vboBatchCount;
+  ZLayer(TilemapPrivate *p, Viewport *viewport);
+  void setIndex(int value);
+  void draw();
+  void drawInt();
+  static int calculateZ(TilemapPrivate *p, int index);
+  void initUpdateZ();
+  void finiUpdateZ(ZLayer *prev);
+  ABOUT_TO_ACCESS_NOOP
 };
 
 struct TilemapPrivate
 {
-	Viewport *viewport;
+  Viewport *viewport;
+  Bitmap *autotiles[autotileCount];
+  Bitmap *tileset;
+  Table *mapData;
+  Table *priorities;
+  bool visible;
+  Vec2i origin;
+  Vec2i dispPos;
+  int vw, vh, zlayersMax;
+  /* Tile atlas */
+  struct {
+    TEXFBO gl;
+    Vec2i size;
+    /* Effective tileset height,
+     * clamped to a multiple of 32 */
+    int efTilesetH;
+    /* Indices of usable
+     * (not null, not disposed) autotiles */
+    std::vector<uint8_t> usableATs;
+    /* Indices of animated autotiles */
+    std::vector<uint8_t> animatedATs;
+  } atlas;
+  /* Map viewport position */
+  Vec2i viewpPos;
+  /* Ground layer vertices */
+  std::vector<SVertex> groundVert;
+  /* ZLayer vertices */
+  std::vector<SVertex> zlayerVert[TILE_HEIGHT_MAX + 5];
+  // Base quad indices of each zlayer in the shared buffer
+  size_t zlayerBases[TILE_HEIGHT_MAX + 6];
+  /* Shared buffers for all tiles */
+  struct
+  {
+    GLMeta::VAO vao;
+    VBO::ID vbo;
+    bool animated;
+    /* Animation state */
+    uint8_t frameIdx;
+    uint8_t aniIdx;
+  } tiles;
 
-	Bitmap *autotiles[autotileCount];
+  FlashMap flashMap;
+  uint8_t flashAlphaIdx;
+  /* Scene elements */
+  struct
+  {
+    GroundLayer *ground;
+    std::vector<ZLayer*> zlayers;
+    /* Used layers out of 'zlayers' (rest is hidden) */
+    size_t activeLayers;
+    Scene::Geometry sceneGeo;
+  } elem;
+  /* Affected by: autotiles, tileset */
+  bool atlasSizeDirty;
+  /* Affected by: autotiles(.changed), tileset(.changed), allocateAtlas */
+  bool atlasDirty;
+  /* Affected by: mapData(.changed), priorities(.changed) */
+  bool buffersDirty;
+  /* Affected by: ox, oy */
+  bool mapViewportDirty;
+  /* Affected by: oy */
+  bool zOrderDirty;
+  /* Resources are sufficient and tilemap is ready to be drawn */
+  bool tilemapReady;
+  /* Change watches */
+  sigc::connection tilesetCon;
+  sigc::connection autotilesCon[autotileCount];
+  sigc::connection mapDataCon;
+  sigc::connection prioritiesCon;
+  /* Dispose watches */
+  sigc::connection autotilesDispCon[autotileCount];
+  /* Draw prepare call */
+  sigc::connection prepareCon;
 
-	Bitmap *tileset;
+  TilemapPrivate(Viewport *viewport)
+  : viewport(viewport),
+    vw(TILE_WIDTH_MAX),
+    vh(TILE_HEIGHT_MAX),
+    zlayersMax(TILE_HEIGHT_MAX + 5),
+    tileset(0),
+    mapData(0),
+    priorities(0),
+    visible(true),
+    flashAlphaIdx(0),
+    atlasSizeDirty(false),
+    atlasDirty(false),
+    buffersDirty(false),
+    mapViewportDirty(false),
+    zOrderDirty(false),
+    tilemapReady(false)
+  {
+    memset(autotiles, 0, sizeof(autotiles));
+    atlas.animatedATs.reserve(autotileCount);
+    atlas.efTilesetH = 0;
+    tiles.animated = false;
+    tiles.frameIdx = 0;
+    tiles.aniIdx = 0;
+    /* Init tile buffers */
+    tiles.vbo = VBO::gen();
+    GLMeta::vaoFillInVertexData<SVertex>(tiles.vao);
+    tiles.vao.vbo = tiles.vbo;
+    tiles.vao.ibo = shState->globalIBO().ibo;
+    GLMeta::vaoInit(tiles.vao);
+    //elem.zlayers.reserve(TILE_HEIGHT_MAX + 5);
+    elem.ground = new GroundLayer(this, viewport);
+    for (size_t i = 0; i < zlayersMax; ++i)
+      elem.zlayers.push_back(new ZLayer(this, viewport));
+    prepareCon = shState->prepareDraw.connect
+      (sigc::mem_fun(this, &TilemapPrivate::prepare));
+    updateFlashMapViewport();
+  }
 
-	Table *mapData;
-	Table *priorities;
-	bool visible;
-	Vec2i origin;
+  ~TilemapPrivate()
+  {/* Destroy elements */
+    delete elem.ground;
+    for (size_t i = 0; i < zlayersMax; ++i) { delete elem.zlayers[i]; }
+    shState->releaseAtlasTex(atlas.gl);
+    /* Destroy tile buffers */
+    GLMeta::vaoFini(tiles.vao);
+    VBO::del(tiles.vbo);
+    /* Disconnect signal handlers */
+    tilesetCon.disconnect();
+    for (int i = 0; i < autotileCount; ++i) {
+      autotilesCon[i].disconnect();
+      autotilesDispCon[i].disconnect();
+    }
+    mapDataCon.disconnect();
+    prioritiesCon.disconnect();
+    prepareCon.disconnect();
+  }
 
-	Vec2i dispPos;
+  void set_dimensions(int tw, int th)
+  {
+    vw = tw / 32 + 1;
+    vh = th / 32 + 1;
+    zlayersMax = vh + 5;
+    size_t zlayerBases[zlayersMax + 1];
+    zlayerVert->resize(zlayersMax);
+    elem.zlayers.resize(zlayersMax);
+  }
 
-	/* Tile atlas */
-	struct {
-		TEXFBO gl;
-
-		Vec2i size;
-
-		/* Effective tileset height,
-		 * clamped to a multiple of 32 */
-		int efTilesetH;
-
-		/* Indices of usable
-		 * (not null, not disposed) autotiles */
-		std::vector<uint8_t> usableATs;
-
-		/* Indices of animated autotiles */
-		std::vector<uint8_t> animatedATs;
-	} atlas;
-
-	/* Map viewport position */
-	Vec2i viewpPos;
-
-	/* Ground layer vertices */
-	SVVector groundVert;
-
-	/* ZLayer vertices */
-	SVVector zlayerVert[zlayersMax];
-
-	/* Base quad indices of each zlayer
-	 * in the shared buffer */
-	size_t zlayerBases[zlayersMax+1];
-
-	/* Shared buffers for all tiles */
-	struct
-	{
-		GLMeta::VAO vao;
-		VBO::ID vbo;
-		bool animated;
-
-		/* Animation state */
-		uint8_t frameIdx;
-		uint8_t aniIdx;
-	} tiles;
-
-	FlashMap flashMap;
-	uint8_t flashAlphaIdx;
-
-	/* Scene elements */
-	struct
-	{
-		GroundLayer *ground;
-		ZLayer* zlayers[zlayersMax];
-		/* Used layers out of 'zlayers' (rest is hidden) */
-		size_t activeLayers;
-		Scene::Geometry sceneGeo;
-	} elem;
-
-	/* Affected by: autotiles, tileset */
-	bool atlasSizeDirty;
-	/* Affected by: autotiles(.changed), tileset(.changed), allocateAtlas */
-	bool atlasDirty;
-	/* Affected by: mapData(.changed), priorities(.changed) */
-	bool buffersDirty;
-	/* Affected by: ox, oy */
-	bool mapViewportDirty;
-	/* Affected by: oy */
-	bool zOrderDirty;
-
-	/* Resources are sufficient and tilemap is ready to be drawn */
-	bool tilemapReady;
-
-	/* Change watches */
-	sigc::connection tilesetCon;
-	sigc::connection autotilesCon[autotileCount];
-	sigc::connection mapDataCon;
-	sigc::connection prioritiesCon;
-
-	/* Dispose watches */
-	sigc::connection autotilesDispCon[autotileCount];
-
-	/* Draw prepare call */
-	sigc::connection prepareCon;
-
-	TilemapPrivate(Viewport *viewport)
-	    : viewport(viewport),
-	      tileset(0),
-	      mapData(0),
-	      priorities(0),
-	      visible(true),
-	      flashAlphaIdx(0),
-	      atlasSizeDirty(false),
-	      atlasDirty(false),
-	      buffersDirty(false),
-	      mapViewportDirty(false),
-	      zOrderDirty(false),
-	      tilemapReady(false)
-	{
-		memset(autotiles, 0, sizeof(autotiles));
-
-		atlas.animatedATs.reserve(autotileCount);
-		atlas.efTilesetH = 0;
-
-		tiles.animated = false;
-		tiles.frameIdx = 0;
-		tiles.aniIdx = 0;
-
-		/* Init tile buffers */
-		tiles.vbo = VBO::gen();
-
-		GLMeta::vaoFillInVertexData<SVertex>(tiles.vao);
-		tiles.vao.vbo = tiles.vbo;
-		tiles.vao.ibo = shState->globalIBO().ibo;
-
-		GLMeta::vaoInit(tiles.vao);
-
-		elem.ground = new GroundLayer(this, viewport);
-
-		for (size_t i = 0; i < zlayersMax; ++i)
-			elem.zlayers[i] = new ZLayer(this, viewport);
-
-		prepareCon = shState->prepareDraw.connect
-		        (sigc::mem_fun(this, &TilemapPrivate::prepare));
-
-		updateFlashMapViewport();
-	}
-
-	~TilemapPrivate()
-	{
-		/* Destroy elements */
-		delete elem.ground;
-		for (size_t i = 0; i < zlayersMax; ++i)
-			delete elem.zlayers[i];
-
-		shState->releaseAtlasTex(atlas.gl);
-
-		/* Destroy tile buffers */
-		GLMeta::vaoFini(tiles.vao);
-		VBO::del(tiles.vbo);
-
-		/* Disconnect signal handlers */
-		tilesetCon.disconnect();
-		for (int i = 0; i < autotileCount; ++i)
-		{
-			autotilesCon[i].disconnect();
-			autotilesDispCon[i].disconnect();
-		}
-		mapDataCon.disconnect();
-		prioritiesCon.disconnect();
-
-		prepareCon.disconnect();
-	}
-
-	void updateFlashMapViewport()
-	{
-		flashMap.setViewport(IntRect(viewpPos, Vec2i(viewpW, viewpH)));
-	}
+  void updateFlashMapViewport()
+  {
+    flashMap.setViewport(IntRect(viewpPos, Vec2i(vw, vh)));
+  }
 
   void updateAtlasInfo()
   {
@@ -396,7 +356,7 @@ struct TilemapPrivate
     atlas.size = TileAtlas::minSize(atlas.efTilesetH, glState.caps.maxTexSize);
     if (atlas.size.x < 0)
       throw Exception(Exception::HIDDENCHESTError,
-                  "Cannot allocate big enough texture for tileset atlas");
+        "Cannot allocate big enough texture for tileset atlas");
   }
 
   void updateAutotileInfo()
@@ -435,146 +395,103 @@ struct TilemapPrivate
   {
     buffersDirty = true;
   }
-
-  /* Checks for the minimum amount of data needed to display */
+  // Checks for the minimum amount of data needed to display
   bool verifyResources()
   {
     if (nullOrDisposed(tileset)) return false;
     if (!mapData) return false;
     return true;
   }
-
-  /* Allocates correctly sized TexFBO for atlas */
+  // Allocates correctly sized TexFBO for atlas
   void allocateAtlas()
   {
     updateAtlasInfo();
-    /* Aquire atlas tex */
+    // Aquire atlas tex
     shState->releaseAtlasTex(atlas.gl);
     shState->requestAtlasTex(atlas.size.x, atlas.size.y, atlas.gl);
     atlasDirty = true;
   }
-	/* Assembles atlas from tileset and autotile bitmaps */
-	void buildAtlas()
-	{
-		updateAutotileInfo();
-
-		TileAtlas::BlitVec blits = TileAtlas::calcBlits(atlas.efTilesetH, atlas.size);
-
-		/* Clear atlas */
-		FBO::bind(atlas.gl.fbo);
-		glState.clearColor.pushSet(Vec4());
-		glState.scissorTest.pushSet(false);
-
-		FBO::clear();
-
-		glState.scissorTest.pop();
-		glState.clearColor.pop();
-
-		GLMeta::blitBegin(atlas.gl);
-
-		/* Blit autotiles */
-		for (size_t i = 0; i < atlas.usableATs.size(); ++i)
-		{
-			const uint8_t atInd = atlas.usableATs[i];
-			Bitmap *autotile = autotiles[atInd];
-
-			int blitW = std::min(autotile->width(), atAreaW);
-			int blitH = std::min(autotile->height(), atAreaH);
-
-			GLMeta::blitSource(autotile->getGLTypes());
-
-			if (blitW <= autotileW && tiles.animated)
-			{
-				/* Static autotile */
-				for (int j = 0; j < 4; ++j)
-					GLMeta::blitRectangle(IntRect(0, 0, blitW, blitH),
-					                      Vec2i(autotileW*j, atInd*autotileH));
-			}
-			else
-			{
-				/* Animated autotile */
-				GLMeta::blitRectangle(IntRect(0, 0, blitW, blitH),
-				                      Vec2i(0, atInd*autotileH));
-			}
-		}
-
-		GLMeta::blitEnd();
-
-		/* Blit tileset */
-		if (tileset->megaSurface())
-		{
-			/* Mega surface tileset */
-			SDL_Surface *tsSurf = tileset->megaSurface();
-
-			if (shState->config().subImageFix)
-			{
-				/* Implementation for broken GL drivers */
-				FBO::bind(atlas.gl.fbo);
-				glState.blend.pushSet(false);
-				glState.viewport.pushSet(IntRect(0, 0, atlas.size.x, atlas.size.y));
-
-				SimpleShader &shader = shState->shaders().simple;
-				shader.bind();
-				shader.applyViewportProj();
-				shader.setTranslation(Vec2i());
-
-				Quad &quad = shState->gpQuad();
-
-				for (size_t i = 0; i < blits.size(); ++i)
-				{
-					const TileAtlas::Blit &blitOp = blits[i];
-
-					Vec2i texSize;
-					shState->ensureTexSize(tsLaneW, blitOp.h, texSize);
-					shState->bindTex();
-					GLMeta::subRectImageUpload(tsSurf->w, blitOp.src.x, blitOp.src.y,
-					                           0, 0, tsLaneW, blitOp.h, tsSurf, GL_RGBA);
-
-					shader.setTexSize(texSize);
-					quad.setTexRect(FloatRect(0, 0, tsLaneW, blitOp.h));
-					quad.setPosRect(FloatRect(blitOp.dst.x, blitOp.dst.y, tsLaneW, blitOp.h));
-
-					quad.draw();
-				}
-
-				GLMeta::subRectImageEnd();
-				glState.viewport.pop();
-				glState.blend.pop();
-			}
-			else
-			{
-				/* Clean implementation */
-				TEX::bind(atlas.gl.tex);
-
-				for (size_t i = 0; i < blits.size(); ++i)
-				{
-					const TileAtlas::Blit &blitOp = blits[i];
-
-					GLMeta::subRectImageUpload(tsSurf->w, blitOp.src.x, blitOp.src.y,
-					                           blitOp.dst.x, blitOp.dst.y, tsLaneW, blitOp.h, tsSurf, GL_RGBA);
-				}
-
-				GLMeta::subRectImageEnd();
-			}
-
-		}
-		else
-		{
-			/* Regular tileset */
-			GLMeta::blitBegin(atlas.gl);
-			GLMeta::blitSource(tileset->getGLTypes());
-
-			for (size_t i = 0; i < blits.size(); ++i)
-			{
-				const TileAtlas::Blit &blitOp = blits[i];
-
-				GLMeta::blitRectangle(IntRect(blitOp.src.x, blitOp.src.y, tsLaneW, blitOp.h),
-				                      blitOp.dst);
-			}
-
-			GLMeta::blitEnd();
-		}
-	}
+  // Assembles atlas from tileset and autotile bitmaps
+  void buildAtlas()
+  {
+    updateAutotileInfo();
+    TileAtlas::BlitVec blits = TileAtlas::calcBlits(atlas.efTilesetH, atlas.size);
+    // Clear atlas
+    FBO::bind(atlas.gl.fbo);
+    glState.clearColor.pushSet(Vec4());
+    glState.scissorTest.pushSet(false);
+    FBO::clear();
+    glState.scissorTest.pop();
+    glState.clearColor.pop();
+    GLMeta::blitBegin(atlas.gl);
+    // Blit autotiles
+    for (size_t i = 0; i < atlas.usableATs.size(); ++i) {
+      const uint8_t atInd = atlas.usableATs[i];
+      Bitmap *autotile = autotiles[atInd];
+      int blitW = std::min(autotile->width(), atAreaW);
+      int blitH = std::min(autotile->height(), atAreaH);
+      GLMeta::blitSource(autotile->getGLTypes());
+      if (blitW <= autotileW && tiles.animated) {
+        /* Static autotile */
+        for (int j = 0; j < 4; ++j)
+          GLMeta::blitRectangle(IntRect(0, 0, blitW, blitH),
+            Vec2i(autotileW*j, atInd*autotileH));
+      } else {
+      /* Animated autotile */
+        GLMeta::blitRectangle(IntRect(0, 0, blitW, blitH),
+          Vec2i(0, atInd*autotileH));
+      }
+    }
+    GLMeta::blitEnd();
+    /* Blit tileset */
+    if (tileset->megaSurface()) {
+      /* Mega surface tileset */
+      SDL_Surface *tsSurf = tileset->megaSurface();
+      if (shState->config().subImageFix) {
+        /* Implementation for broken GL drivers */
+        FBO::bind(atlas.gl.fbo);
+        glState.blend.pushSet(false);
+        glState.viewport.pushSet(IntRect(0, 0, atlas.size.x, atlas.size.y));
+        SimpleShader &shader = shState->shaders().simple;
+        shader.bind();
+        shader.applyViewportProj();
+        shader.setTranslation(Vec2i());
+        Quad &quad = shState->gpQuad();
+        for (size_t i = 0; i < blits.size(); ++i) {
+          const TileAtlas::Blit &blitOp = blits[i];
+          Vec2i texSize;
+          shState->ensureTexSize(tsLaneW, blitOp.h, texSize);
+          shState->bindTex();
+          GLMeta::subRectImageUpload(tsSurf->w, blitOp.src.x, blitOp.src.y,
+                                     0, 0, tsLaneW, blitOp.h, tsSurf, GL_RGBA);
+          shader.setTexSize(texSize);
+          quad.setTexRect(FloatRect(0, 0, tsLaneW, blitOp.h));
+          quad.setPosRect(FloatRect(blitOp.dst.x, blitOp.dst.y, tsLaneW, blitOp.h));
+          quad.draw();
+        }
+        GLMeta::subRectImageEnd();
+        glState.viewport.pop();
+        glState.blend.pop();
+      } else {/* Clean implementation */
+        TEX::bind(atlas.gl.tex);
+        for (size_t i = 0; i < blits.size(); ++i) {
+          const TileAtlas::Blit &blitOp = blits[i];
+          GLMeta::subRectImageUpload(tsSurf->w, blitOp.src.x, blitOp.src.y,
+             blitOp.dst.x, blitOp.dst.y, tsLaneW, blitOp.h, tsSurf, GL_RGBA);
+        }
+        GLMeta::subRectImageEnd();
+      }
+    } else {
+      /* Regular tileset */
+      GLMeta::blitBegin(atlas.gl);
+      GLMeta::blitSource(tileset->getGLTypes());
+      for (size_t i = 0; i < blits.size(); ++i) {
+        const TileAtlas::Blit &blitOp = blits[i];
+        GLMeta::blitRectangle(IntRect(blitOp.src.x, blitOp.src.y, tsLaneW, blitOp.h), blitOp.dst);
+      }
+      GLMeta::blitEnd();
+    }
+  }
 
   int samplePriority(int tileInd)
   {
@@ -585,277 +502,201 @@ struct TilemapPrivate
     return value;
   }
 
-	void handleAutotile(int x, int y, int tileInd, SVVector *array)
-	{
-		/* Which autotile [0-7] */
-		int atInd = tileInd / 48 - 1;
-		/* Which tile pattern of the autotile [0-47] */
-		int subInd = tileInd % 48;
+  void handleAutotile(int x, int y, int tileInd, std::vector<SVertex> *array)
+  {/* Which autotile [0-7] */
+    int atInd = tileInd / 48 - 1;
+    /* Which tile pattern of the autotile [0-47] */
+    int subInd = tileInd % 48;
+    const StaticRect *pieceRect = &autotileRects[subInd*4];
+    /* Iterate over the 4 tile pieces */
+    for (int i = 0; i < 4; ++i) {
+      FloatRect posRect(x*32, y*32, 16, 16);
+      atSelectSubPos(posRect, i);
+      FloatRect texRect = pieceRect[i];
+      /* Adjust to atlas coordinates */
+      texRect.y += atInd * autotileH;
+      SVertex v[4];
+      Quad::setTexPosRect(v, texRect, posRect);
+      /* Iterate over 4 vertices */
+      for (size_t i = 0; i < 4; ++i){ array->push_back(v[i]); }
+    }
+  }
 
-		const StaticRect *pieceRect = &autotileRects[subInd*4];
+  void handleTile(int x, int y, int z)
+  {
+    int tileInd = tableGetWrapped(*mapData, x + viewpPos.x, y + viewpPos.y, z);
+    if (tileInd < 48) return;// Check for empty space
+    int prio = samplePriority(tileInd);
+    if (prio == -1) return;// Check for faulty data
+    std::vector<SVertex> *targetArray;
+    /* Prio 0 tiles are all part of the same ground layer */
+    if (prio == 0) {
+      targetArray = &groundVert;
+    } else {
+      int layerInd = y + prio;
+      targetArray = &zlayerVert[layerInd];
+    }
+    if (tileInd < 48 * 8) {// Check for autotile
+      handleAutotile(x, y, tileInd, targetArray);
+      return;
+    }
+    int tsInd = tileInd - 48 * 8;
+    int tileX = tsInd % 8;
+    int tileY = tsInd / 8;
+    Vec2i texPos = TileAtlas::tileToAtlasCoor(tileX, tileY, atlas.efTilesetH, atlas.size.y);
+    FloatRect texRect((float) texPos.x + 0.5f, (float) texPos.y + 0.5f, 31, 31);
+    FloatRect posRect(x * 32, y * 32, 32, 32);
+    SVertex v[4];
+    Quad::setTexPosRect(v, texRect, posRect);
+    for (size_t i = 0; i < 4; ++i) { targetArray->push_back(v[i]); }
+  }
 
-		/* Iterate over the 4 tile pieces */
-		for (int i = 0; i < 4; ++i)
-		{
-			FloatRect posRect(x*32, y*32, 16, 16);
-			atSelectSubPos(posRect, i);
+  void clearQuadArrays()
+  {
+    groundVert.clear();
+    for (size_t i = 0; i < zlayersMax; ++i) { zlayerVert[i].clear(); }
+  }
 
-			FloatRect texRect = pieceRect[i];
+  void buildQuadArray()
+  {
+    clearQuadArrays();
+    for (int x = 0; x < vw; ++x)
+      for (int y = 0; y < vh; ++y)
+        for (int z = 0; z < mapData->zSize(); ++z)
+            handleTile(x, y, z);
+  }
 
-			/* Adjust to atlas coordinates */
-			texRect.y += atInd * autotileH;
+  static size_t quadDataSize(size_t quadCount)
+  {
+    return quadCount * sizeof(SVertex) * 4;
+  }
 
-			SVertex v[4];
-			Quad::setTexPosRect(v, texRect, posRect);
+  size_t zlayerSize(size_t index)
+  {
+    return zlayerBases[index+1] - zlayerBases[index];
+  }
 
-			/* Iterate over 4 vertices */
-			for (size_t i = 0; i < 4; ++i)
-				array->push_back(v[i]);
-		}
-	}
+  void uploadBuffers()
+  {
+    /* Calculate total quad count */
+    size_t groundQuadCount = groundVert.size() / 4;
+    size_t quadCount = groundQuadCount;
+    for (size_t i = 0; i < zlayersMax; ++i) {
+      zlayerBases[i] = quadCount;
+      quadCount += zlayerVert[i].size() / 4;
+    }
+    zlayerBases[zlayersMax] = quadCount;
+    VBO::bind(tiles.vbo);
+    VBO::allocEmpty(quadDataSize(quadCount));
+    VBO::uploadSubData(0, quadDataSize(groundQuadCount), dataPtr(groundVert));
+    for (size_t i = 0; i < zlayersMax; ++i) {
+      if (zlayerVert[i].empty()) continue;
+      VBO::uploadSubData(quadDataSize(zlayerBases[i]),
+        quadDataSize(zlayerSize(i)), dataPtr(zlayerVert[i]));
+    }
+    VBO::unbind();
+    shState->ensureQuadIBO(quadCount);// Ensure global IBO size
+  }
 
-	void handleTile(int x, int y, int z)
-	{
-		int tileInd =
-			tableGetWrapped(*mapData, x + viewpPos.x, y + viewpPos.y, z);
+  void bindShader(ShaderBase *&shaderVar)
+  {
+    if (tiles.animated) {
+      TilemapShader &tilemapShader = shState->shaders().tilemap;
+      tilemapShader.bind();
+      tilemapShader.setAniIndex(tiles.frameIdx);
+      shaderVar = &tilemapShader;
+    } else {
+      shaderVar = &shState->shaders().simple;
+      shaderVar->bind();
+    }
+    shaderVar->applyViewportProj();
+  }
 
-		/* Check for empty space */
-		if (tileInd < 48)
-			return;
+  void bindAtlas(ShaderBase &shader)
+  {
+    TEX::bind(atlas.gl.tex);
+    shader.setTexSize(atlas.size);
+  }
 
-		int prio = samplePriority(tileInd);
+  void updateActiveElements(std::vector<int> &zlayerInd)
+  {
+    elem.ground->updateVboCount();
+    for (size_t i = 0; i < zlayersMax; ++i) {
+      if (i < zlayerInd.size()) {
+        int index = zlayerInd[i];
+        elem.zlayers[i]->setVisible(visible);
+        elem.zlayers[i]->setIndex(index);
+      } else {// Hide unused layers
+        elem.zlayers[i]->setVisible(false);
+      }
+    }
+  }
 
-		/* Check for faulty data */
-		if (prio == -1)
-			return;
+  void updateSceneElements()
+  {
+    /* Only allocate elements for non-emtpy zlayers */
+    std::vector<int> zlayerInd;
+    for (size_t i = 0; i < zlayersMax; ++i)
+      if (zlayerVert[i].size() > 0) zlayerInd.push_back(i);
+    updateActiveElements(zlayerInd);
+    elem.activeLayers = zlayerInd.size();
+    zOrderDirty = false;
+  }
 
-		SVVector *targetArray;
+  void hideElements()
+  {
+    elem.ground->setVisible(false);
+    for (size_t i = 0; i < zlayersMax; ++i)
+      elem.zlayers[i]->setVisible(false);
+  }
 
-		/* Prio 0 tiles are all part of the same ground layer */
-		if (prio == 0)
-		{
-			targetArray = &groundVert;
-		}
-		else
-		{
-			int layerInd = y + prio;
-			targetArray = &zlayerVert[layerInd];
-		}
-
-		/* Check for autotile */
-		if (tileInd < 48*8)
-		{
-			handleAutotile(x, y, tileInd, targetArray);
-			return;
-		}
-
-		int tsInd = tileInd - 48*8;
-		int tileX = tsInd % 8;
-		int tileY = tsInd / 8;
-
-		Vec2i texPos = TileAtlas::tileToAtlasCoor(tileX, tileY, atlas.efTilesetH, atlas.size.y);
-		FloatRect texRect((float) texPos.x+0.5f, (float) texPos.y+0.5f, 31, 31);
-		FloatRect posRect(x*32, y*32, 32, 32);
-
-		SVertex v[4];
-		Quad::setTexPosRect(v, texRect, posRect);
-
-		for (size_t i = 0; i < 4; ++i)
-			targetArray->push_back(v[i]);
-	}
-
-	void clearQuadArrays()
-	{
-		groundVert.clear();
-
-		for (size_t i = 0; i < zlayersMax; ++i)
-			zlayerVert[i].clear();
-	}
-
-	void buildQuadArray()
-	{
-		clearQuadArrays();
-
-		for (int x = 0; x < viewpW; ++x)
-			for (int y = 0; y < viewpH; ++y)
-				for (int z = 0; z < mapData->zSize(); ++z)
-					handleTile(x, y, z);
-	}
-
-	static size_t quadDataSize(size_t quadCount)
-	{
-		return quadCount * sizeof(SVertex) * 4;
-	}
-
-	size_t zlayerSize(size_t index)
-	{
-		return zlayerBases[index+1] - zlayerBases[index];
-	}
-
-	void uploadBuffers()
-	{
-		/* Calculate total quad count */
-		size_t groundQuadCount = groundVert.size() / 4;
-		size_t quadCount = groundQuadCount;
-
-		for (size_t i = 0; i < zlayersMax; ++i)
-		{
-			zlayerBases[i] = quadCount;
-			quadCount += zlayerVert[i].size() / 4;
-		}
-
-		zlayerBases[zlayersMax] = quadCount;
-
-		VBO::bind(tiles.vbo);
-		VBO::allocEmpty(quadDataSize(quadCount));
-
-		VBO::uploadSubData(0, quadDataSize(groundQuadCount), dataPtr(groundVert));
-
-		for (size_t i = 0; i < zlayersMax; ++i)
-		{
-			if (zlayerVert[i].empty())
-				continue;
-
-			VBO::uploadSubData(quadDataSize(zlayerBases[i]),
-			                   quadDataSize(zlayerSize(i)), dataPtr(zlayerVert[i]));
-		}
-
-		VBO::unbind();
-
-		/* Ensure global IBO size */
-		shState->ensureQuadIBO(quadCount);
-	}
-
-	void bindShader(ShaderBase *&shaderVar)
-	{
-		if (tiles.animated)
-		{
-			TilemapShader &tilemapShader = shState->shaders().tilemap;
-			tilemapShader.bind();
-			tilemapShader.setAniIndex(tiles.frameIdx);
-			shaderVar = &tilemapShader;
-		}
-		else
-		{
-			shaderVar = &shState->shaders().simple;
-			shaderVar->bind();
-		}
-
-		shaderVar->applyViewportProj();
-	}
-
-	void bindAtlas(ShaderBase &shader)
-	{
-		TEX::bind(atlas.gl.tex);
-		shader.setTexSize(atlas.size);
-	}
-
-	void updateActiveElements(std::vector<int> &zlayerInd)
-	{
-		elem.ground->updateVboCount();
-
-		for (size_t i = 0; i < zlayersMax; ++i)
-		{
-			if (i < zlayerInd.size())
-			{
-				int index = zlayerInd[i];
-				elem.zlayers[i]->setVisible(visible);
-				elem.zlayers[i]->setIndex(index);
-			}
-			else
-			{
-				/* Hide unused layers */
-				elem.zlayers[i]->setVisible(false);
-			}
-		}
-	}
-
-	void updateSceneElements()
-	{
-		/* Only allocate elements for non-emtpy zlayers */
-		std::vector<int> zlayerInd;
-
-		for (size_t i = 0; i < zlayersMax; ++i)
-			if (zlayerVert[i].size() > 0)
-				zlayerInd.push_back(i);
-
-		updateActiveElements(zlayerInd);
-		elem.activeLayers = zlayerInd.size();
-		zOrderDirty = false;
-	}
-
-	void hideElements()
-	{
-		elem.ground->setVisible(false);
-
-		for (size_t i = 0; i < zlayersMax; ++i)
-			elem.zlayers[i]->setVisible(false);
-	}
-
-	void updateZOrder()
-	{
-		if (elem.activeLayers == 0)
-			return;
-
-		for (size_t i = 0; i < elem.activeLayers; ++i)
-			elem.zlayers[i]->initUpdateZ();
-
-		ZLayer *prev = elem.zlayers[0];
-		prev->finiUpdateZ(0);
-
-		for (size_t i = 1; i < elem.activeLayers; ++i)
-		{
-			ZLayer *layer = elem.zlayers[i];
-			layer->finiUpdateZ(prev);
-			prev = layer;
-		}
-	}
-
-	/* When there are two or more zlayers with no other
-	 * elements between them in the scene list, we can
-	 * render them in a batch (as the zlayer data itself
-	 * is ordered sequentially in VRAM). Every frame, we
-	 * scan the scene list for such sequential layers and
-	 * batch them up for drawing. The first layer of the batch
-	 * (the "batch head") executes the draw call, all others
-	 * are muted via the 'batchedFlag'. For simplicity,
-	 * single sized batches are possible. */
-	void prepareZLayerBatches()
-	{
-		ZLayer *const *zlayers = elem.zlayers;
-
-		for (size_t i = 0; i < elem.activeLayers; ++i)
-		{
-			ZLayer *batchHead = zlayers[i];
-			batchHead->batchedFlag = false;
-
-			GLsizei vboBatchCount = batchHead->vboCount;
-			IntruListLink<SceneElement> *iter = &batchHead->link;
-
-			for (i = i+1; i < elem.activeLayers; ++i)
-			{
-				iter = iter->next;
-				ZLayer *layer = zlayers[i];
-
-				/* Check if the next SceneElement is also
-				 * the next zlayer in our list. If not,
-				 * the current batch is complete */
-				if (iter != &layer->link)
-					break;
-
-				vboBatchCount += layer->vboCount;
-				layer->batchedFlag = true;
-			}
-
-			batchHead->vboBatchCount = vboBatchCount;
-			--i;
-		}
-	}
+  void updateZOrder()
+  {
+    if (elem.activeLayers == 0) return;
+    for (size_t i = 0; i < elem.activeLayers; ++i)
+      elem.zlayers[i]->initUpdateZ();
+    ZLayer *prev = elem.zlayers[0];
+    prev->finiUpdateZ(0);
+    for (size_t i = 1; i < elem.activeLayers; ++i) {
+      ZLayer *layer = elem.zlayers[i];
+      layer->finiUpdateZ(prev);
+      prev = layer;
+    }
+  }
+/* When there are two or more zlayers with no other
+ * elements between them in the scene list, we can
+ * render them in a batch (as the zlayer data itself
+ * is ordered sequentially in VRAM). Every frame, we
+ * scan the scene list for such sequential layers and
+ * batch them up for drawing. The first layer of the batch
+ * (the "batch head") executes the draw call, all others
+ * are muted via the 'batchedFlag'. For simplicity,
+ * single sized batches are possible. */
+  void prepareZLayerBatches()
+  {// ZLayer *const *zlayers = elem.zlayers;
+    for (size_t i = 0; i < elem.activeLayers; ++i) {
+      ZLayer *batchHead = elem.zlayers[i];
+      batchHead->batchedFlag = false;
+      GLsizei vboBatchCount = batchHead->vboCount;
+      IntruListLink<SceneElement> *iter = &batchHead->link;
+      for (i = i+1; i < elem.activeLayers; ++i) {
+        iter = iter->next;
+        ZLayer *layer = elem.zlayers[i];
+// Is next SceneElement is the next zlayer? If not, the current batch is complete
+        if (iter != &layer->link) break;
+        vboBatchCount += layer->vboCount;
+        layer->batchedFlag = true;
+      }
+      batchHead->vboBatchCount = vboBatchCount;
+      --i;
+    }
+  }
 
   void updateMapViewport()
   {
     const Vec2i combOrigin = origin + elem.sceneGeo.orig;
     const Vec2i mvpPos = getTilePos(combOrigin);
+    set_dimensions(elem.sceneGeo.rect.w, elem.sceneGeo.rect.h);
     if (mvpPos != viewpPos) {
       viewpPos = mvpPos;
       buffersDirty = true;
@@ -864,63 +705,47 @@ struct TilemapPrivate
     dispPos = elem.sceneGeo.rect.pos() - wrap(combOrigin, 32);
   }
 
-	void prepare()
-	{
-		if (!verifyResources())
-		{
-			if (tilemapReady)
-				hideElements();
-			tilemapReady = false;
-
-			return;
-		}
-
-		if (atlasSizeDirty)
-		{
-			allocateAtlas();
-			atlasSizeDirty = false;
-		}
-
-		if (atlasDirty)
-		{
-			buildAtlas();
-			atlasDirty = false;
-		}
-
-		if (mapViewportDirty)
-		{
-			updateMapViewport();
-			mapViewportDirty = false;
-		}
-
-		if (buffersDirty)
-		{
-			buildQuadArray();
-			uploadBuffers();
-			updateSceneElements();
-			buffersDirty = false;
-		}
-
-		flashMap.prepare();
-
-		if (zOrderDirty)
-		{
-			updateZOrder();
-			zOrderDirty = false;
-		}
-
-		prepareZLayerBatches();
-
-		tilemapReady = true;
-	}
+  void prepare()
+  {
+    if (!verifyResources()) {
+      if (tilemapReady) hideElements();
+      tilemapReady = false;
+      return;
+    }
+    if (atlasSizeDirty) {
+      allocateAtlas();
+      atlasSizeDirty = false;
+    }
+    if (atlasDirty) {
+      buildAtlas();
+      atlasDirty = false;
+    }
+    if (mapViewportDirty) {
+      updateMapViewport();
+      mapViewportDirty = false;
+    }
+    if (buffersDirty) {
+      buildQuadArray();
+      uploadBuffers();
+      updateSceneElements();
+      buffersDirty = false;
+    }
+    flashMap.prepare();
+    if (zOrderDirty) {
+      updateZOrder();
+      zOrderDirty = false;
+    }
+    prepareZLayerBatches();
+    tilemapReady = true;
+  }
 };
 
 GroundLayer::GroundLayer(TilemapPrivate *p, Viewport *viewport)
-    : ViewportElement(viewport, 0),
-      vboCount(0),
-      p(p)
+: ViewportElement(viewport, 0),
+  vboCount(0),
+  p(p)
 {
-	onGeometryChange(scene->getGeometry());
+  onGeometryChange(scene->getGeometry());
 }
 
 void GroundLayer::updateVboCount()
@@ -952,12 +777,12 @@ void GroundLayer::onGeometryChange(const Scene::Geometry &geo)
 }
 
 ZLayer::ZLayer(TilemapPrivate *p, Viewport *viewport)
-    : ViewportElement(viewport, 0),
-      index(0),
-      vboOffset(0),
-      vboCount(0),
-      p(p),
-      vboBatchCount(0)
+: ViewportElement(viewport, 0),
+  index(0),
+  vboOffset(0),
+  vboCount(0),
+  p(p),
+  vboBatchCount(0)
 {}
 
 void ZLayer::setIndex(int value)
@@ -1014,10 +839,10 @@ void Tilemap::Autotiles::set(int i, Bitmap *bitmap)
   p->invalidateAtlasContents();
   p->autotilesCon[i].disconnect();
   p->autotilesCon[i] = bitmap->modified.connect
-          (sigc::mem_fun(p, &TilemapPrivate::invalidateAtlasContents));
+    (sigc::mem_fun(p, &TilemapPrivate::invalidateAtlasContents));
   p->autotilesDispCon[i].disconnect();
   p->autotilesDispCon[i] = bitmap->wasDisposed.connect
-          (sigc::mem_fun(p, &TilemapPrivate::invalidateAtlasContents));
+    (sigc::mem_fun(p, &TilemapPrivate::invalidateAtlasContents));
   p->updateAutotileInfo();
 }
 
@@ -1044,8 +869,7 @@ void Tilemap::update()
   guardDisposed();
   if (!p->tilemapReady) return;
   // Animate flash
-  if (++p->flashAlphaIdx >= flashAlphaN)
-          p->flashAlphaIdx = 0;
+  if (++p->flashAlphaIdx >= flashAlphaN) p->flashAlphaIdx = 0;
   // Animate autotiles
   if (!p->tiles.animated) return;
   p->tiles.frameIdx = atAnimation[p->tiles.aniIdx];
@@ -1077,7 +901,7 @@ void Tilemap::setTileset(Bitmap *value)
   p->invalidateAtlasSize();
   p->tilesetCon.disconnect();
   p->tilesetCon = value->modified.connect
-          (sigc::mem_fun(p, &TilemapPrivate::invalidateAtlasSize));
+    (sigc::mem_fun(p, &TilemapPrivate::invalidateAtlasSize));
   p->updateAtlasInfo();
 }
 
@@ -1090,7 +914,7 @@ void Tilemap::setMapData(Table *value)
   p->invalidateBuffers();
   p->mapDataCon.disconnect();
   p->mapDataCon = value->modified.connect
-          (sigc::mem_fun(p, &TilemapPrivate::invalidateBuffers));
+    (sigc::mem_fun(p, &TilemapPrivate::invalidateBuffers));
 }
 
 void Tilemap::setFlashData(Table *value)

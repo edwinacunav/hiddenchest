@@ -20,30 +20,23 @@
 */
 
 #include "tilequad.h"
-
 #include "gl-util.h"
 #include "quad.h"
 
 namespace TileQuads
 {
 
-int oneDimCount(int tileDimension,
-                int destDimension)
+int oneDimCount(int tileDimension, int destDimension)
 {
-	if (tileDimension <= 0)
-		return 0;
-
-	int fullCount = destDimension / tileDimension;
-	int partSize  = destDimension % tileDimension;
-
-	return fullCount + (partSize ? 1 : 0);
+  if (tileDimension <= 0) return 0;
+  int fullCount = destDimension / tileDimension;
+  int partSize  = destDimension % tileDimension;
+  return fullCount + (partSize ? 1 : 0);
 }
 
-int twoDimCount(int tileW, int tileH,
-                int destW, int destH)
+int twoDimCount(int tileW, int tileH, int destW, int destH)
 {
-	return oneDimCount(tileW, destW) *
-	       oneDimCount(tileH, destH);
+  return oneDimCount(tileW, destW) * oneDimCount(tileH, destH);
 }
 
 int buildH(const IntRect &sourceRect,

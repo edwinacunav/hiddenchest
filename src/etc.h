@@ -98,10 +98,8 @@ struct Tone : public Serializable
   void updateInternal();
   bool hasEffect() const
   {
-    return ((int)red   != 0 ||
-            (int)green != 0 ||
-            (int)blue  != 0 ||
-            (int)gray  != 0);
+    return ((int)red   != 0 || (int)green != 0 ||
+            (int)blue  != 0 || (int)gray  != 0);
   }
   /* Range (-255.0 ~ 255.0) */
   double red;

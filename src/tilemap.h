@@ -23,55 +23,48 @@
 #define TILEMAP_H
 
 #include "disposable.h"
-
 #include "util.h"
 
 class Viewport;
 class Bitmap;
 class Table;
-
 struct TilemapPrivate;
 
 class Tilemap : public Disposable
 {
 public:
-	class Autotiles
-	{
-	public:
-		void set(int i, Bitmap *bitmap);
-		Bitmap *get(int i) const;
+  class Autotiles
+  {
+  public:
+    void set(int i, Bitmap *bitmap);
+    Bitmap *get(int i) const;
 
-	private:
-		Autotiles() {}
-		~Autotiles() {}
+  private:
+    Autotiles() {}
+    ~Autotiles() {}
+    TilemapPrivate *p;
+    friend class Tilemap;
+    friend struct TilemapPrivate;
+  };
 
-		TilemapPrivate *p;
-		friend class Tilemap;
-		friend struct TilemapPrivate;
-	};
-
-	Tilemap(Viewport *viewport = 0);
-	~Tilemap();
-
-	void update();
-
-	Autotiles &getAutotiles();
-	Viewport *getViewport() const;
-
-	DECL_ATTR( Tileset,    Bitmap*   )
-	DECL_ATTR( MapData,    Table*    )
-	DECL_ATTR( FlashData,  Table*    )
-	DECL_ATTR( Priorities, Table*    )
-	DECL_ATTR( Visible,    bool      )
-	DECL_ATTR( OX,         int       )
-	DECL_ATTR( OY,         int       )
+  Tilemap(Viewport *viewport = 0);
+  ~Tilemap();
+  void update();
+  Autotiles &getAutotiles();
+  Viewport *getViewport() const;
+  DECL_ATTR( Tileset,    Bitmap* )
+  DECL_ATTR( MapData,    Table*  )
+  DECL_ATTR( FlashData,  Table*  )
+  DECL_ATTR( Priorities, Table*  )
+  DECL_ATTR( Visible,    bool    )
+  DECL_ATTR( OX,         int     )
+  DECL_ATTR( OY,         int     )
 
 private:
-	TilemapPrivate *p;
-	Autotiles atProxy;
-
-	void releaseResources();
-	const char *klassName() const { return "tilemap"; }
+  TilemapPrivate *p;
+  Autotiles atProxy;
+  void releaseResources();
+  const char *klassName() const { return "Tilemap"; }
 };
 
 #endif // TILEMAP_H

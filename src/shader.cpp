@@ -36,7 +36,7 @@
 #include "gray.frag.xxd"
 #include "basic_color.frag.xxd"
 #include "sepia.frag.xxd"
-#include "oil.frag.xxd"
+//#include "oil.frag.xxd"
 #include "flatColor.frag.xxd"
 #include "simple.frag.xxd"
 #include "simpleColor.frag.xxd"
@@ -149,19 +149,16 @@ void Shader::init(const unsigned char *vert, int vertSize,
     throw Exception(Exception::HIDDENCHESTError,
       "GLSL: An error occured while compiling vertex shader '%s' in program '%s'",
       vertName, programName);
-  }
-  /* Compile fragment shader */
+  }// Compile fragment shader
   setupShaderSource(fragShader, GL_FRAGMENT_SHADER, frag, fragSize);
   gl.CompileShader(fragShader);
   gl.GetShaderiv(fragShader, GL_COMPILE_STATUS, &success);
-  if (!success)
-  {
+  if (!success) {
     printShaderLog(fragShader);
     throw Exception(Exception::HIDDENCHESTError,
       "GLSL: An error occured while compiling fragment shader '%s' in program '%s'",
       fragName, programName);
-  }
-  /* Link shader program */
+  }// Link shader program
   gl.AttachShader(program, vertShader);
   gl.AttachShader(program, fragShader);
   gl.BindAttribLocation(program, Position, "position");
@@ -451,6 +448,12 @@ void GrayShader::setGray(float value)
   gl.Uniform1f(u_gray, value);
 }
 
+SepiaShader::SepiaShader()
+{
+  INIT_SHADER(simple, sepia, SepiaShader);
+  ShaderBase::init();
+}
+
 BasicColorShader::BasicColorShader()
 {
   INIT_SHADER(simple, basic_color, BasicColorShader);
@@ -460,17 +463,23 @@ BasicColorShader::BasicColorShader()
   GET_U(blue);
 }
 
+/*OilShader::OilShader()
+{
+  INIT_SHADER(simpleMatrix, oil, OilShader);
+  ShaderBase::init();
+  GET_U(radius);
+}
+
+void OilShader::set_radius(int value)
+{
+  gl.Uniform1f(u_radius, value);
+}*/
+
 void BasicColorShader::set_color(float r, float g, float b)
 {
   gl.Uniform1f(u_red, r);
   gl.Uniform1f(u_green, g);
   gl.Uniform1f(u_blue, b);
-}
-
-SepiaShader::SepiaShader()
-{
-  INIT_SHADER(simple, sepia, SepiaShader);
-  ShaderBase::init();
 }
 
 TilemapShader::TilemapShader()
@@ -522,7 +531,6 @@ void SimpleMatrixShader::setMatrix(const float value[16])
 {
   gl.UniformMatrix4fv(u_matrix, 1, GL_FALSE, value);
 }
-
 
 BlurShader::HPass::HPass()
 {

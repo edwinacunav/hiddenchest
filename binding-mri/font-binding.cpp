@@ -19,6 +19,7 @@
 ** along with mkxp.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "hcsymbol.h"
 #include "font.h"
 #include "binding-util.h"
 #include "binding-types.h"
@@ -322,51 +323,51 @@ void fontBindingInit()
   }
   rb_iv_set(klass, "default_name", defNamesObj);
   wrapProperty(klass, &Font::getDefaultOutColor(), "default_out_color", ColorType);
-  rb_define_singleton_method(klass, "default_name", RUBY_METHOD_FUNC(FontGetDefaultName), 0);
-  rb_define_singleton_method(klass, "default_name=", RUBY_METHOD_FUNC(FontSetDefaultName), -1);
-  rb_define_singleton_method(klass, "default_size", RUBY_METHOD_FUNC(FontGetDefaultSize), 0);
-  rb_define_singleton_method(klass, "default_size=", RUBY_METHOD_FUNC(FontSetDefaultSize), 1);
-  rb_define_singleton_method(klass, "default_bold", RUBY_METHOD_FUNC(FontGetDefaultBold), 0);
-  rb_define_singleton_method(klass, "default_bold=", RUBY_METHOD_FUNC(FontSetDefaultBold), 1);
-  rb_define_singleton_method(klass, "default_italic", RUBY_METHOD_FUNC(FontGetDefaultItalic), 0);
-  rb_define_singleton_method(klass, "default_italic=", RUBY_METHOD_FUNC(FontSetDefaultItalic), 1);
-  rb_define_singleton_method(klass, "default_color", RUBY_METHOD_FUNC(FontGetDefaultColor), -1);
-  rb_define_singleton_method(klass, "default_color=", RUBY_METHOD_FUNC(FontSetDefaultColor), -1);
-  rb_define_singleton_method(klass, "default_outline", RUBY_METHOD_FUNC(FontGetDefaultOutline), -1);
-  rb_define_singleton_method(klass, "default_outline=", RUBY_METHOD_FUNC(FontSetDefaultOutline), -1);
-  rb_define_singleton_method(klass, "default_out_color", RUBY_METHOD_FUNC(FontGetDefaultOutColor), -1);
-  rb_define_singleton_method(klass, "default_out_color=", RUBY_METHOD_FUNC(FontSetDefaultOutColor), -1);
-  rb_define_singleton_method(klass, "default_outline_color", RUBY_METHOD_FUNC(FontGetDefaultOutColor), -1);
-  rb_define_singleton_method(klass, "default_outline_color=", RUBY_METHOD_FUNC(FontSetDefaultOutColor), -1);
-  rb_define_singleton_method(klass, "default_shadow", RUBY_METHOD_FUNC(FontGetDefaultShadow), -1);
-  rb_define_singleton_method(klass, "default_shadow=", RUBY_METHOD_FUNC(FontSetDefaultShadow), -1);
-  rb_define_singleton_method(klass, "default_underline", RUBY_METHOD_FUNC(FontGetDefaultUnderline), -1);
-  rb_define_singleton_method(klass, "default_underline=", RUBY_METHOD_FUNC(FontSetDefaultUnderline), -1);
-  rb_define_singleton_method(klass, "default_strikethrough", RUBY_METHOD_FUNC(FontGetDefaultStrikethrough), -1);
-  rb_define_singleton_method(klass, "default_strikethrough=", RUBY_METHOD_FUNC(FontSetDefaultStrikethrough), -1);
-  rb_define_singleton_method(klass, "default_strikethru", RUBY_METHOD_FUNC(FontGetDefaultStrikethrough), -1);
-  rb_define_singleton_method(klass, "default_strikethru=", RUBY_METHOD_FUNC(FontSetDefaultStrikethrough), -1);
+  rb_define_singleton_method(klass, "default_name", RMF(FontGetDefaultName), 0);
+  rb_define_singleton_method(klass, "default_name=", RMF(FontSetDefaultName), -1);
+  rb_define_singleton_method(klass, "default_size", RMF(FontGetDefaultSize), 0);
+  rb_define_singleton_method(klass, "default_size=", RMF(FontSetDefaultSize), 1);
+  rb_define_singleton_method(klass, "default_bold", RMF(FontGetDefaultBold), 0);
+  rb_define_singleton_method(klass, "default_bold=", RMF(FontSetDefaultBold), 1);
+  rb_define_singleton_method(klass, "default_italic", RMF(FontGetDefaultItalic), 0);
+  rb_define_singleton_method(klass, "default_italic=", RMF(FontSetDefaultItalic), 1);
+  rb_define_singleton_method(klass, "default_color", RMF(FontGetDefaultColor), -1);
+  rb_define_singleton_method(klass, "default_color=", RMF(FontSetDefaultColor), -1);
+  rb_define_singleton_method(klass, "default_outline", RMF(FontGetDefaultOutline), -1);
+  rb_define_singleton_method(klass, "default_outline=", RMF(FontSetDefaultOutline), -1);
+  rb_define_singleton_method(klass, "default_out_color", RMF(FontGetDefaultOutColor), -1);
+  rb_define_singleton_method(klass, "default_out_color=", RMF(FontSetDefaultOutColor), -1);
+  rb_define_singleton_method(klass, "default_outline_color", RMF(FontGetDefaultOutColor), -1);
+  rb_define_singleton_method(klass, "default_outline_color=", RMF(FontSetDefaultOutColor), -1);
+  rb_define_singleton_method(klass, "default_shadow", RMF(FontGetDefaultShadow), -1);
+  rb_define_singleton_method(klass, "default_shadow=", RMF(FontSetDefaultShadow), -1);
+  rb_define_singleton_method(klass, "default_underline", RMF(FontGetDefaultUnderline), -1);
+  rb_define_singleton_method(klass, "default_underline=", RMF(FontSetDefaultUnderline), -1);
+  rb_define_singleton_method(klass, "default_strikethrough", RMF(FontGetDefaultStrikethrough), -1);
+  rb_define_singleton_method(klass, "default_strikethrough=", RMF(FontSetDefaultStrikethrough), -1);
+  rb_define_singleton_method(klass, "default_strikethru", RMF(FontGetDefaultStrikethrough), -1);
+  rb_define_singleton_method(klass, "default_strikethru=", RMF(FontSetDefaultStrikethrough), -1);
   rb_define_class_method(klass, "exist?", fontDoesExist);
   _rb_define_method(klass, "initialize",      fontInitialize);
   _rb_define_method(klass, "initialize_copy", fontInitializeCopy);
-  rb_define_method(klass, "name", RUBY_METHOD_FUNC(FontGetName), 0);
-  rb_define_method(klass, "name=", RUBY_METHOD_FUNC(FontSetName), -1);
-  rb_define_method(klass, "size", RUBY_METHOD_FUNC(FontGetSize), 0);
-  rb_define_method(klass, "size=", RUBY_METHOD_FUNC(FontSetSize), 1);
-  rb_define_method(klass, "bold", RUBY_METHOD_FUNC(FontGetBold), 0);
-  rb_define_method(klass, "bold=", RUBY_METHOD_FUNC(FontSetBold), 1);
-  rb_define_method(klass, "italic", RUBY_METHOD_FUNC(FontGetItalic), 0);
-  rb_define_method(klass, "italic=", RUBY_METHOD_FUNC(FontSetItalic), 1);
-  rb_define_method(klass, "shadow", RUBY_METHOD_FUNC(FontGetShadow), 0);
-  rb_define_method(klass, "shadow=", RUBY_METHOD_FUNC(FontSetShadow), 1);
-  rb_define_method(klass, "outline", RUBY_METHOD_FUNC(FontGetOutline), 0);
-  rb_define_method(klass, "outline=", RUBY_METHOD_FUNC(FontSetOutline), 1);
-  rb_define_method(klass, "underline", RUBY_METHOD_FUNC(FontGetUnderline), 0);
-  rb_define_method(klass, "underline=", RUBY_METHOD_FUNC(FontSetUnderline), 1);
-  rb_define_method(klass, "strikethrough", RUBY_METHOD_FUNC(FontGetStrikethrough), 0);
-  rb_define_method(klass, "strikethrough=", RUBY_METHOD_FUNC(FontSetStrikethrough), 1);
-  rb_define_method(klass, "strikethru", RUBY_METHOD_FUNC(FontGetStrikethrough), 0);
-  rb_define_method(klass, "strikethru=", RUBY_METHOD_FUNC(FontSetStrikethrough), 1);
+  rb_define_method(klass, "name", RMF(FontGetName), 0);
+  rb_define_method(klass, "name=", RMF(FontSetName), -1);
+  rb_define_method(klass, "size", RMF(FontGetSize), 0);
+  rb_define_method(klass, "size=", RMF(FontSetSize), 1);
+  rb_define_method(klass, "bold", RMF(FontGetBold), 0);
+  rb_define_method(klass, "bold=", RMF(FontSetBold), 1);
+  rb_define_method(klass, "italic", RMF(FontGetItalic), 0);
+  rb_define_method(klass, "italic=", RMF(FontSetItalic), 1);
+  rb_define_method(klass, "shadow", RMF(FontGetShadow), 0);
+  rb_define_method(klass, "shadow=", RMF(FontSetShadow), 1);
+  rb_define_method(klass, "outline", RMF(FontGetOutline), 0);
+  rb_define_method(klass, "outline=", RMF(FontSetOutline), 1);
+  rb_define_method(klass, "underline", RMF(FontGetUnderline), 0);
+  rb_define_method(klass, "underline=", RMF(FontSetUnderline), 1);
+  rb_define_method(klass, "strikethrough", RMF(FontGetStrikethrough), 0);
+  rb_define_method(klass, "strikethrough=", RMF(FontSetStrikethrough), 1);
+  rb_define_method(klass, "strikethru", RMF(FontGetStrikethrough), 0);
+  rb_define_method(klass, "strikethru=", RMF(FontSetStrikethrough), 1);
   INIT_PROP_BIND(Font, OutColor, "out_color");
   INIT_PROP_BIND(Font, OutColor, "outline_color");
   INIT_PROP_BIND(Font, Color, "color");
