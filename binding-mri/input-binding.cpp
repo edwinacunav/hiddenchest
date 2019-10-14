@@ -66,6 +66,20 @@ static VALUE inputRepeat(VALUE self, VALUE number)
   return shState->input().isRepeated(num) ? Qtrue : Qfalse;
 }
 
+static VALUE input_trigger_up_down(VALUE self)
+{
+  if (shState->input().isTriggered(Input::Up)) return Qtrue;
+  if (shState->input().isTriggered(Input::Down)) return Qtrue;
+  return Qfalse;
+}
+
+static VALUE input_trigger_left_right(VALUE self)
+{
+  if (shState->input().isTriggered(Input::Left)) return Qtrue;
+  if (shState->input().isTriggered(Input::Right)) return Qtrue;
+  return Qfalse;
+}
+
 static VALUE inputDir4(VALUE self)
 {
   return RB_INT2FIX(shState->input().dir4Value());
@@ -270,6 +284,8 @@ void inputBindingInit()
   rb_define_module_function(module, "press?", RMF(inputPress), 1);
   rb_define_module_function(module, "trigger?", RMF(inputTrigger), 1);
   rb_define_module_function(module, "repeat?", RMF(inputRepeat), 1);
+  rb_define_module_function(module, "trigger_up_down?", RMF(input_trigger_up_down), 0);
+  rb_define_module_function(module, "trigger_left_right?", RMF(input_trigger_left_right), 0);
   rb_define_module_function(module, "dir4", RMF(inputDir4), 0);
   rb_define_module_function(module, "dir8", RMF(inputDir8), 0);
   rb_define_module_function(module, "mouse_x", RMF(inputMouseX), 0);
