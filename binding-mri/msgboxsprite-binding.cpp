@@ -204,7 +204,7 @@ static VALUE MsgBoxSpriteSetTone(VALUE self, VALUE tone)
   else
     t = getPrivateDataCheck<Tone>(tone, ToneType);
   GUARD_EXC( s->setTone(*t); )
-  return rb_iv_set(self, "tone", tone);
+  return tone;
 }
 
 static VALUE MsgBoxSpriteGetX(VALUE self)

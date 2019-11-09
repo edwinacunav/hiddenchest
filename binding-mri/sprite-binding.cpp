@@ -117,6 +117,44 @@ static VALUE sprite_turn_sepia(VALUE self, VALUE boolean)
   return rb_iv_set(self, "@sepia", boolean);
 }
 
+static VALUE sprite_invert_colors(VALUE self, VALUE boolean)
+{
+  checkDisposed<Sprite>(self);
+  VALUE bit = rb_iv_get(self, "bitmap");
+  if (RB_NIL_P(bit)) return Qnil;
+  Sprite *s = static_cast<Sprite*>(RTYPEDDATA_DATA(self));
+  if (boolean == Qtrue) {
+    rb_iv_set(self, "before_invert_colors", rb_obj_dup(bit));
+    GUARD_EXC( s->invert_colors(); )
+  } else {
+    VALUE c = rb_iv_get(self, "before_invert_colors");
+    Bitmap* b = getPrivateDataCheck<Bitmap>(c, BitmapType);
+    GUARD_EXC( s->setBitmap(b); )
+    rb_iv_set(self, "bitmap", c);
+    rb_iv_set(self, "before_invert_colors", Qnil);
+  }
+  return rb_iv_set(self, "@invert_colors", boolean);
+}
+
+static VALUE sprite_pixelate(VALUE self, VALUE boolean)
+{
+  checkDisposed<Sprite>(self);
+  VALUE bit = rb_iv_get(self, "bitmap");
+  if (RB_NIL_P(bit)) return Qnil;
+  Sprite *s = static_cast<Sprite*>(RTYPEDDATA_DATA(self));
+  if (boolean == Qtrue) {
+    rb_iv_set(self, "before_pixelate", rb_obj_dup(bit));
+    GUARD_EXC( s->pixelate(); )
+  } else {
+    VALUE pixelate = rb_iv_get(self, "before_pixelate");
+    Bitmap* b = getPrivateDataCheck<Bitmap>(pixelate, BitmapType);
+    GUARD_EXC( s->setBitmap(b); )
+    rb_iv_set(self, "bitmap", pixelate);
+    rb_iv_set(self, "before_pixelate", Qnil);
+  }
+  return rb_iv_set(self, "@pixelate", boolean);
+}
+
 static VALUE sprite_is_grayed_out(VALUE self)
 {
   checkDisposed<Sprite>(self);
@@ -127,6 +165,18 @@ static VALUE sprite_is_sepia(VALUE self)
 {
   checkDisposed<Sprite>(self);
   return rb_iv_get(self, "@sepia");
+}
+
+static VALUE sprite_are_colors_inverted(VALUE self)
+{
+  checkDisposed<Sprite>(self);
+  return rb_iv_get(self, "@invert_colors");
+}
+
+static VALUE sprite_is_pixelated(VALUE self)
+{
+  checkDisposed<Sprite>(self);
+  return rb_iv_get(self, "@pixelate");
 }
 
 static VALUE SpriteGetColor(VALUE self)
@@ -162,7 +212,7 @@ static VALUE SpriteSetTone(VALUE self, VALUE tone)
   else
     t = getPrivateDataCheck<Tone>(tone, ToneType);
   GUARD_EXC( s->setTone(*t); )
-  return rb_iv_set(self, "tone", tone);
+  return tone;
 }
 
 static VALUE SpriteGetX(VALUE self)
@@ -580,8 +630,12 @@ void SpriteBindingInit() {
   rb_define_method(RSprite, "mouse_above_color?", RMF(SpriteisMouseAboveColorFound), 0);
   rb_define_method(RSprite, "gray_out", RMF(sprite_gray_out), 1);
   rb_define_method(RSprite, "turn_sepia", RMF(sprite_turn_sepia), 1);
+  rb_define_method(RSprite, "invert_colors", RMF(sprite_invert_colors), 1);
+  rb_define_method(RSprite, "pixelate", RMF(sprite_pixelate), 1);
   rb_define_method(RSprite, "grayed_out?", RMF(sprite_is_grayed_out), 0);
   rb_define_method(RSprite, "sepia?", RMF(sprite_is_sepia), 0);
+  rb_define_method(RSprite, "colors_inverted?", RMF(sprite_are_colors_inverted), 0);
+  rb_define_method(RSprite, "pixelated?", RMF(sprite_is_pixelated), 0);
   if (rgssVer >= 2) {
     rb_define_method(RSprite, "bush_opacity", RMF(SpriteGetBushOpacity), 0);
     rb_define_method(RSprite, "bush_opacity=", RMF(SpriteSetBushOpacity), 1);
