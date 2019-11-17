@@ -213,6 +213,7 @@ void EventThread::process(RGSSThreadData &rtData)
         break;
       }
       if (event.key.keysym.scancode == SDL_SCANCODE_F1) {
+        if (shState->graphics().get_block_fone()) break;
         if (!sMenu) {
           sMenu = new SettingsMenu(rtData);
           updateCursorState(false, gameScreen);

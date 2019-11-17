@@ -45,8 +45,8 @@ extern const char module_rpg3[];
 static void mriBindingExecute();
 static void mriBindingTerminate();
 static void mriBindingReset();
-void Init_Scripts();
-void Init_TermsBackdrop();
+void Init_scripts();
+void Init_terms_backdrop();
 
 ScriptBinding scriptBindingImpl =
 {
@@ -106,7 +106,7 @@ static void mriBindingInit()
   audioBindingInit();
   graphicsBindingInit();
   fileIntBindingInit();
-  Init_Scripts();
+  Init_scripts();
   rb_define_module_function(rb_mKernel, "msgbox", RUBY_METHOD_FUNC(mriPrint), -1);
   rb_define_module_function(rb_mKernel, "msgbox_p", RUBY_METHOD_FUNC(mriP), -1);
   rb_define_module_function(rb_mKernel, "print", RUBY_METHOD_FUNC(mriPrint), -1);
@@ -129,7 +129,7 @@ static void mriBindingInit()
   rb_define_module_function(mod, "puts", RUBY_METHOD_FUNC(HCPuts), -1);
   rb_define_module_function(mod, "raw_key_states", RUBY_METHOD_FUNC(HCRawKeyStates), -1);
   rb_define_module_function(mod, "mouse_in_window", RUBY_METHOD_FUNC(HCMouseInWindow), -1);
-  Init_TermsBackdrop();
+  Init_terms_backdrop();
   if (rgssVer == 1) {
     rb_eval_string(module_rpg1);
     audio_setup_custom_se();
@@ -473,16 +473,17 @@ static void showExc(VALUE exc, const BacktraceData &btData)
 }
 
 static void mriBindingExecute()
-{
-  /* Normally only a ruby executable would do a sysinit,
-   * but not doing it will lead to crashes due to closed
-   * stdio streams on some platforms (eg. Windows) */
-  //showMsg("Resetting inside mriBindingExecute!");
+{/* Normally only a ruby executable would do a sysinit,
+ * but not doing it will lead to crashes due to closed
+ * stdio streams on some platforms (eg. Windows) */
   int argc = 0;
   char **argv = 0;
   ruby_sysinit(&argc, &argv);
   ruby_setup();
   rb_enc_set_default_external(rb_enc_from_encoding(rb_utf8_encoding()));
+  VALUE rversion = rb_const_get(rb_cObject, rb_intern("RUBY_VERSION"));
+  const char* version = StringValueCStr(rversion);
+  Debug() << "Ruby Version:" << version;
   Config &conf = shState->rtData().config;
   if (!conf.rubyLoadpaths.empty()) {
     // Setup custom load paths

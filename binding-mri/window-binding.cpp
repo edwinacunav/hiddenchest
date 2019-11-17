@@ -64,11 +64,11 @@ static VALUE window_initialize(int argc, VALUE *v, VALUE self)
   int cmode;
   Viewport *view = 0;
   VALUE rbView = Qnil, mode = rb_iv_get(self, "@open_mode");
-  if ( mode == hc_symbol("top") )
+  if ( mode == hc_sym("top") )
     cmode = 1;
-  else if ( mode == hc_symbol("center") )
+  else if ( mode == hc_sym("center") )
     cmode = 2;
-  else if ( mode == hc_symbol("bottom") )
+  else if ( mode == hc_sym("bottom") )
     cmode = 3;
   else
     cmode = 0;
@@ -124,8 +124,8 @@ static VALUE window_set_open_mode(VALUE self, VALUE mode)
   Window *w = getPrivateData<Window>(self);
   if (w == 0) return rb_iv_set(self, "@open_mode", mode);
   int result = 0;
-  VALUE top = hc_symbol("top"), center = hc_symbol("center");
-  VALUE bottom = hc_symbol("bottom");
+  VALUE top = hc_sym("top"), center = hc_sym("center");
+  VALUE bottom = hc_sym("bottom");
   if (mode == top) {
     rb_iv_set(self, "@open_mode", top);
     result = 1;
@@ -214,7 +214,7 @@ DEF_PROP_I(Window, ContentsOpacity)
 void windowBindingInit()
 {
   VALUE klass = rb_define_class("Window", rb_cObject);
-  rb_iv_set(klass, "@open_mode", hc_symbol("center"));
+  rb_iv_set(klass, "@open_mode", hc_sym("center"));
   rb_define_alloc_func(klass, classAllocate<&WindowType>);
   disposableBindingInit     <Window>(klass);
   viewportElementBindingInit<Window>(klass);

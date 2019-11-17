@@ -133,17 +133,17 @@ static VALUE graphics_snap_to_sepia_bitmap(VALUE self)
 static VALUE graphics_snap_to_color_bitmap(VALUE self, VALUE color)
 {
   Bitmap *b = 0;
-  if (color == hc_symbol("red"))
+  if (color == hc_sym("red"))
     GUARD_EXC( b = shState->graphics().snap_to_color_bitmap(0); )
-  else if (color == hc_symbol("green"))
+  else if (color == hc_sym("green"))
     GUARD_EXC( b = shState->graphics().snap_to_color_bitmap(1); )
-  else if (color == hc_symbol("blue"))
+  else if (color == hc_sym("blue"))
     GUARD_EXC( b = shState->graphics().snap_to_color_bitmap(2); )
-  else if (color == hc_symbol("yellow"))
+  else if (color == hc_sym("yellow"))
     GUARD_EXC( b = shState->graphics().snap_to_color_bitmap(3); )
-  else if (color == hc_symbol("sepia"))
+  else if (color == hc_sym("sepia"))
     GUARD_EXC( b = shState->graphics().snap_to_sepia_bitmap(); )
-  else if (color == hc_symbol("gray"))
+  else if (color == hc_sym("gray"))
     GUARD_EXC( b = shState->graphics().snap_to_gray_bitmap(); )
   VALUE obj = wrapObject(b, BitmapType);
   bitmapInitProps(b, obj);
@@ -243,16 +243,28 @@ static VALUE graphics_set_block_ftwelve(VALUE self, VALUE boolean)
   return boolean;
 }
 
+static VALUE graphics_get_block_fone(VALUE self)
+{
+  return rb_iv_get(self, "@block_f1");
+}
+
+static VALUE graphics_set_block_fone(VALUE self, VALUE boolean)
+{
+  rb_iv_set(self, "@block_f1", boolean);
+  shState->graphics().set_block_fone(boolean == Qtrue ? true : false);
+  return boolean;
+}
+
 static VALUE graphicsGetFullscreen(VALUE self)
 {
-  return shState->graphics().getFullscreen() ? Qtrue : Qfalse;
+  return shState->graphics().get_fullscreen() ? Qtrue : Qfalse;
 }
 
 static VALUE graphicsSetFullscreen(VALUE self, VALUE boolean)
 {
   if (rb_iv_get(self, "@block_fullscreen") == Qfalse) return Qfalse;
-  shState->graphics().setFullscreen(boolean == Qtrue ? true : false);
-  return shState->graphics().getFullscreen() ? Qtrue : Qfalse;
+  shState->graphics().set_fullscreen(boolean == Qtrue ? true : false);
+  return shState->graphics().get_fullscreen() ? Qtrue : Qfalse;
 }
 
 static VALUE graphics_get_show_cursor(VALUE self)
@@ -271,6 +283,7 @@ void graphicsBindingInit()
   VALUE module = rb_define_module("Graphics");
   rb_iv_set(module, "@block_fullscreen", Qfalse);
   rb_iv_set(module, "@block_f12", Qfalse);
+  rb_iv_set(module, "@block_f1", Qfalse);
   rb_define_module_function(module, "update", RMF(graphicsUpdate), 0);
   rb_define_module_function(module, "freeze", RMF(graphicsFreeze), 0);
   rb_define_module_function(module, "transition", RMF(graphicsTransition), -1);
@@ -300,6 +313,8 @@ void graphicsBindingInit()
   rb_define_module_function(module, "block_fullscreen=", RMF(graphics_set_block_fullscreen), 1);
   rb_define_module_function(module, "block_f12", RMF(graphics_get_block_ftwelve), 0);
   rb_define_module_function(module, "block_f12=", RMF(graphics_set_block_ftwelve), 1);
+  rb_define_module_function(module, "block_f1", RMF(graphics_get_block_fone), 0);
+  rb_define_module_function(module, "block_f1=", RMF(graphics_set_block_fone), 1);
   rb_define_module_function(module, "fullscreen", RMF(graphicsGetFullscreen), 0);
   rb_define_module_function(module, "fullscreen=", RMF(graphicsSetFullscreen), 1);
   rb_define_module_function(module, "show_cursor", RMF(graphics_get_show_cursor), 0);

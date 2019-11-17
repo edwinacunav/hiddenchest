@@ -24,12 +24,12 @@
 
 #include <ruby.h>
 
-static VALUE hc_symbol(const char* str)
+static VALUE hc_sym(const char* str)
 {
   return rb_id2sym(rb_intern(str));
 }
 
-static VALUE hc_str2sym(VALUE str)
+static VALUE hc_sym2(VALUE str)
 {
   return rb_id2sym(rb_intern_str(str));
 }

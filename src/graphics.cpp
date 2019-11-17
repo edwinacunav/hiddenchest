@@ -214,15 +214,6 @@ public:
     apply_shader(shader);
   }
 
-  /*void composite_oil()
-  {
-    apply_scissors();
-    OilShader &shader = shState->shaders().oil;
-    shader.bind();
-    shader.set_radius(geometry.rect.w / 5);
-    apply_shader(shader);
-  }*/
-
   void requestViewportRender(const Vec4 &c, const Vec4 &f, const Vec4 &t)
   {
     const IntRect &viewpRect = glState.scissorBox.get();
@@ -443,6 +434,7 @@ struct GraphicsPrivate
   FPSLimiter fpsLimiter;
   bool block_fullscreen;
   bool block_ftwelve;
+  bool block_fone;
   bool frozen;
   TEXFBO frozenScene;
   Quad screenQuad;
@@ -463,7 +455,8 @@ struct GraphicsPrivate
     fpsLimiter(frameRate),
     frozen(false),
     block_fullscreen(false),
-    block_ftwelve(false)
+    block_ftwelve(false),
+    block_fone(false)
   {
     winSize.x = START_WIDTH;
     winSize.y = START_HEIGHT;
@@ -855,10 +848,10 @@ bool Graphics::save_screenshot()
   fs::create_directory("Screenshots");
   time_t rt = time(NULL);
   tm *tmp = localtime(&rt);
-  char str[90];
+  char str[100];
   std::string format;
   format += screenshot_format == 0 ? "jpg" : "png";
-  sprintf(str, "Screenshots/shot%d-%02d-%02d%02d%02d%02d.%s", tmp->tm_year+1900,
+  sprintf(str, "Screenshots/shot_%d-%02d-%02d%02d_%02d%02d.%s", tmp->tm_year+1900,
           tmp->tm_mon+1, tmp->tm_mday, tmp->tm_hour, tmp->tm_min, tmp->tm_sec, format.c_str());
   Bitmap *bmp = snapToBitmap();
   SDL_Surface *surf = bmp->surface();//Fast
@@ -937,12 +930,12 @@ void Graphics::reset()
   setBrightness(255);
 }
 
-bool Graphics::getFullscreen() const
+bool Graphics::get_fullscreen() const
 {
   return p->threadData->ethread->getFullscreen();
 }
 
-void Graphics::setFullscreen(bool value)
+void Graphics::set_fullscreen(bool value)
 {
   p->threadData->ethread->requestFullscreenMode(value);
 }
@@ -965,6 +958,16 @@ bool Graphics::get_block_ftwelve() const
 void Graphics::set_block_ftwelve(bool value)
 {
   p->block_ftwelve = value;
+}
+
+bool Graphics::get_block_fone() const
+{
+  return p->block_fone;
+}
+
+void Graphics::set_block_fone(bool value)
+{
+  p->block_fone = value;
 }
 
 bool Graphics::get_show_cursor() const

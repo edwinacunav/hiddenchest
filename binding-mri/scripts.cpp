@@ -8,7 +8,7 @@
 
 #include "hcsymbol.h"
 
-#define CMF(func) ((int (*)(ANYARGS))(func))
+#define CRMF(func) ((int (*)(ANYARGS))(func))
 
 static int get_keys(VALUE key, VALUE value, VALUE ary)
 {
@@ -19,7 +19,7 @@ static int get_keys(VALUE key, VALUE value, VALUE ary)
 static VALUE rb_hash_keys(VALUE hash)
 {
   VALUE keys = rb_ary_new();
-  rb_hash_foreach(hash, CMF(get_keys), keys);
+  rb_hash_foreach(hash, CRMF(get_keys), keys);
   return keys;
 }
 
@@ -101,28 +101,59 @@ static VALUE scripts_start_scene_set(VALUE self, VALUE name)
   return rb_iv_set(self, "@start_scene", name);
 }
 
-static VALUE module_attr_accessor(int argc, VALUE* argv, VALUE self)
+static VALUE module_reader(int argc, VALUE* argv, VALUE self)
 {
   if (!RB_TYPE_P(self, T_MODULE))
-    rb_raise(rb_eTypeError, "module_attr_accessor is exclusive for modules!");
+    rb_raise(rb_eTypeError, "module_reader is exclusive for modules!");
+  VALUE args[argc], basic_str, new_str;
+  for (int n = 0 ; n < argc ; n++) {
+    basic_str = rb_sym_to_s(argv[n]);
+    const char* func_name = StringValueCStr(basic_str);
+    rb_define_attr(self, func_name, 1, 0);
+  }
+  VALUE meth = rb_obj_method(self, hc_sym("module_function"));
+  rb_method_call(argc, argv, meth);
+  return Qnil;
+}
+
+static VALUE module_writer(int argc, VALUE* argv, VALUE self)
+{
+  if (!RB_TYPE_P(self, T_MODULE))
+    rb_raise(rb_eTypeError, "module_writer is exclusive for modules!");
+  VALUE basic_str, new_str;
+  for (int n = 0 ; n < argc ; n++) {
+    basic_str = rb_sym_to_s(argv[n]);
+    const char* func_name = StringValueCStr(basic_str);
+    new_str = rb_str_plus(basic_str, rb_str_new_cstr("="));
+    argv[n] = hc_sym2(new_str);
+    rb_define_attr(self, func_name, 0, 1);
+  }
+  VALUE meth = rb_obj_method(self, hc_sym("module_function"));
+  rb_method_call(argc, argv, meth);
+  return Qnil;
+}
+
+static VALUE module_accessor(int argc, VALUE* argv, VALUE self)
+{
+  if (!RB_TYPE_P(self, T_MODULE))
+    rb_raise(rb_eTypeError, "module_accessor is exclusive for modules!");
   int m, count = argc*2;
   VALUE args[count], basic_str, new_str;
   for (int n = 0 ; n < argc ; n++) {
     m = n * 2;
     args[m] = argv[n];
     basic_str = rb_sym_to_s(argv[n]);
-    rb_io_puts(1, &basic_str, rb_stdout);
     const char* func_name = StringValueCStr(basic_str);
     rb_define_attr(self, func_name, 1, 1);
     new_str = rb_str_plus(basic_str, rb_str_new_cstr("="));
-    args[m + 1] = hc_str2sym(new_str);
+    args[m + 1] = hc_sym2(new_str);
   }
-  VALUE meth = rb_obj_method(self, hc_symbol("module_function"));
+  VALUE meth = rb_obj_method(self, hc_sym("module_function"));
   rb_method_call(count, args, meth);
   return Qnil;
-}
+}//extern "C"
 
-void Init_Scripts()
+void Init_scripts()
 {
   VALUE module = rb_define_module("Scripts");
   rb_iv_set(module, "@run", Qtrue);
@@ -141,6 +172,10 @@ void Init_Scripts()
   rb_define_module_function(module, "start_scene=", RMF(scripts_start_scene_set), 1);
   rb_define_module_function(module, "scene", RMF(scripts_scene_get), 0);
   rb_define_module_function(module, "scene=", RMF(scripts_scene_set), 1);
-  rb_define_method(rb_cModule, "module_attr_accessor", RMF(module_attr_accessor), -1);
-  rb_define_method(rb_cModule, "module_accessor", RMF(module_attr_accessor), -1);
+  rb_define_method(rb_cModule, "module_reader", RMF(module_reader), -1);
+  rb_define_method(rb_cModule, "module_writer", RMF(module_writer), -1);
+  rb_define_method(rb_cModule, "module_accessor", RMF(module_accessor), -1);
+  rb_define_method(rb_cModule, "mod_reader", RMF(module_reader), -1);
+  rb_define_method(rb_cModule, "mod_writer", RMF(module_writer), -1);
+  rb_define_method(rb_cModule, "mod_accessor", RMF(module_accessor), -1);
 }

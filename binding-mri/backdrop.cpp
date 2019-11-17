@@ -22,8 +22,8 @@ static VALUE settings_image_format_get(VALUE self)
 static VALUE settings_image_format_set(VALUE self, VALUE fmt)
 {
   int form;
-  if (fmt == hc_symbol("jpg") || fmt == RB_INT2FIX(0)) form = 0;
-  if (fmt == hc_symbol("png") || fmt == RB_INT2FIX(1)) form = 1;
+  if (fmt == hc_sym("jpg") || fmt == RB_INT2FIX(0)) form = 0;
+  if (fmt == hc_sym("png") || fmt == RB_INT2FIX(1)) form = 1;
   GUARD_EXC( shState->graphics().set_screenshot_format(form); );
   rb_iv_set(self, "@image_format", fmt);
 }
@@ -65,17 +65,17 @@ static VALUE backdrop_sepia_bitmap(VALUE self)
 static VALUE backdrop_color_bitmap(VALUE self, VALUE color)
 {
   Bitmap *b = 0;
-  if (color == hc_symbol("red"))
+  if (color == hc_sym("red"))
     GUARD_EXC( b = shState->graphics().snap_to_color_bitmap(0); )
-  else if (color == hc_symbol("green"))
+  else if (color == hc_sym("green"))
     GUARD_EXC( b = shState->graphics().snap_to_color_bitmap(1); )
-  else if (color == hc_symbol("blue"))
+  else if (color == hc_sym("blue"))
     GUARD_EXC( b = shState->graphics().snap_to_color_bitmap(2); )
-  else if (color == hc_symbol("yellow"))
+  else if (color == hc_sym("yellow"))
     GUARD_EXC( b = shState->graphics().snap_to_color_bitmap(3); )
-  else if (color == hc_symbol("sepia"))
+  else if (color == hc_sym("sepia"))
     GUARD_EXC( b = shState->graphics().snap_to_sepia_bitmap(); )
-  else if (color == hc_symbol("gray"))
+  else if (color == hc_sym("gray"))
     GUARD_EXC( b = shState->graphics().snap_to_gray_bitmap(); )
   VALUE bitmap = wrapObject(b, BitmapType);
   return rb_iv_set(self, "@bitmap", bitmap);
@@ -111,10 +111,10 @@ static VALUE backdrop_clear_bitmap(VALUE self)
   return rb_iv_set(self, "@bitmap", Qnil);
 }
 
-void Init_TermsBackdrop()
+void Init_terms_backdrop()
 {
   VALUE set = rb_define_module("Settings");
-  rb_iv_set(set, "@image_format", hc_symbol("jpg"));
+  rb_iv_set(set, "@image_format", hc_sym("jpg"));
   rb_define_module_function(set, "image_format", RMF(settings_image_format_get), 0);
   rb_define_module_function(set, "image_format=", RMF(settings_image_format_set), 1);
   VALUE terms = rb_define_module("Terms");
