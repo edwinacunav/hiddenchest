@@ -226,9 +226,8 @@ static VALUE graphics_get_block_fullscreen(VALUE self)
 
 static VALUE graphics_set_block_fullscreen(VALUE self, VALUE boolean)
 {
-  rb_iv_set(self, "@block_fullscreen", boolean);
   shState->graphics().set_block_fullscreen(boolean == Qtrue ? true : false);
-  return boolean;
+  return rb_iv_set(self, "@block_fullscreen", boolean);
 }
 
 static VALUE graphics_get_block_ftwelve(VALUE self)
@@ -238,9 +237,8 @@ static VALUE graphics_get_block_ftwelve(VALUE self)
 
 static VALUE graphics_set_block_ftwelve(VALUE self, VALUE boolean)
 {
-  rb_iv_set(self, "@block_f12", boolean);
   shState->graphics().set_block_ftwelve(boolean == Qtrue ? true : false);
-  return boolean;
+  return rb_iv_set(self, "@block_f12", boolean);
 }
 
 static VALUE graphics_get_block_fone(VALUE self)
@@ -250,9 +248,8 @@ static VALUE graphics_get_block_fone(VALUE self)
 
 static VALUE graphics_set_block_fone(VALUE self, VALUE boolean)
 {
-  rb_iv_set(self, "@block_f1", boolean);
   shState->graphics().set_block_fone(boolean == Qtrue ? true : false);
-  return boolean;
+  return rb_iv_set(self, "@block_f1", boolean);
 }
 
 static VALUE graphicsGetFullscreen(VALUE self)
@@ -262,7 +259,7 @@ static VALUE graphicsGetFullscreen(VALUE self)
 
 static VALUE graphicsSetFullscreen(VALUE self, VALUE boolean)
 {
-  if (rb_iv_get(self, "@block_fullscreen") == Qfalse) return Qfalse;
+  if (rb_iv_get(self, "@block_fullscreen") == Qtrue) return Qfalse;
   shState->graphics().set_fullscreen(boolean == Qtrue ? true : false);
   return shState->graphics().get_fullscreen() ? Qtrue : Qfalse;
 }
