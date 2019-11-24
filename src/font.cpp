@@ -30,13 +30,13 @@
 #include <utility>
 #include <SDL_ttf.h>
 
-#define BUNDLED_FONT abyssinica
+#define BUNDLED_FONT FreeSans
 
 #define BUNDLED_FONT_DECL(FONT) \
 	extern unsigned char assets_##FONT##_ttf[]; \
 	extern unsigned int assets_##FONT##_ttf_len;
 
-BUNDLED_FONT_DECL(abyssinica)
+BUNDLED_FONT_DECL(FreeSans)
 
 #define BUNDLED_FONT_D(f) assets_## f ##_ttf
 #define BUNDLED_FONT_L(f) assets_## f ##_ttf_len
@@ -75,52 +75,39 @@ struct SharedFontStatePrivate
 
 SharedFontState::SharedFontState(const Config &conf)
 {
-	p = new SharedFontStatePrivate;
-
-	/* Parse font substitutions */
-	for (size_t i = 0; i < conf.fontSubs.size(); ++i)
-	{
-		const std::string &raw = conf.fontSubs[i];
-		size_t sepPos = raw.find_first_of('>');
-
-		if (sepPos == std::string::npos)
-			continue;
-
-		std::string from = raw.substr(0, sepPos);
-		std::string to   = raw.substr(sepPos+1);
-
-		p->subs.insert(from, to);
-	}
+  p = new SharedFontStatePrivate;
+  /* Parse font substitutions */
+  for (size_t i = 0; i < conf.fontSubs.size(); ++i) {
+    const std::string &raw = conf.fontSubs[i];
+    size_t sepPos = raw.find_first_of('>');
+    if (sepPos == std::string::npos) continue;
+    std::string from = raw.substr(0, sepPos);
+    std::string to   = raw.substr(sepPos+1);
+    p->subs.insert(from, to);
+  }
 }
 
 SharedFontState::~SharedFontState()
 {
-	BoostHash<FontKey, TTF_Font*>::const_iterator iter;
-	for (iter = p->pool.cbegin(); iter != p->pool.cend(); ++iter)
-		TTF_CloseFont(iter->second);
-
-	delete p;
+  BoostHash<FontKey, TTF_Font*>::const_iterator iter;
+  for (iter = p->pool.cbegin(); iter != p->pool.cend(); ++iter)
+    TTF_CloseFont(iter->second);
+  delete p;
 }
 
 void SharedFontState::initFontSetCB(SDL_RWops &ops,
                                     const std::string &filename)
 {
-	TTF_Font *font = TTF_OpenFontRW(&ops, 0, 0);
-
-	if (!font)
-		return;
-
-	std::string family = TTF_FontFaceFamilyName(font);
-	std::string style = TTF_FontFaceStyleName(font);
-
-	TTF_CloseFont(font);
-
-	FontSet &set = p->sets[family];
-
-	if (style == "Regular")
-		set.regular = filename;
-	else
-		set.other = filename;
+  TTF_Font *font = TTF_OpenFontRW(&ops, 0, 0);
+  if (!font) return;
+  std::string family = TTF_FontFaceFamilyName(font);
+  std::string style = TTF_FontFaceStyleName(font);
+  TTF_CloseFont(font);
+  FontSet &set = p->sets[family];
+  if (style == "Regular")
+    set.regular = filename;
+  else
+    set.other = filename;
 }
 
 _TTF_Font *SharedFontState::getFont(std::string family, int size)
@@ -165,34 +152,29 @@ _TTF_Font *SharedFontState::getFont(std::string family, int size)
 
 bool SharedFontState::fontPresent(std::string family) const
 { // Check for substitutions
-	if (p->subs.contains(family))
-		family = p->subs[family];
-	const FontSet &set = p->sets[family];
-	return !(set.regular.empty() && set.other.empty());
+  if (p->subs.contains(family)) family = p->subs[family];
+  const FontSet &set = p->sets[family];
+  return !(set.regular.empty() && set.other.empty());
 }
 
 _TTF_Font *SharedFontState::openBundled(int size)
 {
-	SDL_RWops *ops = openBundledFont();
-	return TTF_OpenFontRW(ops, 1, size);
+  SDL_RWops *ops = openBundledFont();
+  return TTF_OpenFontRW(ops, 1, size);
 }
 
 void pickExistingFontName(const std::vector<std::string> &names,
-                          std::string &out,
-                          const SharedFontState &sfs)
-{
-	/* Note: In RMXP, a names array with no existing entry
-	 * results in no text being drawn at all (same for "" and []);
-	 * we can't replicate this in mkxp due to the default substitute. */
-	for (size_t i = 0; i < names.size(); ++i)
-	{
-		if (sfs.fontPresent(names[i]))
-		{
-			out = names[i];
-			return;
-		}
-	}
-	out = "";
+                          std::string &out, const SharedFontState &sfs)
+{ /* Note: In RMXP, a names array with no existing entry
+   * results in no text being drawn at all (same for "" and []);
+   * we can't replicate this in mkxp due to the default substitute. */
+  for (size_t i = 0; i < names.size(); ++i) {
+    if (sfs.fontPresent(names[i])) {
+      out = names[i];
+      return;
+    }
+  }
+  out = "";
 }
 
 
@@ -284,10 +266,8 @@ bool        FontPrivate::defaultUnderline     = false;
 bool        FontPrivate::defaultStrikethrough = false;
 Color      *FontPrivate::defaultColor    = &FontPrivate::defaultColorTmp;
 Color      *FontPrivate::defaultOutColor = &FontPrivate::defaultOutColorTmp;
-
 Color FontPrivate::defaultColorTmp(255, 255, 255, 255);
 Color FontPrivate::defaultOutColorTmp(0, 0, 0, 128);
-
 std::vector<std::string> FontPrivate::initialDefaultNames;
 
 bool Font::doesExist(const char *name)
@@ -355,37 +335,37 @@ DEF_ATTR_SIMPLE_STATIC(Font, DefaultOutline,       bool,    FontPrivate::default
 DEF_ATTR_SIMPLE_STATIC(Font, DefaultColor,    Color&, *FontPrivate::defaultColor)
 DEF_ATTR_SIMPLE_STATIC(Font, DefaultOutColor, Color&, *FontPrivate::defaultOutColor)
 
-Color& Font::getColor() const
+Color& Font::get_color() const
 {
   guardDisposed();
   return *p->color;
 }
 
-void Font::setColor(Color& value)
+void Font::set_color(Color& value)
 {
   guardDisposed();
   *p->color = value;
 }
 
-void Font::setColor(double r, double g, double b, double a)
+void Font::set_color(double r, double g, double b, double a)
 {
   guardDisposed();
   p->color->set(r, g, b, a);
 }
 
-Color& Font::getOutColor() const
+Color& Font::get_out_color() const
 {
   guardDisposed();
   return *p->outColor;
 }
 
-void Font::setOutColor(Color& value)
+void Font::set_out_color(Color& value)
 {
   guardDisposed();
   *p->outColor = value;
 }
 
-void Font::setOutColor(double r, double g, double b, double a)
+void Font::set_out_color(double r, double g, double b, double a)
 {
   guardDisposed();
   p->outColor->set(r, g, b, a);
@@ -417,8 +397,7 @@ void Font::initDefaultDynAttribs()
 void Font::initDefaults(const SharedFontState &sfs)
 {
   std::vector<std::string> &names = FontPrivate::initialDefaultNames;
-  switch (rgssVer)
-  {
+  switch (rgssVer) {
   case 1 :
     // FIXME: Japanese version has "MS PGothic" instead
     names.push_back("Arial");
@@ -433,9 +412,8 @@ void Font::initDefaults(const SharedFontState &sfs)
     names.push_back("VL Gothic");
   }
   setDefaultName(names, sfs);
-// Set it true for all RGSS Versions!
   FontPrivate::defaultOutline = true;
-  FontPrivate::defaultShadow  = true;
+  FontPrivate::defaultShadow  = false;
 }
 
 _TTF_Font *Font::getSdlFont()

@@ -4,7 +4,7 @@
 ** This file is part of mkxpplus and mkxp.
 **
 ** Copyright (C) 2013 Jonas Kulla <Nyocurio@gmail.com>
-** 2018 Modified by Kyonides-Arkanthes
+** 2018-2019 Modified by Kyonides-Arkanthes
 **
 ** mkxp is free software: you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -37,13 +37,11 @@
 
 struct ButtonState
 {
-  bool pressed;
-  bool triggered;
-  bool repeated;
+  bool pressed, triggered, repeated;
   ButtonState()
-          : pressed(false),
-            triggered(false),
-            repeated(false)
+  : pressed(false),
+    triggered(false),
+    repeated(false)
   {}
 };
 
@@ -56,7 +54,7 @@ struct KbBindingData
 struct Binding
 {
   Binding(Input::ButtonCode target = Input::None)
-          : target(target)
+  : target(target)
   {}
   virtual bool sourceActive() const = 0;
   virtual bool sourceRepeatable() const = 0;
@@ -67,11 +65,11 @@ struct Binding
 /* Keyboard binding */
 struct KbBinding : public Binding
 {
-	KbBinding() {}
-	KbBinding(const KbBindingData &data)
-		: Binding(data.target),
-		  source(data.source)
-	{}
+  KbBinding() {}
+  KbBinding(const KbBindingData &data)
+  : Binding(data.target),
+    source(data.source)
+  {}
 
   bool sourceActive() const
   { /* Special case aliases */
@@ -143,11 +141,11 @@ struct JsHatBinding : public Binding
 {
   JsHatBinding() {}
   JsHatBinding(uint8_t source,
-                uint8_t pos,
-                Input::ButtonCode target)
-      : Binding(target),
-        source(source),
-        pos(pos)
+               uint8_t pos,
+               Input::ButtonCode target)
+  : Binding(target),
+    source(source),
+    pos(pos)
   {}
 
   bool sourceActive() const
@@ -300,24 +298,6 @@ static const KbBindingData staticKbBindings[] =
 
 static elementsN(staticKbBindings);
 
-/* Maps ButtonCode enum values to indices
- * in the button state array */
-static const int mapToIndex[] =
-{
-	0, 0,
-	1, 0, 2, 0, 3, 0, 4, 0,
-	0,
-	5, 6, 7, 8, 9, 10, 11, 12,
-	0, 0,
-	13, 14, 15,
-	0,
-	16, 17, 18, 19, 20,
-	0, 0, 0, 0, 0, 0, 0, 0,
-	21, 22//, 42, 43, 60, 61, 62, 63, 64, 65, 66, 67, 68, // 23, *...* 42, 43...
-};
-
-static elementsN(mapToIndex);
-
 static const Input::ButtonCode dirs[] =
 { Input::Down, Input::Left, Input::Right, Input::Up };
 
@@ -354,7 +334,7 @@ struct InputPrivate
   std::vector<MsBinding> msBindings;
   /* Collective binding array */
   std::vector<Binding*> bindings;
-  ButtonState stateArray[300 * 2]; // stateArray[BUTTON_CODE_COUNT*2];
+  ButtonState stateArray[520 * 2]; // stateArray[BUTTON_CODE_COUNT*2];
   ButtonState *states;
   ButtonState *statesOld;
   Input::ButtonCode repeating;
@@ -378,7 +358,7 @@ struct InputPrivate
     /* Main thread should have these posted by now */
     checkBindingChange(rtData);
     states    = stateArray;
-    statesOld = stateArray + 300; // + BUTTON_CODE_COUNT;
+    statesOld = stateArray + 520; // + BUTTON_CODE_COUNT;
     /* Clear buffers */
     clearBuffer();
     swapBuffers();
@@ -395,10 +375,6 @@ struct InputPrivate
     if (code < 0) return states[0];
     return states[code];
   }
-          /* int index;
-          //if (code < 0 || (size_t) code > mapToIndexN-1) // index = 0;
-          //else // index = mapToIndex[code];
-          return states[index];  }*/
 
   inline ButtonState &getState(Input::ButtonCode code)
   {
@@ -519,6 +495,7 @@ struct InputPrivate
   {
     for (size_t i = 0; i < bindings.size(); ++i)
       pollBindingPriv(*bindings[i], repeatCand);
+    poll_alt_ctrl_shift();
     updateDir4();
     updateDir8();
   }
@@ -534,7 +511,7 @@ struct InputPrivate
     if (!oldState.pressed)
       state.triggered = true;
     /* Unbound keys don't create/break repeat */
-    //if (repeatCand != Input::None) return;
+    if (repeatCand != Input::None) return;
     if (repeating != b.target && !oldState.pressed) {
       if (b.sourceRepeatable())
         repeatCand = b.target;
@@ -548,17 +525,13 @@ struct InputPrivate
     int dirFlag = 0;
     for (size_t i = 0; i < 4; ++i)
       dirFlag |= (getState(dirs[i]).pressed ? dirFlags[i] : 0);
-    if (dirFlag == deadDirFlags[0] || dirFlag == deadDirFlags[1])
-    {
+    if (dirFlag == deadDirFlags[0] || dirFlag == deadDirFlags[1]) {
       dir4Data.active = Input::None;
       return;
     }
-    if (dir4Data.previous != Input::None)
-    { /* Check if prev still pressed */
-      if (getState(dir4Data.previous).pressed)
-      {
-        for (size_t i = 0; i < 3; ++i)
-        {
+    if (dir4Data.previous != Input::None) {// Check if prev still pressed
+      if (getState(dir4Data.previous).pressed) {
+        for (size_t i = 0; i < 3; ++i) {
           Input::ButtonCode other = otherDirs[(dir4Data.previous/2)-1][i];
           if (!getState(other).pressed) continue;
           dir4Data.active = other;
@@ -566,8 +539,7 @@ struct InputPrivate
         }
       }
     }
-    for (size_t i = 0; i < 4; ++i)
-    {
+    for (size_t i = 0; i < 4; ++i) {
       if (!getState(dirs[i]).pressed) continue;
       dir4Data.active = dirs[i];
       dir4Data.previous = dirs[i];
@@ -587,12 +559,10 @@ struct InputPrivate
       { 0, 7, 9, 8 }
     };
     dir8Data.active = 0;
-    for (size_t i = 0; i < 4; ++i)
-    {
+    for (size_t i = 0; i < 4; ++i) {
       Input::ButtonCode one = dirs[i];
       if (!getState(one).pressed) continue;
-      for (int j = 0; j < 3; ++j)
-      {
+      for (int j = 0; j < 3; ++j) {
         Input::ButtonCode other = otherDirs[i][j];
         if (!getState(other).pressed) continue;
         dir8Data.active = combos[(one/2)-1][(other/2)-1];
@@ -601,6 +571,29 @@ struct InputPrivate
       dir8Data.active = one;
       return;
     }
+  }
+
+  void poll_alt_ctrl_shift()
+  {
+    bool ctrl_active, alt_active, shift_active;
+    ctrl_active = getState(Input::LeftCtrl).pressed ||
+      getState(Input::RightCtrl).pressed;
+    getState(Input::Ctrl).pressed = ctrl_active;
+    alt_active = getState(Input::LeftAlt).pressed ||
+      getState(Input::RightAlt).pressed;
+    getState(Input::Alt).pressed = alt_active;
+    shift_active = getState(Input::LeftShift).pressed ||
+      getState(Input::RightShift).pressed;
+    getState(Input::Shift).pressed = shift_active;
+    ctrl_active = getState(Input::LeftCtrl).triggered ||
+      getState(Input::RightCtrl).triggered;
+    getState(Input::Ctrl).triggered = ctrl_active;
+    alt_active = getState(Input::LeftAlt).triggered ||
+      getState(Input::RightAlt).triggered;
+    getState(Input::Alt).triggered = alt_active;
+    shift_active = getState(Input::LeftShift).triggered ||
+      getState(Input::RightShift).triggered;
+    getState(Input::Shift).triggered = shift_active;
   }
 };
 
@@ -640,7 +633,7 @@ void Input::update()
   p->repeating = None;
 }
 
-bool Input::isLeftClick()
+bool Input::is_left_click()
 {
   bool trig = p->getStateCheck(MouseLeft).pressed ? true : false;
   p->getStateCheck(MouseMiddle).pressed = false;
@@ -650,24 +643,18 @@ bool Input::isLeftClick()
   return (trig && !state && !shState->rtData().mouse_moved);
 }
 
-bool Input::isMiddleClick()
+bool Input::is_middle_click()
 {
   return isPressed(MouseMiddle);
 }
 
-bool Input::isRightClick()
+bool Input::is_right_click()
 {
   return isPressed(MouseRight);
 }
 
 bool Input::isPressed(int button)
 {
-  if (button == Shift)
-    return p->getStateCheck(LeftShift).pressed || p->getStateCheck(RightShift).pressed;
-  if (button == Ctrl)
-    return p->getStateCheck(LeftCtrl).pressed || p->getStateCheck(RightCtrl).pressed;
-  if (button == Alt)
-    return p->getStateCheck(LeftAlt).pressed || p->getStateCheck(RightAlt).pressed;
   if (button == MouseLeft || button == MouseRight) {
     bool trig = p->getStateCheck(button).pressed ? true : false;
     p->getStateCheck(button).pressed = false;
@@ -678,12 +665,6 @@ bool Input::isPressed(int button)
 
 bool Input::isTriggered(int button)
 {
-  if (button == Shift)
-    return p->getStateCheck(LeftShift).triggered || p->getStateCheck(RightShift).triggered;
-  if (button == Ctrl)
-    return p->getStateCheck(LeftCtrl).triggered || p->getStateCheck(RightCtrl).triggered;
-  if (button == Alt)
-    return p->getStateCheck(LeftAlt).triggered || p->getStateCheck(RightAlt).triggered;
   if (button == MouseLeft) {
     bool trig = p->getStateCheck(MouseLeft).triggered ? true : false;
     p->getStateCheck(MouseLeft).triggered = false;
@@ -698,12 +679,6 @@ bool Input::isTriggered(int button)
 
 bool Input::isRepeated(int button)
 {
-  if (button == Shift)
-    return p->getStateCheck(LeftShift).repeated || p->getStateCheck(RightShift).repeated;
-  if (button == Ctrl)
-    return p->getStateCheck(LeftCtrl).repeated || p->getStateCheck(RightCtrl).repeated;
-  if (button == Alt)
-    return p->getStateCheck(LeftAlt).repeated || p->getStateCheck(RightAlt).repeated;
   return p->getStateCheck(button).repeated;
 }
 
@@ -715,6 +690,16 @@ int Input::dir4Value()
 int Input::dir8Value()
 {
   return p->dir8Data.active;
+}
+
+bool Input::is_dir4()
+{
+  return p->dir4Data.active > 0;
+}
+
+bool Input::is_dir8()
+{
+  return p->dir8Data.active > 0;
 }
 
 int Input::mouseX()

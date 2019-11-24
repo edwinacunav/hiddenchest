@@ -19,7 +19,16 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 IF("${CMAKE_SYSTEM}" MATCHES "Linux")
   SET(LINUX ON)
+  set(OS_STRING "linux")
 ENDIF()
+
+if (WIN32)
+  set(OS_STRING "windows")
+endif()
+
+if (APPLE)
+  set(OS_STRING "mac")
+endif()
 
 IF(WORKDIR_CURRENT)
   list(APPEND DEFINES WORKDIR_CURRENT)
@@ -241,7 +250,7 @@ set(EMBEDDED_INPUT
   shader/blurH.vert
   shader/blurV.vert
   shader/simpleMatrix.vert
-  assets/abyssinica.ttf
+  assets/FreeSans.ttf
   assets/icon.png
 )
 

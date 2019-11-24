@@ -4,7 +4,7 @@
 ** This file is part of mkxpplus and mkxp.
 **
 ** Copyright (C) 2013 Jonas Kulla <Nyocurio@gmail.com>
-** 2018 Modified by Kyonides-Arkanthes
+** 2018-2019 Modified by Kyonides-Arkanthes
 **
 ** mkxp is free software: you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -90,6 +90,16 @@ static VALUE inputDir8(VALUE self)
   return RB_INT2FIX(shState->input().dir8Value());
 }
 
+static VALUE input_is_dir4(VALUE self)
+{
+  return shState->input().is_dir4() ? Qtrue : Qfalse;
+}
+
+static VALUE input_is_dir8(VALUE self)
+{
+  return shState->input().is_dir8() ? Qtrue : Qfalse;
+}
+
 /* Non-standard extensions */
 static VALUE inputMouseX(VALUE self)
 {
@@ -103,17 +113,17 @@ static VALUE inputMouseY(VALUE self)
 
 static VALUE input_left_click(VALUE self)
 {
-  return shState->input().isLeftClick() ? Qtrue : Qfalse;
+  return shState->input().is_left_click() ? Qtrue : Qfalse;
 }
 
 static VALUE input_middle_click(VALUE self)
 {
-  return shState->input().isMiddleClick() ? Qtrue : Qfalse;
+  return shState->input().is_middle_click() ? Qtrue : Qfalse;
 }
 
 static VALUE input_right_click(VALUE self)
 {
-  return shState->input().isRightClick() ? Qtrue : Qfalse;
+  return shState->input().is_right_click() ? Qtrue : Qfalse;
 }
 
 static VALUE input_is_any_char(VALUE self)
@@ -288,6 +298,8 @@ void inputBindingInit()
   rb_define_module_function(module, "trigger_left_right?", RMF(input_trigger_left_right), 0);
   rb_define_module_function(module, "dir4", RMF(inputDir4), 0);
   rb_define_module_function(module, "dir8", RMF(inputDir8), 0);
+  rb_define_module_function(module, "dir4?", RMF(input_is_dir4), 0);
+  rb_define_module_function(module, "dir8?", RMF(input_is_dir8), 0);
   rb_define_module_function(module, "mouse_x", RMF(inputMouseX), 0);
   rb_define_module_function(module, "mouse_y", RMF(inputMouseY), 0);
   rb_define_module_function(module, "any_char?", RMF(input_is_any_char), 0);

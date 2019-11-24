@@ -121,7 +121,7 @@ To run HiddenChest, you should have a graphics card capable of at least **OpenGL
 
 ## Dependency kit
 
-To facilitate hacking, I have assembled a package containing all dependencies to compile HiddenChest on a bare-bones Ubuntu 12.04 64bit installation. Compatibility with other distributions has not been tested. You can download it [here](https://www.dropbox.com/s/mtp44ur367m2zts/mkxp-depkit.tar.xz). Read the "README" for instructions.
+To facilitate hacking, Ancurio had assembled a package containing all dependencies to compile mkxp on a bare-bones Ubuntu 12.04 64bit, but I have compiled HiddenChest on a Ubuntu 18.04 LTS 64bit installation. Compatibility with other distributions has not been tested. You can download it [here](https://www.dropbox.com/s/mtp44ur367m2zts/mkxp-depkit.tar.xz). Read the "README" for instructions.
 
 ## Configuration
 
@@ -143,7 +143,7 @@ You can use this public domain soundfont: [GMGSx.sf2](https://www.dropbox.com/s/
 
 In the RMXP version of RGSS, fonts are loaded directly from system specific search paths (meaning they must be installed to be available to games). Because this whole thing is a giant platform-dependent headache, I decided to implement the behavior Enterbrain thankfully added in VX Ace: loading fonts will automatically search a folder called "Fonts", which obeys the default searchpath behavior (ie. it can be located directly in the game folder, or an RTP).
 
-If a requested font is not found, no error is generated. Instead, a built-in font is used (currently "Abyssinica SIL").
+If a requested font is not found, no error is generated. Instead, a built-in font is used (currently "FreeSans").
 
 ## What doesn't work (yet)
 
@@ -158,6 +158,8 @@ If a requested font is not found, no error is generated. Instead, a built-in fon
 
 To alleviate possible porting of heavily Win32API reliant scripts, we have added certain functionality that you won't find in the RGSS spec. Currently this amounts to the following:
 
+* A special module has been included, namely `HIDDENCHEST`. Its constants consist of `AUTHOR`, `VERSION`, `RELEASE_DATE`, and `DESCRIPTION`.
+* The constant `OS::NAME` will let Ruby scripts know if the current OS is either a Linux distro or Windows.
 * Expand RGSS1 tilesets to fill the enlarged screen and adapts the Window_Message settings to the increased screen resolutions.
 * Implementation of window openness feature in RMXP games without affecting VX and VX Ace ones. It works in a different fashion in VX Ace like using a 0 through 100 value range while VX Ace requires a maximum value of 255.
 * There are 4 modes available to assign to the `self.open_mode` option, i.e.
@@ -166,13 +168,13 @@ To alleviate possible porting of heavily Win32API reliant scripts, we have added
     - :center - the window opens like a scroll in both directions
     - :bottom - the window seems to grow taller
         - Keep in mind that the `Window#open` command will be ignored if a boolean value is set as the current `Window#open_mode` value.
-        - You can set `Window#open_mode=` value before or after the window has called its superclass to initialize or create that window.
+        - You can set `Window#open_mode=` value before or after the window has called its superclass via `super` to initialize or create that window.
         - Only the last assignment to `Window#open_mode=` will be taken in consideration by the engine.
 * `Window#set_xy(newx, newy)` lets you assign both Carthesian coordinates at the same time.
 * Assign a viewport to any RGSS1 window by using `Window#viewport = some_viewport`
 * They now support additional keys like PrintScreen, Return or Enter or LeftShift or RightAlt or NumPadDivide * or KeyH or KeyM or N1 through N0.
 * The `Input.press?` family of functions accepts three additional button constants: `::MOUSELEFT`, `::MOUSEMIDDLE` and `::MOUSERIGHT` for the respective mouse buttons. But you can also type them as `::MouseLeft`, `::MouseMiddle` and `::MouseRight`.
-* The `Input` module has two additional functions, `mouse_x` and `mouse_y` to query the mouse pointer position relative to the game screen.
+* The `Input` module has four additional functions, `mouse_x` and `mouse_y` to query the mouse pointer position relative to the game screen, and `dir4?` and `dir8?` to prevent you from using 4 or even 8 conditional statements in a row.
 * Now the `Input` module offers you some new methods: `left_click?` `middle_click?` and `right_click?`.
 * The `Bitmap`, `Sprite` and `Window` classes now support mouse clicks! Well, they indirectly do it... You got to set the `@area` array with every single x, y, width and height dimensions first. Usually you do that in the Window_Selectable and its child classes refresh method. The following script calls might be used in scene scripts:
     - `Bitmap#alpha_pixel?(x, y)` - It's not just for clicks!
@@ -185,7 +187,7 @@ To alleviate possible porting of heavily Win32API reliant scripts, we have added
     - `close_icon` is nothing but the icon where you can click to close the box!
     - `contents` stands for the actual container of all of your text messages printed on it!
 * The `Graphics` module has three additional properties: `fullscreen` represents the current fullscreen mode (`true` = fullscreen, `false` = windowed), `show_cursor` hides the system cursor inside the game window when `false` and `block_fullscreen` (`true` or `false`) will prevent the player from entering fullscreen mode or not even if they change the configuration file settings.
-* Graphics module also lets you take snapshots by calling the `save_screenshot` method.
+* Graphics module also lets you take snapshots by calling the `save_screenshot` method or get its width and height as an array with `dimensions`.
 * Settings module lets you customize your game settings via script calls.
     - `image_format` and `image_format=` let you check out or assign a preferred image format for your screenshots. Available options are:
          - :jpg or 0 for JPG format - default option
@@ -201,7 +203,7 @@ To alleviate possible porting of heavily Win32API reliant scripts, we have added
     - `turn_sepia(boolean)`
     - `grayed_out?` - In case you need to verify this via script call
     * `sepia?` - In case you need to verify this via script call
-* Use the `module_attr_accessor` or `module_accessor` method to create module methods, getters and setters all in one! Example: module_attr_accessor :meow will create the self.meow and self.meow=(value) methods in a single step.
+* Use the `module_accessor` method to create module methods, getters and setters all in one! Example: module_attr_accessor :meow will create the self.meow and self.meow=(value) methods in a single step. Its setter and getter are `module_writer` and `module_reader` respectively.
 * The Scripts module allows you to store a Ruby string or symbol as a script ID via Scripts << :script_name. Once it has been stored there, you can call its methods, i.e. Scripts.all or Scripts.include?(:script_name) to access the Scripts IDs Array and confirm if it has been included respectively.
 * Font class now lets you use its `underline` and `strikethrough` or `strikethru` options the same way you used `bold` or `italic`.
 * `RPG::Weather.sprite_max = Number`. where Number is a positive integer number, lets you define the upper limit of the weather sprites like rain or storm or snow effects. Currently it is set at 400 sprites.
@@ -209,3 +211,4 @@ To alleviate possible porting of heavily Win32API reliant scripts, we have added
 ## List of Bug Fixes for HiddenChest
 
 * Fixed error where the windowskin would disappear for all existing windows in the same scene if just one of them was ever disposed.
+* Fixed a bug where you would notice that ALT, CTRL and SHIFT buttons would be polled continually in an undesired fashion for no good reason.
