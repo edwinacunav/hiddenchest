@@ -7,6 +7,7 @@
 */
 
 #include "hcsymbol.h"
+#include "scripts.h"
 
 #define CRMF(func) ((int (*)(ANYARGS))(func))
 
@@ -61,26 +62,6 @@ static VALUE scripts_set(VALUE self, VALUE name, VALUE dependencies)
   return rb_hash_aset(rb_iv_get(self, "@pack"), name, dependencies);
 }
 
-static VALUE scripts_reset(VALUE self)
-{
-  VALUE start_scene, new_scene, this_scene;
-  start_scene = rb_iv_get(self, "@start_scene");
-  new_scene = rb_funcall(start_scene, rb_intern("new"), 0);
-  this_scene = rb_gv_set("$scene", new_scene);
-  return Qnil;
-}
-
-static VALUE scripts_scene_is_running(VALUE self)
-{
-  return rb_iv_get(self, "@run");
-}
-
-static VALUE scripts_scene_stop(VALUE self)
-{
-  rb_iv_set(self, "@run", Qnil);
-  return rb_iv_set(self, "@scene", Qnil);
-}
-
 static VALUE scripts_scene_get(VALUE self)
 {
   return rb_iv_get(self, "@scene");
@@ -91,14 +72,19 @@ static VALUE scripts_scene_set(VALUE self, VALUE name)
   return rb_iv_set(self, "@scene", name);
 }
 
-static VALUE scripts_start_scene_get(VALUE self)
+static VALUE scripts_main_index_get(VALUE self)
 {
-  return rb_iv_get(self, "@start_scene");
+  return rb_iv_get(self, "@main_index");
 }
 
-static VALUE scripts_start_scene_set(VALUE self, VALUE name)
+static VALUE scripts_main_section_name_get(VALUE self)
 {
-  return rb_iv_set(self, "@start_scene", name);
+  return rb_iv_get(self, "@main_section_name");
+}
+
+static VALUE scripts_main_section_name_set(VALUE self, VALUE name)
+{
+  return rb_iv_set(self, "@main_section_name", name);
 }
 
 static VALUE module_reader(int argc, VALUE* argv, VALUE self)
@@ -156,20 +142,19 @@ static VALUE module_accessor(int argc, VALUE* argv, VALUE self)
 void Init_scripts()
 {
   VALUE module = rb_define_module("Scripts");
-  rb_iv_set(module, "@run", Qtrue);
   rb_iv_set(module, "@pack", rb_hash_new());
-  rb_iv_set(module, "@start_scene", Qnil);
+  rb_iv_set(module, "@main_section_name", rb_str_new_cstr("Main"));
+  rb_iv_set(module, "@main_index", RB_INT2FIX(0));
   rb_define_module_function(module, "all", RMF(scripts_all), 0);
   rb_define_module_function(module, "names", RMF(scripts_names), 0);
   rb_define_module_function(module, "dependencies", RMF(scripts_dependencies), 0);
   rb_define_module_function(module, "include?", RMF(scripts_is_included), 1);
   rb_define_module_function(module, "[]", RMF(scripts_get), 1);
   rb_define_module_function(module, "[]=", RMF(scripts_set), 2);
-  rb_define_module_function(module, "reset", RMF(scripts_reset), 0);
-  rb_define_module_function(module, "run?", RMF(scripts_scene_is_running), 0);
-  rb_define_module_function(module, "stop", RMF(scripts_scene_stop), 0);
-  rb_define_module_function(module, "start_scene", RMF(scripts_start_scene_get), 0);
-  rb_define_module_function(module, "start_scene=", RMF(scripts_start_scene_set), 1);
+  rb_define_module_function(module, "main_index", RMF(scripts_main_index_get), 0);
+  rb_define_module_function(module, "main_index=", RMF(scripts_main_index_set), 1);
+  rb_define_module_function(module, "main_section_name", RMF(scripts_main_section_name_get), 0);
+  rb_define_module_function(module, "main_section_name=", RMF(scripts_main_section_name_set), 1);
   rb_define_module_function(module, "scene", RMF(scripts_scene_get), 0);
   rb_define_module_function(module, "scene=", RMF(scripts_scene_set), 1);
   rb_define_method(rb_cModule, "module_reader", RMF(module_reader), -1);

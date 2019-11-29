@@ -38,6 +38,7 @@
 #include <string>
 #include <zlib.h>
 #include <SDL_filesystem.h>
+#include "scripts.h"
 
 extern const char module_rpg1[];
 extern const char module_rpg2[];
@@ -47,6 +48,7 @@ static void mriBindingTerminate();
 static void mriBindingReset();
 void Init_scripts();
 void Init_terms_backdrop();
+static VALUE script_ary;
 
 ScriptBinding scriptBindingImpl =
 {
@@ -129,6 +131,8 @@ static void mriBindingInit()
   rb_define_module_function(mod, "puts", RUBY_METHOD_FUNC(HCPuts), -1);
   rb_define_module_function(mod, "raw_key_states", RUBY_METHOD_FUNC(HCRawKeyStates), -1);
   rb_define_module_function(mod, "mouse_in_window", RUBY_METHOD_FUNC(HCMouseInWindow), -1);
+  VALUE os = rb_define_module("OS");
+  rb_define_const(os, "NAME", rb_str_new_cstr(OS_STRING));
   Init_terms_backdrop();
   if (rgssVer == 1) {
     rb_eval_string(module_rpg1);
@@ -224,72 +228,6 @@ static VALUE rgssMainRescue(VALUE arg, VALUE exc)
   return Qnil;
 }
 
-static void processReset()
-{// Haga cambio por aquí
-  VALUE mod = rb_const_get(rb_cObject, rb_intern("Scripts"));
-  VALUE scene = rb_iv_get(mod, "@start_scene");
-  if (RB_NIL_P(scene)) {
-    //showMsg("Nil...");
-    shState->graphics().reset();
-    shState->audio().reset();
-    shState->rtData().rqReset.clear();
-  } else {
-    //showMsg("Success!");
-    //if (rgssVer < 3)
-      rb_funcall(mod, rb_intern("reset"), 0);
-  }
-  shState->rtData().rqReset.clear();
-  shState->graphics().repaintWait(shState->rtData().rqResetFinish, false);
-  return;
-}
-
-RB_METHOD(mriRgssMain)
-{
-  RB_UNUSED_PARAM;
-  while (true) {
-    VALUE exc = Qnil;
-    rb_rescue2((VALUE(*)(ANYARGS)) rgssMainCb, rb_block_proc(),
-               (VALUE(*)(ANYARGS)) rgssMainRescue, (VALUE) &exc,
-               rb_eException, (VALUE) 0);
-    if (NIL_P(exc)) break;
-    if (rb_obj_class(exc) == getRbData()->exc[Reset]) {
-      //showMsg("Main section...");
-      processReset();
-    } else {
-      rb_exc_raise(exc);
-    }
-  }
-  return Qnil;
-}
-
-RB_METHOD(mriRgssStop)
-{
-  RB_UNUSED_PARAM;
-  while (true)
-    shState->graphics().update();
-  return Qnil;
-}
-
-RB_METHOD(_kernelCaller)
-{
-  RB_UNUSED_PARAM;
-  VALUE trace = rb_funcall2(rb_mKernel, rb_intern("_HC_kernel_caller_alias"), 0, 0);
-  if (!RB_TYPE_P(trace, RUBY_T_ARRAY))
-          return trace;
-  long len = RARRAY_LEN(trace);
-  if (len < 2) return trace;
-  /* Remove useless "ruby:1:in 'eval'" */
-  rb_ary_pop(trace);
-  // Also remove trace of this helper function
-  rb_ary_shift(trace);
-  len -= 2;
-  if (len == 0) return trace;
-  // RMXP does this, not sure if specific or 1.8 related
-  VALUE args[] = { rb_str_new_cstr(":in `<main>'"), rb_str_new_cstr("") };
-  rb_funcall2(rb_ary_entry(trace, len-1), rb_intern("gsub!"), 2, args);
-  return trace;
-}
-
 static VALUE newStringUTF8(const char *string, long length)
 {
   return rb_enc_str_new(string, length, rb_utf8_encoding());
@@ -311,6 +249,67 @@ static VALUE evalString(VALUE string, VALUE filename, int *state)
 {
   evalArg arg = { string, filename };
   return rb_protect((VALUE (*)(VALUE))evalHelper, (VALUE)&arg, state);
+}
+
+void process_main_script_reset()
+{// Find Main Script Index and Execute Main
+  shState->rtData().rqReset.clear();
+  VALUE mod = rb_const_get(rb_cObject, rb_intern("Scripts"));
+  VALUE rb_index = rb_iv_get(mod, "@main_index");
+  int state, index = RB_FIX2INT(rb_index);
+  Debug() << "Reloading Main Script";
+  VALUE script_section = rb_ary_entry(script_ary, index);
+  VALUE fname = rb_ary_entry(script_section, 1);
+  VALUE script = rb_ary_entry(script_section, 3);
+  shState->graphics().repaintWait(shState->rtData().rqResetFinish, false);
+  VALUE string = newStringUTF8(RSTRING_PTR(script), RSTRING_LEN(script));
+  evalString(string, fname, &state);
+  return;
+}
+
+RB_METHOD(mriRgssMain)
+{
+  RB_UNUSED_PARAM;
+  while (true) {
+    VALUE exc = Qnil;
+    rb_rescue2((VALUE(*)(ANYARGS)) rgssMainCb, rb_block_proc(),
+               (VALUE(*)(ANYARGS)) rgssMainRescue, (VALUE) &exc,
+               rb_eException, (VALUE) 0);
+    if (NIL_P(exc)) break;
+    if (rb_obj_class(exc) == getRbData()->exc[Reset]) {
+      process_main_script_reset();
+    } else {
+      rb_exc_raise(exc);
+    }
+  }
+  return Qnil;
+}
+
+RB_METHOD(mriRgssStop)
+{
+  RB_UNUSED_PARAM;
+  while (true)
+    shState->graphics().update();
+  return Qnil;
+}
+
+RB_METHOD(_kernelCaller)
+{
+  RB_UNUSED_PARAM;
+  VALUE trace = rb_funcall2(rb_mKernel, rb_intern("_HC_kernel_caller_alias"), 0, 0);
+  if (!RB_TYPE_P(trace, RUBY_T_ARRAY)) return trace;
+  long len = RARRAY_LEN(trace);
+  if (len < 2) return trace;
+  /* Remove useless "ruby:1:in 'eval'" */
+  rb_ary_pop(trace);
+  // Also remove trace of this helper function
+  rb_ary_shift(trace);
+  len -= 2;
+  if (len == 0) return trace;
+  // RMXP does this, not sure if specific or 1.8 related
+  VALUE args[] = { rb_str_new_cstr(":in `<main>'"), rb_str_new_cstr("") };
+  rb_funcall2(rb_ary_entry(trace, len-1), rb_intern("gsub!"), 2, args);
+  return trace;
 }
 
 static void runCustomScript(const std::string &filename)
@@ -345,87 +344,83 @@ static void runRMXPScripts(BacktraceData &btData)
     showMsg("Unable to open '" + scriptPack + "'");
     return;
   }
-  VALUE scriptArray;
   // We checked if Scripts.rxdata exists, but something might still go wrong
   try {
-    scriptArray = kernelLoadDataInt(scriptPack.c_str(), false);
+    script_ary = kernelLoadDataInt(scriptPack.c_str(), false);
   } catch (const Exception &e) {
     showMsg(std::string("Failed to read script data: ") + e.msg);
     return;
   }
-  if (!RB_TYPE_P(scriptArray, RUBY_T_ARRAY)) {
+  if (!RB_TYPE_P(script_ary, RUBY_T_ARRAY)) {
     showMsg("Failed to read script data");
     return;
   }
-  rb_gv_set("$RGSS_SCRIPTS", scriptArray);
+  rb_gv_set("$RGSS_SCRIPTS", script_ary);
+  VALUE scripts_mod = rb_define_module("Scripts");
+  scripts_main_index_set(scripts_mod, find_main_script_index(scripts_mod));
   Debug() << "Set Scripts";
-  long scriptCount = RARRAY_LEN(scriptArray);
+  long scriptCount = RARRAY_LEN(script_ary);
   std::string decodeBuffer;
   decodeBuffer.resize(0x4000);
-  int run_hiddenchest = rgssVer == 0;
-  if (!run_hiddenchest) {
-    for (long i = 0; i < scriptCount; ++i) {
-      VALUE script = rb_ary_entry(scriptArray, i);
-      if (!RB_TYPE_P(script, RUBY_T_ARRAY)) continue;
-      VALUE scriptName   = rb_ary_entry(script, 1);
-      VALUE scriptString = rb_ary_entry(script, 2);
-      int result = Z_OK;
-      unsigned long bufferLen;
-      while (true) {
-        unsigned char *bufferPtr =
-                reinterpret_cast<unsigned char*>(const_cast<char*>(decodeBuffer.c_str()));
-        const unsigned char *sourcePtr =
-                reinterpret_cast<const unsigned char*>(RSTRING_PTR(scriptString));
-        bufferLen = decodeBuffer.length();
-        result = uncompress(bufferPtr, &bufferLen, sourcePtr, RSTRING_LEN(scriptString));
-        bufferPtr[bufferLen] = '\0';
-        if (result != Z_BUF_ERROR) break;
-        decodeBuffer.resize(decodeBuffer.size()*2);
-      }
-      if (result != Z_OK) {
-        static char buffer[256];
-        snprintf(buffer, sizeof(buffer), "Error decoding script %ld: '%s'",
-                 i, RSTRING_PTR(scriptName));
-        showMsg(buffer);
-        break;
-      }
-      rb_ary_store(script, 3, rb_str_new_cstr(decodeBuffer.c_str()));
-    } // Execute preloaded scripts
-  }
+  // int run_hiddenchest = rgssVer == 0;if (!run_hiddenchest)
+  for (long i = 0; i < scriptCount; ++i) {
+    VALUE script = rb_ary_entry(script_ary, i);
+    if (!RB_TYPE_P(script, RUBY_T_ARRAY)) continue;
+    VALUE scriptName   = rb_ary_entry(script, 1);
+    VALUE scriptString = rb_ary_entry(script, 2);
+    int result = Z_OK;
+    unsigned long bufferLen;
+    while (true) {
+      unsigned char *bufferPtr =
+              reinterpret_cast<unsigned char*>(const_cast<char*>(decodeBuffer.c_str()));
+      const unsigned char *sourcePtr =
+              reinterpret_cast<const unsigned char*>(RSTRING_PTR(scriptString));
+      bufferLen = decodeBuffer.length();
+      result = uncompress(bufferPtr, &bufferLen, sourcePtr, RSTRING_LEN(scriptString));
+      bufferPtr[bufferLen] = '\0';
+      if (result != Z_BUF_ERROR) break;
+      decodeBuffer.resize(decodeBuffer.size()*2);
+    }
+    if (result != Z_OK) {
+      static char buffer[256];
+      snprintf(buffer, sizeof(buffer), "Error decoding script %ld: '%s'",
+                i, RSTRING_PTR(scriptName));
+      showMsg(buffer);
+      break;
+    }
+    rb_ary_store(script, 3, rb_str_new_cstr(decodeBuffer.c_str()));
+  } // Execute preloaded scripts
   for (std::set<std::string>::iterator i = conf.preloadScripts.begin();
-       i != conf.preloadScripts.end(); ++i)
+      i != conf.preloadScripts.end(); ++i)
     runCustomScript(*i);
   VALUE exc = rb_gv_get("$!");
   if (exc != Qnil) return;
-  int script_pos = run_hiddenchest ? 1 : 3;
-  int name_pos = run_hiddenchest ? 0 : 1;
+  int script_pos = 3, name_pos = 1;
+  for (long i = 0; i < scriptCount; ++i) {
+    VALUE section = rb_ary_entry(script_ary, i);
+    VALUE script = rb_ary_entry(section, script_pos);
+    VALUE string;
+    string = newStringUTF8(RSTRING_PTR(script), RSTRING_LEN(script));
+    VALUE fname;
+    const char *scriptName = RSTRING_PTR(rb_ary_entry(section, name_pos));
+    char buf[512];
+    int len;
+    if (conf.useScriptNames)
+      len = snprintf(buf, sizeof(buf), "%03ld:%s", i, scriptName);
+    else
+      len = snprintf(buf, sizeof(buf), SCRIPT_SECTION_FMT, i);
+    fname = newStringUTF8(buf, len);
+    btData.scriptNames.insert(buf, scriptName);
+    int state;
+    evalString(string, fname, &state);
+    if (state) break;
+  }
+  exc = rb_gv_get("$!");
+  if (rb_obj_class(exc) != getRbData()->exc[Reset]) return;
   while (true) {
-    for (long i = 0; i < scriptCount; ++i) {
-      VALUE script = rb_ary_entry(scriptArray, i);
-      VALUE scriptDecoded = rb_ary_entry(script, script_pos);
-      VALUE string;
-      if (run_hiddenchest)
-        string = scriptDecoded;
-      else
-        string = newStringUTF8(RSTRING_PTR(scriptDecoded),
-                                   RSTRING_LEN(scriptDecoded));
-      VALUE fname;
-      const char *scriptName = RSTRING_PTR(rb_ary_entry(script, name_pos));
-      char buf[512];
-      int len;
-      if (conf.useScriptNames)
-        len = snprintf(buf, sizeof(buf), "%03ld:%s", i, scriptName);
-      else
-        len = snprintf(buf, sizeof(buf), SCRIPT_SECTION_FMT, i);
-      fname = newStringUTF8(buf, len);
-      btData.scriptNames.insert(buf, scriptName);
-      int state;
-      evalString(string, fname, &state);
-      if (state) break;
-    }
-    VALUE exc = rb_gv_get("$!");
+    process_main_script_reset();
+    exc = rb_gv_get("$!");
     if (rb_obj_class(exc) != getRbData()->exc[Reset]) break;
-    processReset();
   }
 }
 
@@ -516,6 +511,6 @@ static void mriBindingTerminate()
 }
 
 static void mriBindingReset()
-{//showMsg("Resetting!");
+{
   rb_raise(getRbData()->exc[Reset], " ");
 }
