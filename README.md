@@ -212,3 +212,4 @@ To alleviate possible porting of heavily Win32API reliant scripts, we have added
 
 * Fixed error where the windowskin would disappear for all existing windows in the same scene if just one of them was ever disposed.
 * Fixed a bug where you would notice that ALT, CTRL and SHIFT buttons would be polled continually in an undesired fashion for no good reason.
+* Fixed the F12 Reset Bug permanently!
