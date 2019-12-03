@@ -212,15 +212,13 @@ strcpySafe(char *dst, const char *src, size_t dstMax, int srcN)
 /* Attempt to locate an extension string in a filename.
  * Either a pointer into the input string pointing at the
  * extension, or null is returned */
-static const char *
-findExt(const char *filename)
+static const char* findExt(const char *filename)
 {
   size_t len;
   for (len = strlen(filename); len > 0; --len) {
     if (filename[len] == '/') return 0;
     if (filename[len] == '.') return &filename[len+1];
   }
-
   return 0;
 }
 
@@ -452,62 +450,39 @@ struct OpenReadEnumData
 static PHYSFS_EnumerateCallbackResult
 openReadEnumCB(void *d, const char *dirpath, const char *filename)
 {
-	OpenReadEnumData &data = *static_cast<OpenReadEnumData*>(d);
-	char buffer[512];
-	const char *fullPath;
-
-	if (data.stopSearching)
-		return PHYSFS_ENUM_STOP;
-
-	/* If there's not even a partial match, continue searching */
-	if (strncmp(filename, data.filename, data.filenameN) != 0)
-		return PHYSFS_ENUM_OK;
-
-	if (!*dirpath)
-	{
-		fullPath = filename;
-	}
-	else
-	{
-		snprintf(buffer, sizeof(buffer), "%s/%s", dirpath, filename);
-		fullPath = buffer;
-	}
-
-	char last = filename[data.filenameN];
-
-	/* If fname matches up to a following '.' (meaning the rest is part
-	 * of the extension), or up to a following '\0' (full match), we've
-	 * found our file */
-	if (last != '.' && last != '\0')
-		return PHYSFS_ENUM_STOP;
-
-	/* If the path cache is active, translate from lower case
-	 * to mixed case path */
-	if (data.pathTrans)
-		fullPath = (*data.pathTrans)[fullPath].c_str();
-
-	PHYSFS_File *phys = PHYSFS_openRead(fullPath);
-
-	if (!phys)
-	{
-		/* Failing to open this file here means there must
-		 * be a deeper rooted problem somewhere within PhysFS.
-		 * Just abort alltogether. */
-		data.stopSearching = true;
-		data.physfsError = PHYSFS_getErrorByCode(PHYSFS_getLastErrorCode());
-
-		return PHYSFS_ENUM_ERROR;
-	}
-
-	initReadOps(phys, data.ops, false);
-
-	const char *ext = findExt(filename);
-
-	if (data.handler.tryRead(data.ops, ext))
-		data.stopSearching = true;
-
-	++data.matchCount;
-	return PHYSFS_ENUM_OK;
+  OpenReadEnumData &data = *static_cast<OpenReadEnumData*>(d);
+  char buffer[512];
+  const char *fullPath;
+  if (data.stopSearching) return PHYSFS_ENUM_STOP;
+  /* If there's not even a partial match, continue searching */
+  if (strncmp(filename, data.filename, data.filenameN) != 0)
+    return PHYSFS_ENUM_OK;
+  if (!*dirpath) {
+    fullPath = filename;
+  } else {
+    snprintf(buffer, sizeof(buffer), "%s/%s", dirpath, filename);
+    fullPath = buffer;
+  }
+  char last = filename[data.filenameN];
+  /* If fname matches up to a following '.' (meaning the rest is part
+   * of the extension), or up to a following '\0' (full match), we've
+   * found our file */
+  if (last != '.' && last != '\0') return PHYSFS_ENUM_STOP;
+  // If the path cache is active, translate from lower case to mixed case path
+  if (data.pathTrans) fullPath = (*data.pathTrans)[fullPath].c_str();
+  PHYSFS_File *phys = PHYSFS_openRead(fullPath);
+  if (!phys) {
+  /* Failing to open this file here means there must be a deeper rooted problem
+   * somewhere within PhysFS. Just abort alltogether. */
+    data.stopSearching = true;
+    data.physfsError = PHYSFS_getErrorByCode(PHYSFS_getLastErrorCode());
+    return PHYSFS_ENUM_ERROR;
+  }
+  initReadOps(phys, data.ops, false);
+  const char *ext = findExt(filename);
+  if (data.handler.tryRead(data.ops, ext)) data.stopSearching = true;
+  ++data.matchCount;
+  return PHYSFS_ENUM_OK;
 }
 
 void FileSystem::openRead(OpenHandler &handler, const char *filename)
@@ -521,40 +496,59 @@ void FileSystem::openRead(OpenHandler &handler, const char *filename)
 /* Find the deliminator separating directory and file name */
   for (delim = buffer + len; delim > buffer; --delim)
     if (*delim == '/') break;
-    const bool root = (delim == buffer);
-    const char *file = buffer;
-    const char *dir = "";
-    if (!root) {
-    // Cut the buffer in half so we can use it for both filename and directory path
-      *delim = '\0';
-      file = delim+1;
-      dir = buffer;
-    }
-    OpenReadEnumData data(handler, file, len + buffer - delim - !root,
-      p->havePathCache ? &p->pathCache : 0);
-    if (p->havePathCache) {
-      /* Get the list of files contained in this directory
-       * and manually iterate over them */
-      const std::vector<std::string> &fileList = p->fileLists[dir];
-      for (size_t i = 0; i < fileList.size(); ++i)
-        openReadEnumCB(&data, dir, fileList[i].c_str());
-    } else {
-      PHYSFS_enumerate(dir, openReadEnumCB, &data);
-    }
-    if (data.physfsError)
-      throw Exception(Exception::PHYSFSError, "PhysFS: %s", data.physfsError);
-    if (data.matchCount == 0)
-      throw Exception(Exception::NoFileError, "%s", filename);
+  const bool root = (delim == buffer);
+  const char *file = buffer;
+  const char *dir = "";
+  if (!root) {
+  // Cut the buffer in half so we can use it for both filename and directory path
+    *delim = '\0';
+    file = delim+1;
+    dir = buffer;
+  }
+  OpenReadEnumData data(handler, file, len + buffer - delim - !root,
+    p->havePathCache ? &p->pathCache : 0);
+  if (p->havePathCache) {
+    /* Get the list of files contained in this directory
+     * and manually iterate over them */
+    const std::vector<std::string> &fileList = p->fileLists[dir];
+    for (size_t i = 0; i < fileList.size(); ++i)
+      openReadEnumCB(&data, dir, fileList[i].c_str());
+  } else {
+    PHYSFS_enumerate(dir, openReadEnumCB, &data);
+  }
+  if (data.physfsError)
+    throw Exception(Exception::PHYSFSError, "PhysFS: %s", data.physfsError);
+  if (data.matchCount == 0)
+    throw Exception(Exception::NoFileError, "%s", filename);
 }
 
 void FileSystem::openReadRaw(SDL_RWops &ops, const char *fn, bool freeOnClose)
-{//Debug() << "openReadRaw" << fn;
+{
   PHYSFS_File *handle = PHYSFS_openRead(fn);
-  assert(handle);
+  if (!handle) Debug() << fn << "file could not be found!";
+  //assert(handle);// Fails if file doesn't exist, ignoring Ruby's rescue!
   initReadOps(handle, ops, freeOnClose);
 }
 
 bool FileSystem::exists(const char *filename)
 {
   return PHYSFS_exists(filename);
+}
+
+bool has_fn_ext(const char *filename) {
+  const char *dot = strrchr(filename, '.');
+  return dot != 0;
+}
+
+bool FileSystem::exists_ext(const char *filename)
+{
+  if (has_fn_ext(filename)) return PHYSFS_exists(filename);
+  std::string fn_ext = filename;
+  const char* extensions[] = { ".png", ".jpg", ".jpeg", ".bmp" };
+  for (int n = 0; n < 4; n++) {
+    fn_ext = std::string(filename) + std::string(extensions[n]);
+    bool exist = PHYSFS_exists(fn_ext.c_str());
+    if (exist) return true;
+  }
+  return false;
 }

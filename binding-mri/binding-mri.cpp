@@ -82,7 +82,7 @@ RB_METHOD(mriP);
 RB_METHOD(HCDataDirectory);
 RB_METHOD(HCPuts);
 RB_METHOD(HCRawKeyStates);
-RB_METHOD(HCMouseInWindow);
+static VALUE HCMouseInWindow(VALUE self);
 RB_METHOD(mriRgssMain);
 RB_METHOD(mriRgssStop);
 RB_METHOD(_kernelCaller);
@@ -130,7 +130,7 @@ static void mriBindingInit()
   rb_define_module_function(mod, "data_directory", RUBY_METHOD_FUNC(HCDataDirectory), -1);
   rb_define_module_function(mod, "puts", RUBY_METHOD_FUNC(HCPuts), -1);
   rb_define_module_function(mod, "raw_key_states", RUBY_METHOD_FUNC(HCRawKeyStates), -1);
-  rb_define_module_function(mod, "mouse_in_window", RUBY_METHOD_FUNC(HCMouseInWindow), -1);
+  rb_define_module_function(mod, "mouse_in_window", RUBY_METHOD_FUNC(HCMouseInWindow), 0);
   VALUE os = rb_define_module("OS");
   rb_define_const(os, "NAME", rb_str_new_cstr(OS_STRING));
   Init_terms_backdrop();
@@ -186,7 +186,6 @@ static VALUE mriP(int argc, VALUE* argv, VALUE self)
 
 static VALUE HCDataDirectory(int argc, VALUE* argv, VALUE self)
 {
-  RB_UNUSED_PARAM;
   const std::string &path = shState->config().customDataPath;
   const char *s = path.empty() ? "." : path.c_str();
   return rb_str_new_cstr(s);
@@ -203,16 +202,14 @@ static VALUE HCPuts(int argc, VALUE* argv, VALUE self)
 
 static VALUE HCRawKeyStates(int argc, VALUE* argv, VALUE self)
 {
-  RB_UNUSED_PARAM;
   VALUE str = rb_str_new(0, sizeof(EventThread::keyStates));
   memcpy(RSTRING_PTR(str), EventThread::keyStates, sizeof(EventThread::keyStates));
   return str;
 }
 
-RB_METHOD(HCMouseInWindow)
+static VALUE HCMouseInWindow(VALUE self)
 {
-  RB_UNUSED_PARAM;
-  return rb_bool_new(EventThread::mouseState.inWindow);
+  return EventThread::mouseState.inWindow ? Qtrue : Qfalse;
 }
 
 static VALUE rgssMainCb(VALUE block)
@@ -275,12 +272,11 @@ RB_METHOD(mriRgssMain)
     rb_rescue2((VALUE(*)(ANYARGS)) rgssMainCb, rb_block_proc(),
                (VALUE(*)(ANYARGS)) rgssMainRescue, (VALUE) &exc,
                rb_eException, (VALUE) 0);
-    if (NIL_P(exc)) break;
-    if (rb_obj_class(exc) == getRbData()->exc[Reset]) {
+    if (exc == Qnil) break;
+    if (rb_obj_class(exc) == getRbData()->exc[Reset])
       process_main_script_reset();
-    } else {
+    else
       rb_exc_raise(exc);
-    }
   }
   return Qnil;
 }
@@ -358,11 +354,10 @@ static void runRMXPScripts(BacktraceData &btData)
   rb_gv_set("$RGSS_SCRIPTS", script_ary);
   VALUE scripts_mod = rb_define_module("Scripts");
   scripts_main_index_set(scripts_mod, find_main_script_index(scripts_mod));
-  Debug() << "Set Scripts";
+  Debug() << "Loading Scripts";
   long scriptCount = RARRAY_LEN(script_ary);
   std::string decodeBuffer;
   decodeBuffer.resize(0x4000);
-  // int run_hiddenchest = rgssVer == 0;if (!run_hiddenchest)
   for (long i = 0; i < scriptCount; ++i) {
     VALUE script = rb_ary_entry(script_ary, i);
     if (!RB_TYPE_P(script, RUBY_T_ARRAY)) continue;
@@ -399,8 +394,7 @@ static void runRMXPScripts(BacktraceData &btData)
   for (long i = 0; i < scriptCount; ++i) {
     VALUE section = rb_ary_entry(script_ary, i);
     VALUE script = rb_ary_entry(section, script_pos);
-    VALUE string;
-    string = newStringUTF8(RSTRING_PTR(script), RSTRING_LEN(script));
+    VALUE string = newStringUTF8(RSTRING_PTR(script), RSTRING_LEN(script));
     VALUE fname;
     const char *scriptName = RSTRING_PTR(rb_ary_entry(section, name_pos));
     char buf[512];

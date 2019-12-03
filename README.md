@@ -206,7 +206,8 @@ To alleviate possible porting of heavily Win32API reliant scripts, we have added
 * Use the `module_accessor` method to create module methods, getters and setters all in one! Example: module_attr_accessor :meow will create the self.meow and self.meow=(value) methods in a single step. Its setter and getter are `module_writer` and `module_reader` respectively.
 * The Scripts module allows you to store a Ruby string or symbol as a script ID via Scripts << :script_name. Once it has been stored there, you can call its methods, i.e. Scripts.all or Scripts.include?(:script_name) to access the Scripts IDs Array and confirm if it has been included respectively.
 * Font class now lets you use its `underline` and `strikethrough` or `strikethru` options the same way you used `bold` or `italic`.
-* `RPG::Weather.sprite_max = Number`. where Number is a positive integer number, lets you define the upper limit of the weather sprites like rain or storm or snow effects. Currently it is set at 400 sprites.
+* `RPG::Weather.sprite_max = Number`. where Number is a positive integer number, lets you define the upper limit of the weather sprites like rain or storm or snow effects. Currently it is set at 400 sprites, but it could handle even more if deemed necessary.
+* FileInt class allows you to ask if a file `exist?` even if it is compressed.
 
 ## List of Bug Fixes for HiddenChest
 

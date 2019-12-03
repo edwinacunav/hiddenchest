@@ -38,12 +38,9 @@ DEF_TYPE_CUSTOMFREE(FileInt, fileIntFreeInstance);
 static VALUE fileIntForPath(const char *path, bool rubyExc)
 {
   SDL_RWops *ops = SDL_AllocRW();
-  try
-  {
+  try {
     shState->fileSystem().openReadRaw(*ops, path);
-  }
-  catch (const Exception &e)
-  {
+  } catch (const Exception &e) {
     SDL_FreeRW(ops);
     if (rubyExc)
       raiseRbExc(e);
@@ -96,6 +93,12 @@ RB_METHOD(fileIntBinmode)
   return Qnil;
 }
 
+static VALUE fileInt_exist(VALUE self, VALUE name)
+{
+  const char* fn = StringValueCStr(name);
+  return shState->fileSystem().exists(fn) ? Qtrue : Qfalse;
+}
+
 VALUE kernelLoadDataInt(const char *filename, bool rubyExc)
 {
   rb_gc_start();
@@ -113,15 +116,12 @@ static VALUE kernelLoadData(VALUE self, VALUE filename)
   return kernelLoadDataInt(StringValueCStr(filename), true);
 }
 
-static VALUE kernelSaveData(VALUE self, VALUE filename)
+static VALUE kernelSaveData(VALUE self, VALUE obj, VALUE filename)
 {
-  VALUE obj;
   VALUE file = rb_file_open_str(filename, "wb");
-  VALUE marsh = rb_const_get(rb_cObject, rb_intern("Marshal"));
-  VALUE v[] = { obj, file };
-  rb_funcall2(marsh, rb_intern("dump"), ARRAY_SIZE(v), v);
+  rb_marshal_dump(obj, file);
   rb_io_close(file);
-  return Qnil;
+  return obj;
 }
 
 static VALUE stringForceUTF8(VALUE arg)
@@ -144,7 +144,7 @@ RB_METHOD(_marshalLoad)
   VALUE port, proc = Qnil;
   rb_get_args(argc, argv, "o|o", &port, &proc RB_ARG_END);
   VALUE utf8Proc;
-  if (NIL_P(proc))
+  if (RB_NIL_P(proc))
     utf8Proc = rb_proc_new(RUBY_METHOD_FUNC(stringForceUTF8), Qnil);
   else
     utf8Proc = rb_proc_new(RUBY_METHOD_FUNC(customProc), proc);
@@ -161,8 +161,9 @@ void fileIntBindingInit()
   _rb_define_method(klass, "getbyte", fileIntGetByte);
   _rb_define_method(klass, "binmode", fileIntBinmode);
   _rb_define_method(klass, "close", fileIntClose);
+  rb_define_singleton_method(klass, "exist?", RUBY_METHOD_FUNC(fileInt_exist), 1);
   rb_define_module_function(rb_mKernel, "load_data", RUBY_METHOD_FUNC(kernelLoadData), 1);
-  rb_define_module_function(rb_mKernel, "save_data", RUBY_METHOD_FUNC(kernelSaveData), 1);
+  rb_define_module_function(rb_mKernel, "save_data", RUBY_METHOD_FUNC(kernelSaveData), 2);
   /* We overload the built-in 'Marshal::load()' function to silently
    * insert our utf8proc that ensures all read strings will be UTF-8 encoded */
   VALUE marsh = rb_const_get(rb_cObject, rb_intern("Marshal"));
