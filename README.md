@@ -199,8 +199,8 @@ To alleviate possible porting of heavily Win32API reliant scripts, we have added
     - `blur_bitmap` - Blurred version of your map.
     - `color_bitmap` - Pick a single color to taint your map. options are:  :red, :green, :blue, :yellow, :sepia and :gray
 * Sprites now support grayed out and sepia colored versions of their bitmaps! Use a boolean (true or false) to toggle the color effect.
-    - `gray_out(boolean)`
-    - `turn_sepia(boolean)`
+    - `gray_out = boolean`
+    - `turn_sepia = boolean`
     - `grayed_out?` - In case you need to verify this via script call
     * `sepia?` - In case you need to verify this via script call
 * Use the `module_accessor` method to create module methods, getters and setters all in one! Example: module_attr_accessor :meow will create the self.meow and self.meow=(value) methods in a single step. Its setter and getter are `module_writer` and `module_reader` respectively.
@@ -208,9 +208,11 @@ To alleviate possible porting of heavily Win32API reliant scripts, we have added
 * Font class now lets you use its `underline` and `strikethrough` or `strikethru` options the same way you used `bold` or `italic`.
 * `RPG::Weather.sprite_max = Number`. where Number is a positive integer number, lets you define the upper limit of the weather sprites like rain or storm or snow effects. Currently it is set at 400 sprites, but it could handle even more if deemed necessary.
 * FileInt class allows you to ask if a file `exist?` even if it is compressed.
+* Audio module includes more methods like `bgm_volume`, `bgs_volume`, `se_volume` and `me_volume`.
 
 ## List of Bug Fixes for HiddenChest
 
 * Fixed error where the windowskin would disappear for all existing windows in the same scene if just one of them was ever disposed.
 * Fixed a bug where you would notice that ALT, CTRL and SHIFT buttons would be polled continually in an undesired fashion for no good reason.
 * Fixed the F12 Reset Bug permanently!
+* Fixed Sprite class by preventing it from setting a non existing bitmap as the original one whenever it never had been grayed out or used the sepia color effect.
