@@ -83,17 +83,18 @@ static VALUE sprite_gray_out(VALUE self, VALUE boolean)
 {
   checkDisposed<Sprite>(self);
   VALUE bit = rb_iv_get(self, "bitmap");
-  if (RB_NIL_P(bit)) return Qnil;
+  if (bit == Qnil) return Qnil;
   Sprite *s = static_cast<Sprite*>(RTYPEDDATA_DATA(self));
   if (boolean == Qtrue) {
     rb_iv_set(self, "before_gray", rb_obj_dup(bit));
     GUARD_EXC( s->gray_out(); )
   } else {
     VALUE gray = rb_iv_get(self, "before_gray");
-    Bitmap* b = getPrivateDataCheck<Bitmap>(gray, BitmapType);
-    GUARD_EXC( s->setBitmap(b); )
-    rb_iv_set(self, "bitmap", gray);
-    rb_iv_set(self, "before_gray", Qnil);
+    if (gray != Qnil) {
+      Bitmap* b = getPrivateDataCheck<Bitmap>(gray, BitmapType);
+      GUARD_EXC( s->setBitmap(b); )
+      rb_iv_set(self, "bitmap", gray);
+    }
   }
   return rb_iv_set(self, "@grayed_out", boolean);
 }
@@ -109,10 +110,12 @@ static VALUE sprite_turn_sepia(VALUE self, VALUE boolean)
     GUARD_EXC( s->turn_sepia(); )
   } else {
     VALUE sepia = rb_iv_get(self, "before_sepia");
-    Bitmap* b = getPrivateDataCheck<Bitmap>(sepia, BitmapType);
-    GUARD_EXC( s->setBitmap(b); )
-    rb_iv_set(self, "bitmap", sepia);
-    rb_iv_set(self, "before_sepia", Qnil);
+    if (sepia != Qnil) {
+      Bitmap* b = getPrivateDataCheck<Bitmap>(sepia, BitmapType);
+      GUARD_EXC( s->setBitmap(b); )
+      rb_iv_set(self, "bitmap", sepia);
+      rb_iv_set(self, "before_sepia", Qnil);
+    }
   }
   return rb_iv_set(self, "@sepia", boolean);
 }
@@ -128,10 +131,12 @@ static VALUE sprite_invert_colors(VALUE self, VALUE boolean)
     GUARD_EXC( s->invert_colors(); )
   } else {
     VALUE c = rb_iv_get(self, "before_invert_colors");
-    Bitmap* b = getPrivateDataCheck<Bitmap>(c, BitmapType);
-    GUARD_EXC( s->setBitmap(b); )
-    rb_iv_set(self, "bitmap", c);
-    rb_iv_set(self, "before_invert_colors", Qnil);
+    if (c != Qnil) {
+      Bitmap* b = getPrivateDataCheck<Bitmap>(c, BitmapType);
+      GUARD_EXC( s->setBitmap(b); )
+      rb_iv_set(self, "bitmap", c);
+      rb_iv_set(self, "before_invert_colors", Qnil);
+    }
   }
   return rb_iv_set(self, "@invert_colors", boolean);
 }
@@ -147,10 +152,12 @@ static VALUE sprite_pixelate(VALUE self, VALUE boolean)
     GUARD_EXC( s->pixelate(); )
   } else {
     VALUE pixelate = rb_iv_get(self, "before_pixelate");
-    Bitmap* b = getPrivateDataCheck<Bitmap>(pixelate, BitmapType);
-    GUARD_EXC( s->setBitmap(b); )
-    rb_iv_set(self, "bitmap", pixelate);
-    rb_iv_set(self, "before_pixelate", Qnil);
+    if (pixelate != Qnil) {
+      Bitmap* b = getPrivateDataCheck<Bitmap>(pixelate, BitmapType);
+      GUARD_EXC( s->setBitmap(b); )
+      rb_iv_set(self, "bitmap", pixelate);
+      rb_iv_set(self, "before_pixelate", Qnil);
+    }
   }
   return rb_iv_set(self, "@pixelate", boolean);
 }
@@ -628,10 +635,10 @@ void SpriteBindingInit() {
   rb_define_method(RSprite, "mouse_inside?", RMF(SpriteisMouseInside), 0);
   rb_define_method(RSprite, "mouse_above?", RMF(SpriteisMouseInside), 0);
   rb_define_method(RSprite, "mouse_above_color?", RMF(SpriteisMouseAboveColorFound), 0);
-  rb_define_method(RSprite, "gray_out", RMF(sprite_gray_out), 1);
-  rb_define_method(RSprite, "turn_sepia", RMF(sprite_turn_sepia), 1);
-  rb_define_method(RSprite, "invert_colors", RMF(sprite_invert_colors), 1);
-  rb_define_method(RSprite, "pixelate", RMF(sprite_pixelate), 1);
+  rb_define_method(RSprite, "gray_out=", RMF(sprite_gray_out), 1);
+  rb_define_method(RSprite, "turn_sepia=", RMF(sprite_turn_sepia), 1);
+  rb_define_method(RSprite, "invert_colors=", RMF(sprite_invert_colors), 1);
+  rb_define_method(RSprite, "pixelate=", RMF(sprite_pixelate), 1);
   rb_define_method(RSprite, "grayed_out?", RMF(sprite_is_grayed_out), 0);
   rb_define_method(RSprite, "sepia?", RMF(sprite_is_sepia), 0);
   rb_define_method(RSprite, "colors_inverted?", RMF(sprite_are_colors_inverted), 0);

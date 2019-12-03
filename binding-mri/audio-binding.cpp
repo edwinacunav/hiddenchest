@@ -67,6 +67,46 @@ static VALUE audio_bgsStop(VALUE self)
   return Qnil;
 }
 
+static VALUE audio_bgm_volume_get(VALUE self)
+{
+  return rb_iv_get(self, "@bgm_volume");
+}
+
+static VALUE audio_bgs_volume_get(VALUE self)
+{
+  return rb_iv_get(self, "@bgs_volume");
+}
+
+static VALUE audio_se_volume_get(VALUE self)
+{
+  return rb_iv_get(self, "@se_volume");
+}
+
+static VALUE audio_me_volume_get(VALUE self)
+{
+  return rb_iv_get(self, "@me_volume");
+}
+
+static VALUE audio_bgm_volume_set(VALUE self, VALUE volume)
+{
+  return rb_iv_set(self, "@bgm_volume", volume);
+}
+
+static VALUE audio_bgs_volume_set(VALUE self, VALUE volume)
+{
+  return rb_iv_set(self, "@bgs_volume", volume);
+}
+
+static VALUE audio_se_volume_set(VALUE self, VALUE volume)
+{
+  return rb_iv_set(self, "@se_volume", volume);
+}
+
+static VALUE audio_me_volume_set(VALUE self, VALUE volume)
+{
+  return rb_iv_set(self, "@me_volume", volume);
+}
+
 static VALUE audio_bgsPos(VALUE self)
 {
   VALUE pos = rb_float_new(shState->audio().bgsPos());
@@ -370,6 +410,10 @@ void audioBindingInit()
   rb_iv_set(md, "@old_bgm_name", rb_str_new_cstr(""));
   rb_iv_set(md, "@old_bgs_name", rb_str_new_cstr(""));
   rb_iv_set(md, "@se", rb_str_new_cstr("Audio/SE/"));
+  rb_iv_set(md, "@bgm_volume", RB_INT2FIX(80));
+  rb_iv_set(md, "@bgs_volume", RB_INT2FIX(80));
+  rb_iv_set(md, "@se_volume", RB_INT2FIX(80));
+  rb_iv_set(md, "@me_volume", RB_INT2FIX(80));
   rb_define_module_function(md, "bgm_play", RMF(audio_bgmPlay), -1);
   rb_define_module_function(md, "bgm_stop", RMF(audio_bgmStop), 0);
   rb_define_module_function(md, "bgm_fade", RMF(audio_bgmFade), -1);
@@ -401,6 +445,14 @@ void audioBindingInit()
     rb_define_attr(file, "pitch", 1, 1);
     rb_define_attr(file, "pos", 1, 1);
   }
+  rb_define_module_function(md, "bgm_volume", RMF(audio_bgm_volume_get), 0);
+  rb_define_module_function(md, "bgs_volume", RMF(audio_bgs_volume_get), 0);
+  rb_define_module_function(md, "se_volume", RMF(audio_se_volume_get), 0);
+  rb_define_module_function(md, "me_volume", RMF(audio_me_volume_get), 0);
+  rb_define_module_function(md, "bgm_volume=", RMF(audio_bgm_volume_set), 1);
+  rb_define_module_function(md, "bgs_volume=", RMF(audio_bgs_volume_set), 1);
+  rb_define_module_function(md, "se_volume=", RMF(audio_se_volume_set), 1);
+  rb_define_module_function(md, "me_volume=", RMF(audio_me_volume_set), 1);
   rb_define_module_function(md, "bgm_pos", RMF(audio_bgmPos), 0);
   rb_define_module_function(md, "bgs_pos", RMF(audio_bgsPos), 0);
   rb_define_module_function(md, "old_bgm_pos", RMF(audio_old_bgm_pos_get), 0);
