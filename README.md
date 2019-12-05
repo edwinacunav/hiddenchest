@@ -81,6 +81,8 @@ HiddenChest and mkxp may employ Qt's qmake build system, so you'll need to insta
 
 qmake will use pkg-config to locate the respective include/library paths. If you installed any dependencies into non-standard prefixes, make sure to adjust your `PKG_CONFIG_PATH` variable accordingly.
 
+The exception is boost, which is weird in that it still hasn't managed to pull off pkg-config support (seriously?). If you installed boost in a non-standard prefix, you will need to pass its include path via BOOST_I and library path via BOOST_L, either as direct arguments to qmake (qmake BOOST_I="/usr/include" ...) or via environment variables. You can specify a library suffix (eg. "-mt") via BOOST_LIB_SUFFIX if needed.
+
 ### CMake
 
 You can compile it with CMake by running my custom shell script do.sh on your terminal by typing the following in the project's root directory:
