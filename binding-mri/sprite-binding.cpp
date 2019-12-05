@@ -53,10 +53,12 @@ static VALUE SpriteSetBitmap(VALUE self, VALUE bit)
 {
   Sprite *s = static_cast<Sprite*>(RTYPEDDATA_DATA(self));
   Bitmap *b;
-  if ( RB_NIL_P(bit) )
+  if ( bit == Qnil ) {
     b = 0;
-  else
+  } else {
+    bit = rb_obj_dup(bit);
     b = getPrivateDataCheck<Bitmap>(bit, BitmapType);
+  }
   GUARD_EXC( s->setBitmap(b); )
   return rb_iv_set(self, "bitmap", bit);
 }
@@ -106,15 +108,15 @@ static VALUE sprite_turn_sepia(VALUE self, VALUE boolean)
   if (RB_NIL_P(bit)) return Qnil;
   Sprite *s = static_cast<Sprite*>(RTYPEDDATA_DATA(self));
   if (boolean == Qtrue) {
-    rb_iv_set(self, "before_sepia", rb_obj_dup(bit));
+    rb_iv_set(self, "non_sepia", rb_obj_dup(bit));
     GUARD_EXC( s->turn_sepia(); )
   } else {
-    VALUE sepia = rb_iv_get(self, "before_sepia");
-    if (sepia != Qnil) {
-      Bitmap* b = getPrivateDataCheck<Bitmap>(sepia, BitmapType);
-      GUARD_EXC( s->setBitmap(b); )
-      rb_iv_set(self, "bitmap", sepia);
-      rb_iv_set(self, "before_sepia", Qnil);
+    VALUE non_sepia = rb_iv_get(self, "non_sepia");
+    if (non_sepia != Qnil) {
+      Bitmap* bns = getPrivateDataCheck<Bitmap>(non_sepia, BitmapType);
+      GUARD_EXC( s->setBitmap(bns); )
+      rb_iv_set(self, "bitmap", non_sepia);
+      rb_iv_set(self, "non_sepia", Qnil);
     }
   }
   return rb_iv_set(self, "@sepia", boolean);
@@ -127,15 +129,15 @@ static VALUE sprite_invert_colors(VALUE self, VALUE boolean)
   if (RB_NIL_P(bit)) return Qnil;
   Sprite *s = static_cast<Sprite*>(RTYPEDDATA_DATA(self));
   if (boolean == Qtrue) {
-    rb_iv_set(self, "before_invert_colors", rb_obj_dup(bit));
+    rb_iv_set(self, "non_inverted", rb_obj_dup(bit));
     GUARD_EXC( s->invert_colors(); )
   } else {
-    VALUE c = rb_iv_get(self, "before_invert_colors");
+    VALUE c = rb_iv_get(self, "non_inverted");
     if (c != Qnil) {
       Bitmap* b = getPrivateDataCheck<Bitmap>(c, BitmapType);
       GUARD_EXC( s->setBitmap(b); )
       rb_iv_set(self, "bitmap", c);
-      rb_iv_set(self, "before_invert_colors", Qnil);
+      rb_iv_set(self, "non_inverted", Qnil);
     }
   }
   return rb_iv_set(self, "@invert_colors", boolean);

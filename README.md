@@ -181,6 +181,7 @@ To alleviate possible porting of heavily Win32API reliant scripts, we have added
     - `Sprite#mouse_above?` alias `Sprite#mouse_inside?`
     - `Sprite#mouse_above_color?` - It will ignore pixels with alpha value set at 0.
     - `Window#mouse_above?(command_index)` alias `Window#mouse_inside?(command_index)`
+* `Bitmap` class supports 'invert!' method. It will invert the Bitmap's current colors in no time!
 * The engine now sports the brand new `MsgBoxSprite` class!
     - `bitmap` handles its base contents.
     - `bar_bitmap` is made of the message box title bar.
@@ -201,8 +202,10 @@ To alleviate possible porting of heavily Win32API reliant scripts, we have added
 * Sprites now support grayed out and sepia colored versions of their bitmaps! Use a boolean (true or false) to toggle the color effect.
     - `gray_out = boolean`
     - `turn_sepia = boolean`
+    - `invert_colors = boolean`
     - `grayed_out?` - In case you need to verify this via script call
-    * `sepia?` - In case you need to verify this via script call
+    - `sepia?` - In case you need to verify this via script call
+    - `colors_inverted?` - In case you need to verify if they were inverted already
 * Use the `module_accessor` method to create module methods, getters and setters all in one! Example: module_attr_accessor :meow will create the self.meow and self.meow=(value) methods in a single step. Its setter and getter are `module_writer` and `module_reader` respectively.
 * The Scripts module allows you to store a Ruby string or symbol as a script ID via Scripts << :script_name. Once it has been stored there, you can call its methods, i.e. Scripts.all or Scripts.include?(:script_name) to access the Scripts IDs Array and confirm if it has been included respectively.
 * Font class now lets you use its `underline` and `strikethrough` or `strikethru` options the same way you used `bold` or `italic`.

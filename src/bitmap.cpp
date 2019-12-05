@@ -39,6 +39,7 @@
 #include "filesystem.h"
 #include "font.h"
 #include "eventthread.h"
+#include "debugwriter.h"
 
 /*ifdef GLES2_HEADER// I added these lines
 include <SDL_opengles2.h>
@@ -637,6 +638,39 @@ void Bitmap::setPixel(int x, int y, const Color &color)
   p->onModified(false);
 }
 
+void Bitmap::invert_colors()
+{
+  guardDisposed();
+  GUARD_MEGA;
+  if (!p->surface) makeSurface();
+  SDL_PixelFormat *fmt = p->format;
+  int w = p->gl.width, h = p->gl.height;
+  uint8_t invert[w * 4];
+  for (int y = 0; y < h; y++) {
+    for (int x = 0; x < w; x++) {
+      uint32_t pixel = getPixelAt(p->surface, fmt, x, y);
+      Color c((pixel >> p->format->Rshift) & 0xFF,
+              (pixel >> p->format->Gshift) & 0xFF,
+              (pixel >> p->format->Bshift) & 0xFF,
+              (pixel >> p->format->Ashift) & 0xFF);
+      if (c.alpha == 0) {
+        invert[x * 4] = 0;
+        invert[x * 4 + 1] = 0;
+        invert[x * 4 + 2] = 0;
+        invert[x * 4 + 3] = 0;
+        continue;
+      }
+      invert[x * 4] = 255.0 - c.red;
+      invert[x * 4 + 1] = 255.0 - c.green;
+      invert[x * 4 + 2] = 255.0 - c.blue;
+      invert[x * 4 + 3] = c.alpha;
+    }
+    TEX::bind(p->gl.tex);
+    TEX::uploadSubImage(0, y, w, 1, &invert, GL_RGBA);
+  }
+  p->onModified();
+}
+
 void Bitmap::hueChange(int hue)
 {
   guardDisposed();
@@ -708,6 +742,29 @@ void Bitmap::turn_sepia()
   guardDisposed();
   SepiaShader &shader = shState->shaders().sepia;
   apply_this_shader(shader);
+}
+
+void Bitmap::pixelate()
+{
+  return;
+  /*guardDisposed();
+  TexCombShader &shader = shState->shaders().tex_comb;//pixel;Pixelate
+  TEXFBO text = shState->texPool().request(p->gl.width, p->gl.height);
+  Quad &quad = shState->gpQuad();
+  FloatRect r(IntRect(0, 0, p->gl.width, p->gl.height));
+  quad.setTexPosRect(r, r);
+  //enable ? quad.setColor(vec) : quad.setColor(Vec4(1, 1, 1, 1));
+  shader.set_light_dir(Vec3(0.5, 0.5, 0.5));
+  shader.bind();
+  FBO::bind(text.fbo);
+  p->pushSetViewport(shader);
+  p->bindTexture(shader);
+  p->blitQuad(quad);
+  p->popViewport();
+  TEX::unbind();
+  shState->texPool().release(p->gl);
+  p->gl = text;
+  p->onModified();*/
 }
 
 void Bitmap::drawText(int x, int y, int width, int height,
@@ -801,8 +858,8 @@ void Bitmap::drawText(const IntRect &rect, const char *str, int align)
   if (*str == '\0') return;
   if (str[0] == ' ' && str[1] == '\0') return;
   TTF_Font *font = p->font->getSdlFont();
-  const Color &fontColor = p->font->getColor();
-  const Color &outColor = p->font->getOutColor();
+  const Color &fontColor = p->font->get_color();
+  const Color &outColor = p->font->get_out_color();
   SDL_Color c = fontColor.toSDLColor();
   c.a = 255;
   float txtAlpha = fontColor.norm.w;
@@ -912,8 +969,7 @@ void Bitmap::drawText(const IntRect &rect, const char *str, int align)
       GLMeta::blitEnd();
     }
   } else {
-    /* Aquire a partial copy of the destination
-     * buffer we're about to render to */
+    // Acquire partial copy of the destination buffer we're about to render to
     TEXFBO &gpTex2 = shState->gpTexFBO(posRect.w, posRect.h);
     GLMeta::blitBegin(gpTex2);
     GLMeta::blitSource(p->gl);
