@@ -81,19 +81,19 @@ HiddenChest and mkxp may employ Qt's qmake build system, so you'll need to insta
 
 qmake will use pkg-config to locate the respective include/library paths. If you installed any dependencies into non-standard prefixes, make sure to adjust your `PKG_CONFIG_PATH` variable accordingly.
 
-The exception is boost, which is weird in that it still hasn't managed to pull off pkg-config support (seriously?). If you installed boost in a non-standard prefix, you will need to pass its include path via BOOST_I and library path via BOOST_L, either as direct arguments to qmake (qmake BOOST_I="/usr/include" ...) or via environment variables. You can specify a library suffix (eg. "-mt") via BOOST_LIB_SUFFIX if needed.
+Concerning Boost, please read the Boost section of this guide.
 
 ### CMake
 
-You can compile it with CMake by running my custom shell script do.sh on your terminal by typing the following in the project's root directory:
+You can compile it with CMake by running my custom bash script compile.sh on your terminal by typing the following in the project's root directory:
 
 ./compile.sh
 
-You might need to use chmod +x do.sh first to make it an executable script.
+You might need to use chmod +x compile.sh first to make it an executable script.
 
 It will create a build directory where it will run CMake and later execute make to compile the HiddenChest binary. If succeeded it will move the binary executable file to the root directory for you.
 
-Take in consideration that you need Ancurio's SDL_sound fork installed on your system. Your OS package manager, i.e. pacman or apt-get, might offer you to install a default version of SDL_sound. DO NOT INSTALL IT! Both HiddenChest and mkxp will fail for sure if you do not follow my advice!
+Take in consideration that you need Ancurio's SDL_sound fork installed on your system. Your OS package manager, i.e. pacman or apt-get or yum, might offer you to install a default version of SDL_sound. DO NOT INSTALL IT! Both HiddenChest and mkxp will fail for sure if you do not follow my advice!
 
 Search for `set(MRIVERSION` in the CMakeLists.txt file to set a different version of Ruby. Default version is 2.6 now.
 
@@ -117,19 +117,19 @@ To auto detect the encoding of the game title in `Game.ini` and auto convert it 
 
 ### Supported image/audio formats
 
-These depend on the SDL auxiliary libraries. For maximum RGSS compliance, build SDL2_image with png/jpg support, and SDL_sound with oggvorbis/wav/mp3 support.
+These depend on the SDL2 auxiliary libraries. For maximum RGSS compliance, build SDL2_image with png/jpg support, and SDL_sound with oggvorbis/wav/mp3 support.
 
 To run HiddenChest, you should have a graphics card capable of at least **OpenGL (ES) 2.0** with an up-to-date driver installed.
 
 ## Dependency kit
 
-To facilitate hacking, Ancurio had assembled a package containing all dependencies to compile mkxp on a bare-bones Ubuntu 12.04 64bit, but I have compiled HiddenChest on a Ubuntu 18.04 LTS 64bit installation. Compatibility with other distributions has not been tested. You can download it [here](https://www.dropbox.com/s/mtp44ur367m2zts/mkxp-depkit.tar.xz). Read the "README" for instructions.
+To facilitate hacking, Ancurio had assembled a package containing all dependencies to compile mkxp on a bare-bones Ubuntu 12.04 64bit, but I have compiled HiddenChest on a Ubuntu 18.04 LTS 64bit installation. Compatibility with other distributions has not been tested. You can download it [here](https://www.dropbox.com/s/mtp44ur367m2zts/mkxp-depkit.tar.xz). Read the "README.txt" file for instructions.
 
 ## Configuration
 
 HiddenChest reads configuration data from the file "hiddenchest.conf". The format is ini-style. Do *not* use quotes around file paths (spaces won't break). Lines starting with '#' are comments. See 'hiddenchest.conf.sample' for a list of accepted entries.
 
-All option entries can alternatively be specified as command line options. Any options that are not arrays (eg. RTP paths) specified as command line options will override entries in hiddenchest.conf. Note that you will have to wrap values containing spaces in quotes (unlike in hiddenchest.conf).
+All option entries can alternatively be specified as command line options. Any options that are not arrays (eg. RTP paths) specified as command line options will override entries in hiddenchest.conf. Note that you will have to wrap values containing spaces in quotes (unlike in hiddenchest.conf file).
 
 The syntax is: `--<option>=<value>`
 
@@ -174,11 +174,11 @@ To alleviate possible porting of heavily Win32API reliant scripts, we have added
         - Only the last assignment to `Window#open_mode=` will be taken in consideration by the engine.
 * `Window#set_xy(newx, newy)` lets you assign both Carthesian coordinates at the same time.
 * Assign a viewport to any RGSS1 window by using `Window#viewport = some_viewport`
-* They now support additional keys like PrintScreen, Return or Enter or LeftShift or RightAlt or NumPadDivide * or KeyH or KeyM or N1 through N0.
+* They now support additional keys like PrintScreen, Return or Enter or LeftShift or RightAlt or NumPadDivide * or KeyH or KeyM or N1 through N0 series of number keys.
 * The `Input.press?` family of functions accepts three additional button constants: `::MOUSELEFT`, `::MOUSEMIDDLE` and `::MOUSERIGHT` for the respective mouse buttons. But you can also type them as `::MouseLeft`, `::MouseMiddle` and `::MouseRight`.
 * The `Input` module has four additional functions, `mouse_x` and `mouse_y` to query the mouse pointer position relative to the game screen, and `dir4?` and `dir8?` to prevent you from using 4 or even 8 conditional statements in a row.
 * Now the `Input` module offers you some new methods: `left_click?` `middle_click?` and `right_click?`.
-* The `Bitmap`, `Sprite` and `Window` classes now support mouse clicks! Well, they indirectly do it... You got to set the `@area` array with every single x, y, width and height dimensions first. Usually you do that in the Window_Selectable and its child classes refresh method. The following script calls might be used in scene scripts:
+* The `Bitmap`, `Sprite` and `Window` classes now support mouse clicks! Well, they indirectly do it... You got to set the `@area` array with every single x, y, width and height dimensions first. Usually you do that in the `Window_Selectable` and its child classes refresh method. The following script calls might be used in scene scripts:
     - `Bitmap#alpha_pixel?(x, y)` - It's not just for clicks!
     - `Sprite#mouse_above?` alias `Sprite#mouse_inside?`
     - `Sprite#mouse_above_color?` - It will ignore pixels with alpha value set at 0.
@@ -190,12 +190,12 @@ To alleviate possible porting of heavily Win32API reliant scripts, we have added
     - `close_icon` is nothing but the icon where you can click to close the box!
     - `contents` stands for the actual container of all of your text messages printed on it!
 * The `Graphics` module has three additional properties: `fullscreen` represents the current fullscreen mode (`true` = fullscreen, `false` = windowed), `show_cursor` hides the system cursor inside the game window when `false` and `block_fullscreen` (`true` or `false`) will prevent the player from entering fullscreen mode or not even if they change the configuration file settings.
-* Graphics module also lets you take snapshots by calling the `save_screenshot` method or get its width and height as an array with `dimensions`.
-* Settings module lets you customize your game settings via script calls.
+* `Graphics` module also lets you take snapshots by calling the `save_screenshot` method (stored in Screenshots directory) or get its width and height as an array with `dimensions`.
+* `Settings` module lets you customize your game settings via script calls.
     - `image_format` and `image_format=` let you check out or assign a preferred image format for your screenshots. Available options are:
          - :jpg or 0 for JPG format - default option
          - :png or 1 for PNG format
-* The Backdrop module, available on all RGSS versions, lets you create a temporary snapshot of a previous map to use it in any scene class at will. Use any of the following calls to create the bitmap you will need in your (custom) scene. Later you can assign its bitmap to an instance variable of your choice by calling its `bitmap` or `bitmap_dup` method. After freezing the scene, call `clear_bitmap` to dispose it properly or dispose your sprite's bitmap directly in case you want to keep it for later use and you previously used the `bitmap_dup` method.
+* The `Backdrop` module, available on all RGSS versions, lets you create a temporary snapshot of a previous map to use it in any scene class at will. Use any of the following calls to create the bitmap you will need in your (custom) scene. Later you can assign its bitmap to an instance variable of your choice by calling its `bitmap` or `bitmap_dup` method. After freezing the scene with `Graphics.freeze`, call `clear_bitmap` to dispose it properly or dispose your sprite's bitmap directly in case you want to keep it for later use and you previously used the `bitmap_dup` method.
     - `keep_bitmap` - Your map without any special effects.
     - `gray_bitmap` - Grayish version of your map.
     - `sepia_bitmap` - Sepia colored version of your map.
@@ -208,12 +208,12 @@ To alleviate possible porting of heavily Win32API reliant scripts, we have added
     - `grayed_out?` - In case you need to verify this via script call
     - `sepia?` - In case you need to verify this via script call
     - `colors_inverted?` - In case you need to verify if they were inverted already
-* Use the `module_accessor` method to create module methods, getters and setters all in one! Example: module_attr_accessor :meow will create the self.meow and self.meow=(value) methods in a single step. Its setter and getter are `module_writer` and `module_reader` respectively.
-* The Scripts module allows you to store a Ruby string or symbol as a script ID via Scripts << :script_name. Once it has been stored there, you can call its methods, i.e. Scripts.all or Scripts.include?(:script_name) to access the Scripts IDs Array and confirm if it has been included respectively.
-* Font class now lets you use its `underline` and `strikethrough` or `strikethru` options the same way you used `bold` or `italic`.
+* Use the `module_accessor` method to create module methods, getters and setters all in one! Example: `module_attr_accessor :meow` will create the `self.meow` and `self.meow=(value)` methods in a single step. Its setter and getter are `module_writer` and `module_reader` respectively.
+* The `Scripts` module allows you to store a Ruby string or symbol as a script ID via `Scripts << :script_name`. Once it has been stored there, you can call its methods, i.e. `Scripts.all` or `Scripts.include?(:script_name)` to access the Scripts IDs Array and confirm if it has been included respectively.
+* `Font` class now lets you use its `underline` and `strikethrough` or `strikethru` options the same way you used `bold` or `italic`.
 * `RPG::Weather.sprite_max = Number`. where Number is a positive integer number, lets you define the upper limit of the weather sprites like rain or storm or snow effects. Currently it is set at 400 sprites, but it could handle even more if deemed necessary.
-* FileInt class allows you to ask if a file `exist?` even if it is compressed.
-* Audio module includes more methods like `bgm_volume`, `bgs_volume`, `se_volume` and `me_volume`.
+* `FileInt` class allows you to ask if a file `exist?` even if it is compressed.
+* `Audio` module includes more methods like `bgm_volume`, `bgs_volume`, `se_volume` and `me_volume`.
 
 ## List of Bug Fixes for HiddenChest
 
