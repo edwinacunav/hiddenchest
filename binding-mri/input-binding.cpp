@@ -4,7 +4,7 @@
 ** This file is part of mkxpplus and mkxp.
 **
 ** Copyright (C) 2013 Jonas Kulla <Nyocurio@gmail.com>
-** 2018-2019 Modified by Kyonides-Arkanthes
+** 2018-2019 Extended by Kyonides-Arkanthes <kyonides@gmail.com>
 **
 ** mkxp is free software: you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -33,19 +33,18 @@ static VALUE inputUpdate(VALUE self)
   return Qnil;
 }
 
+// FIXME: RMXP allows only few more types that don't make sense (symbols in pre 3, floats)
 static int getButtonArg(VALUE number)
 {
-  int num;
-  if (FIXNUM_P(number)) {
-    num = RB_FIX2INT(number);
-  } else if (SYMBOL_P(number) && rgssVer >= 3) {
-    VALUE symHash = getRbData()->buttoncodeHash;
-    num = RB_FIX2INT(rb_hash_lookup2(symHash, number, RB_INT2FIX(Input::None)));
-  } else {
-// FIXME: RMXP allows only few more types that don't make sense (symbols in pre 3, floats)
-    num = 0;
+  //rb_p(number);
+  if (FIXNUM_P(number)) return RB_FIX2INT(number);
+  //rb_p(rb_str_new_cstr("Not a Fixnum"));
+  if (SYMBOL_P(number)) {// && rgssVer == 3
+    VALUE sym_hash = getRbData()->buttoncodeHash;
+    return RB_FIX2INT(rb_hash_aref(sym_hash, number));
   }
-  return num;
+  //rb_p(rb_str_new_cstr("Not a Symbol"));
+  return 0;
 }
 
 static VALUE inputPress(VALUE self, VALUE number)
@@ -64,6 +63,42 @@ static VALUE inputRepeat(VALUE self, VALUE number)
 {
   int num = getButtonArg(number);
   return shState->input().isRepeated(num) ? Qtrue : Qfalse;
+}
+
+static VALUE input_are_pressed(int size, VALUE* buttons, VALUE self)
+{
+  if (ARRAY_TYPE_P(buttons[0])) {
+    VALUE rbuttons = buttons[0];
+    int size = RARRAY_LEN(rbuttons);
+    for (int n = 0; n < size; n++) {
+      int num = getButtonArg(rb_ary_entry(rbuttons, n));
+      if (!shState->input().isPressed(num)) return Qfalse;
+    }
+    return Qtrue;
+  }
+  for (int n = 0; n < size; n++) {
+    int num = getButtonArg(buttons[n]);
+    if (!shState->input().isPressed(num)) return Qfalse;
+  }
+  return Qtrue;
+}
+
+static VALUE input_trigger_any(int size, VALUE* buttons, VALUE self)
+{
+  if (ARRAY_TYPE_P(buttons[0])) {
+    VALUE rbuttons = buttons[0];
+    int size = RARRAY_LEN(rbuttons);
+    for (int n = 0; n < size; n++) {
+      int num = getButtonArg(rb_ary_entry(rbuttons, n));
+      if (shState->input().isTriggered(num)) return Qtrue;
+    }
+    return Qfalse;
+  }
+  for (int n = 0; n < size; n++) {
+    int num = getButtonArg(buttons[n]);
+    if (shState->input().isTriggered(num)) return Qtrue;
+  }
+  return Qfalse;
 }
 
 static VALUE input_trigger_up_down(VALUE self)
@@ -128,7 +163,7 @@ static VALUE input_right_click(VALUE self)
 
 static VALUE input_is_any_char(VALUE self)
 {
-  return shState->input().isAnyChar() ? Qtrue : Qfalse;
+  return shState->input().is_any_char() ? Qtrue : Qfalse;
 }
 
 static VALUE input_string(VALUE self)
@@ -294,6 +329,8 @@ void inputBindingInit()
   rb_define_module_function(module, "press?", RMF(inputPress), 1);
   rb_define_module_function(module, "trigger?", RMF(inputTrigger), 1);
   rb_define_module_function(module, "repeat?", RMF(inputRepeat), 1);
+  rb_define_module_function(module, "press_all?", RMF(input_are_pressed), -1);
+  rb_define_module_function(module, "trigger_any?", RMF(input_trigger_any), -1);
   rb_define_module_function(module, "trigger_up_down?", RMF(input_trigger_up_down), 0);
   rb_define_module_function(module, "trigger_left_right?", RMF(input_trigger_left_right), 0);
   rb_define_module_function(module, "dir4", RMF(inputDir4), 0);
@@ -305,23 +342,15 @@ void inputBindingInit()
   rb_define_module_function(module, "any_char?", RMF(input_is_any_char), 0);
   rb_define_module_function(module, "string", RMF(input_string), 0);
   rb_define_module_function(module, "enable_edit=", RMF(input_enable_edit), 1);
-  if (rgssVer >= 3) {
-    VALUE symHash = rb_hash_new();
-    for (size_t i = 0; i < buttonCodesN; ++i) {
-      ID sym = rb_intern(buttonCodes[i].str);
-      VALUE val = RB_INT2FIX(buttonCodes[i].val);
-      /* In RGSS3 all Input::XYZ constants are equal to :XYZ symbols,
-       * to be compatible with the previous convention */
-      rb_const_set(module, sym, rb_id2sym(sym));
-      rb_hash_aset(symHash, rb_id2sym(sym), val);
-    }
-    rb_iv_set(module, "buttoncodes", symHash);
-    getRbData()->buttoncodeHash = symHash;
-  } else {
-    for (size_t i = 0; i < buttonCodesN; ++i) {
-      ID sym = rb_intern(buttonCodes[i].str);
-      VALUE val = RB_INT2FIX(buttonCodes[i].val);
-      rb_const_set(module, sym, val);
-    }
+  VALUE sym_hash = rb_hash_new();
+  rb_hash_set_ifnone(sym_hash, RB_INT2FIX(0));
+  /* In RGSS3 all Input::XYZ constants are equal to :XYZ symbols,
+   * to be compatible with the previous convention */
+  for (size_t i = 0; i < buttonCodesN; ++i) {
+    ID sym = rb_intern(buttonCodes[i].str);
+    VALUE val = RB_INT2FIX(buttonCodes[i].val);
+    rb_const_set(module, sym, val);
+    rb_hash_aset(sym_hash, rb_id2sym(sym), val);
   }
+  getRbData()->buttoncodeHash = sym_hash;
 }

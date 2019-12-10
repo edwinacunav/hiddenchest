@@ -222,10 +222,11 @@ To alleviate possible porting of heavily Win32API reliant scripts, we have added
     - `MOUSEMIDDLE` or `MouseMiddle`
     - `MOUSERIGHT` or `MouseRight`
 * Additional functions:
-    -`mouse_x` and `mouse_y` to query the mouse pointer position relative to the game screen.
-    -`dir4?` and `dir8?` to prevent you from using 4 or even 8 conditional statements in a row.
-    -`press_all?` and `trigger_any?` to save you the effort of typing many conditional statements in a row.
-    -`left_click?`, `middle_click?` and `right_click?`
+    - `mouse_x` and `mouse_y` to query the mouse pointer position relative to the game screen.
+    - `dir4?` and `dir8?` to prevent you from using 4 or even 8 conditional statements in a row.
+    - `press_all?` and `trigger_any?` to save you the effort of typing many conditional statements in a row.
+         - You can pass them one argument after another or pass an array.
+    - `left_click?`, `middle_click?` and `right_click?`
 * You can now use :symbols in any RGSS version.
 
 ## List of Bug Fixes for HiddenChest

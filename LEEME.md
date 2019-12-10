@@ -223,10 +223,11 @@ Para aliviar la posible incorporación de scripts demasiado dependientes de la c
     - `MOUSEMIDDLE` o `MouseMiddle`
     - `MOUSERIGHT` o `MouseRight`
 * Funciones adicionales:
-    -`mouse_x` y `mouse_y` para preguntar por la posición del puntero del ratón relativo a la pantalla de juego
-    -`dir4?` y `dir8?` para evitarles el uso de 4 u 8 condicionales en fila.
-    -`press_all?` y `trigger_any?` para evitarles el uso de varias condicionales en fila.
-    -`left_click?`, `middle_click?` y `right_click?`
+    - `mouse_x` y `mouse_y` para preguntar por la posición del puntero del ratón relativo a la pantalla de juego
+    - `dir4?` y `dir8?` para evitarles el uso de 4 u 8 condicionales en fila.
+    - `press_all?` y `trigger_any?` para evitarles el uso de varias condicionales en fila.
+         - Pueden pasar un argumento tras otro o pasar un Array alias arreglo.
+    - `left_click?`, `middle_click?` y `right_click?`
 * Se pueden usar :símbolos en todas las versiones de RGSS.
 
 ## Lista de Arreglos de Errores en HiddenChest
