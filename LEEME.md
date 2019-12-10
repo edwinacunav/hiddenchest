@@ -175,9 +175,6 @@ Para aliviar la posible incorporación de scripts demasiado dependientes de la c
 * `Window#set_xy(newx, newy)` permite asignar ambas coordenadas cartesianas al mismo tiempo.
 * Asignen un Viewport a cualquier ventana de RGSS1 usando `Window#viewport = un_viewport`
 * Se soportan muchas más teclas como PrintScreen, Return o Enter o LeftShift o RightAlt o NumPadDivide * o KeyH o KeyM o desde N1 hasta N0 para los números ubicados sobre las letras comunes como N y muchas más.
-* La familia de funciones `Input.press?` acepta varias constantes adicionales: `::MOUSELEFT`, `::MOUSEMIDDLE` y `::MOUSERIGHT` para sus respectivos botones del ratón. También pueden digitarlos así: `::MouseLeft`, `::MouseMiddle` o `::MouseRight`.
-* El módulo `Input` tiene cuatro funciones adicionales, `mouse_x` y `mouse_y` para preguntar por la posición del puntero del ratón relativo a la pantalla de juego y `dir4?` y `dir8?` para evitarles el uso de 4 o incluso 8 condicionales en fila.
-* El módulo `Input` ofrece métodos como `left_click?` `middle_click?` y `right_click?`.
 * Clases `Bitmap`, `Sprite` y `Window` ahora soportan clics del ratón! Bueno lo hacen indirectamente... Necesitarán usar el arreglo `@area` con cada una de las dimensiones x, y, ancho y altura. Usualmente lo harían en `Window_Selectable` y sus subclases en el método refresh. Los siguientes llamados a script pueden ser utilizados en scripts de escenas:
     - `Bitmap#alpha_pixel?(x, y)` - Pixel con alfa de 0. ¡No es solo para clics!
     - `Sprite#mouse_above?` alias `Sprite#mouse_inside?` - Ratón sobre Sprite
@@ -195,6 +192,10 @@ Para aliviar la posible incorporación de scripts demasiado dependientes de la c
     - `image_format` y `image_format=` permiten verificar o asignar el formato preferido de imágenes para sus capturas. Opciones disponibles:
          - :jpg o 0 para formato JPG - opción por defecto
          - :png o 1 para formato PNG
+    - `snapshot_dir` y `snapshot_filename` para definir la carpeta y el nombre base de los archivos de capturas de pantalla.
+    - `save_dir` y `save_filename` para definir la carpeta y el nombre base de los archivos de partidas guardadas.
+    - `auto_create_dirs` para que se creen las carpetas si cambiaron la ruta de alguna de las carpetas.
+* Módulo `Game` incluye las constants `TITLE` y `VERSION`. Estas son extraídas del archivo Game.ini
 * Módulo `Backdrop`, disponibles en todas las versiones de RGSS, permite crear una captura temporal del mapa previo para usarlo como fondo de una escena distinta. Usen cualquiera de los siguientes llamados para crear el bitmap que necesitarán en su escena personalizada. Después pueden asignarle su bitmap a una variable de @instancia de su elección al llamar a su método `bitmap` o `bitmap_dup` (duplicado). Luego de congelar la escena con `Graphics.freeze`, llamen a `clear_bitmap` para desecharlo apropiadamente o desechen el bitmap de su sprite directamente en caso de que deseen guardarlo para más adelante y hayan utilizado el método `bitmap_dup` anteriormente.
     - `keep_bitmap` - Su mapa sin efectos especiales
     - `gray_bitmap` - Versión en Gris de su mapa
@@ -215,9 +216,22 @@ Para aliviar la posible incorporación de scripts demasiado dependientes de la c
 * Clase `FileInt` permite que pregunten si un archivo existe `exist?` incluso si está comprimido en el RGSSAD.
 * Módulo `Audio` incluye más métodos como `bgm_volume`, `bgs_volume`, `se_volume` y `me_volume`.
 
+### Input Module
+
+* La familia de funciones `Input.press?` acepta varias constantes adicionales:
+    - `MOUSELEFT` o `MouseLeft`
+    - `MOUSEMIDDLE` o `MouseMiddle`
+    - `MOUSERIGHT` o `MouseRight`
+* Funciones adicionales:
+    -`mouse_x` y `mouse_y` para preguntar por la posición del puntero del ratón relativo a la pantalla de juego
+    -`dir4?` y `dir8?` para evitarles el uso de 4 u 8 condicionales en fila.
+    -`press_all?` y `trigger_any?` para evitarles el uso de varias condicionales en fila.
+    -`left_click?`, `middle_click?` y `right_click?`
+* Se pueden usar :símbolos en todas las versiones de RGSS.
+
 ## Lista de Arreglos de Errores en HiddenChest
 
 * Depurado error por el que el windowskin desaparecía para todas las ventanas existentes en la misma escena o menú si solo una de ellas era desechada con dispose.
 * Arreglado error por el que se notaba que las teclas ALT, CTRL y SHIFT se revisaban continuamente de forma indeseable y sin motivo.
-* Arreglado el error del Reinicio del F12 de forma permanente
+* Arreglado el error del Reinicio del F12 de forma ¡permanente!
 * Arreglada la clase Sprite al prevenir que fijara un bitmap no existente o nil como si fuera el bitmap original cuando nunca había sido modificado para ver efectos de tonos de gris o sepia.

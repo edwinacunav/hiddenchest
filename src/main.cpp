@@ -42,6 +42,8 @@
 #endif
 #include "icon.png.xxd"
 
+int initial_section = 0;
+
 static void
 rgssThreadError(RGSSThreadData *rtData, const std::string &msg)
 {
@@ -127,9 +129,8 @@ static void printRgssVersion(int ver)
   Debug() << "HiddenChest Engine Version:" << HIDDENVERSION;
   Debug() << "Release Date:" << HIDDENDATE;
   const char *const makers[] = { "HiddenChest", "XP", "VX", "VX Ace" };
-  char buf[128];
-  snprintf(buf, sizeof(buf), "Using RGSS Version %d (%s)", ver, makers[ver]);
-  Debug() << buf;
+  //char buf[128];snprintf(buf, sizeof(buf),  %d (%s)", ver, makers[ver]);
+  Debug() << "Using RGSS Version" << ver << "(" << makers[ver] << ")";
 }
 
 static void showInitError(const std::string &msg)

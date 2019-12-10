@@ -224,6 +224,19 @@ static VALUE bitmap_turn_sepia(VALUE self)
   return self;
 }
 
+static VALUE bitmap_pixelate(VALUE self)
+{
+  Bitmap *b = getPrivateData<Bitmap>(self);
+  GUARD_EXC( b->pixelate(); );
+  return self;
+}
+
+static VALUE bitmap_invert(VALUE self)
+{
+  Bitmap *b = getPrivateData<Bitmap>(self);
+  GUARD_EXC( b->invert_colors(); );
+  return self;
+}
 
 RB_METHOD(bitmapDrawText)
 {
@@ -457,8 +470,10 @@ void bitmapBindingInit()
   rb_define_method(klass, "get_pixel", RMF(bitmapGetPixel), 2);
   rb_define_method(klass, "set_pixel", RMF(bitmapSetPixel), -1);
   rb_define_method(klass, "hue_change", RMF(bitmapHueChange), 1);
-  rb_define_method(klass, "gray_out", RMF(bitmap_gray_out), 1),
-  rb_define_method(klass, "turn_sepia", RMF(bitmap_turn_sepia), 1);
+  rb_define_method(klass, "gray_out", RMF(bitmap_gray_out), 0),
+  rb_define_method(klass, "turn_sepia", RMF(bitmap_turn_sepia), 0);
+  rb_define_method(klass, "pixelate", RMF(bitmap_pixelate), 0);
+  rb_define_method(klass, "invert!", RMF(bitmap_invert), 0);
   rb_define_method(klass, "draw_text", RMF(bitmapDrawText), -1);
   rb_define_method(klass, "text_size", RMF(bitmapTextSize), -1);
   rb_define_method(klass, "text_width", RMF(bitmapTextWidth), -1);

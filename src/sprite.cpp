@@ -444,6 +444,16 @@ void Sprite::turn_sepia()
   p->bitmap->turn_sepia();
 }
 
+void Sprite::invert_colors()
+{
+  p->bitmap->invert_colors();
+}
+
+void Sprite::pixelate()
+{
+  p->bitmap->pixelate();
+}
+
 void Sprite::setX(int value)
 {
   guardDisposed();

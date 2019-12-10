@@ -100,7 +100,7 @@ RB_METHOD(tableGetAt)
   if (x < 0 || x >= t->xSize() ||  y < 0 || y >= t->ySize() ||  z < 0 || z >= t->zSize())
     return Qnil;
   short result = t->get(x, y, z);
-  return INT2FIX(result);
+  return RB_INT2FIX(result);
 }
 
 RB_METHOD(tableSetAt)

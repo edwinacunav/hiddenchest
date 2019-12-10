@@ -28,7 +28,7 @@
 #include "sceneelement-binding.h"
 #include "disposable-binding.h"
 #include "binding-util.h"
-#include "hcsymbol.h"
+#include "hcextras.h"
 
 DEF_TYPE(Window);
 

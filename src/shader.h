@@ -67,10 +67,8 @@ public:
 
     friend class ShaderBase;
   };
-
   /* Stack is not used (only 'set()') */
   GLProjMat projMat;
-
   /* Retrieves the current glState.viewport size,
    * calculates the corresponding ortho projection matrix
    * and loads it into the shaders uniform */
@@ -216,6 +214,22 @@ private:
   GLint u_red, u_green, u_blue;
 };
 
+class PixelateShader : public ShaderBase
+{
+public:
+  PixelateShader();
+};
+
+class TexCombShader : public ShaderBase
+{
+public:
+  TexCombShader();
+  void set_light_dir(Vec3 dir);
+
+private:
+  GLint u_light_dir;
+};
+
 /*class OilShader : public ShaderBase
 {
 public:
@@ -324,6 +338,8 @@ struct ShaderSet
   GrayShader gray;
   SepiaShader sepia;
   BasicColorShader basic_color;
+  PixelateShader pixel;
+  TexCombShader tex_comb;
   //OilShader oil;
   TilemapShader tilemap;
   FlashMapShader flashMap;

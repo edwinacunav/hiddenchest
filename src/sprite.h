@@ -70,6 +70,8 @@ public:
   void setBitmap(Bitmap*);
   void gray_out();
   void turn_sepia();
+  void invert_colors();
+  void pixelate();
   Rect& getSrcRect() const;
   void setSrcRect(Rect& rect);
   int getBushOpacity() const;

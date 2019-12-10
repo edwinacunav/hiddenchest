@@ -19,7 +19,7 @@
 ** along with mkxp.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "hcsymbol.h"
+#include "hcextras.h"
 #include "font.h"
 #include "binding-util.h"
 #include "binding-types.h"
@@ -27,8 +27,7 @@
 #include "sharedstate.h"
 #include <string.h>
 
-static void
-collectStrings(VALUE obj, std::vector<std::string> &out)
+static void collectStrings(VALUE obj, std::vector<std::string> &out)
 {
   if (RB_TYPE_P(obj, RUBY_T_STRING)) {
     out.push_back(RSTRING_PTR(obj));
@@ -61,7 +60,7 @@ RB_METHOD(fontInitialize)
   int size = 0;
   rb_get_args(argc, argv, "|oi", &namesObj, &size RB_ARG_END);
   Font *f;
-  if (NIL_P(namesObj)) {
+  if (RB_NIL_P(namesObj)) {
     namesObj = rb_iv_get(rb_obj_class(self), "default_name");
     f = new Font(0, size);
   } else {
@@ -76,8 +75,8 @@ RB_METHOD(fontInitialize)
   setPrivateData(self, f);
   // Wrap property objects
   f->initDynAttribs();
-  wrapProperty(self, &f->getColor(), "color", ColorType);
-  wrapProperty(self, &f->getOutColor(), "out_color", ColorType);
+  wrapProperty(self, &f->get_color(), "color", ColorType);
+  wrapProperty(self, &f->get_out_color(), "out_color", ColorType);
   return self;
 }
 
@@ -91,8 +90,8 @@ RB_METHOD(fontInitializeCopy)
   setPrivateData(self, f);
   // Wrap property objects
   f->initDynAttribs();
-  wrapProperty(self, &f->getColor(), "color", ColorType);
-  wrapProperty(self, &f->getOutColor(), "out_color", ColorType);
+  wrapProperty(self, &f->get_color(), "color", ColorType);
+  wrapProperty(self, &f->get_out_color(), "out_color", ColorType);
   return self;
 }
 
@@ -115,8 +114,35 @@ static VALUE FontSetName(int argc, VALUE* argv, VALUE self)
 template<class C>
 static void checkDisposed(VALUE) {}
 
-DEF_PROP_OBJ_VAL(Font, Color, Color,    "color")
-DEF_PROP_OBJ_VAL(Font, Color, OutColor, "out_color")
+static VALUE font_get_color(VALUE self)
+{
+  checkDisposed<Font>(self);
+  return rb_iv_get(self, "color");
+}
+
+static VALUE font_get_out_color(VALUE self)
+{
+  checkDisposed<Font>(self);
+  return rb_iv_get(self, "out_color");
+}
+
+static VALUE font_set_color(VALUE self, VALUE color)
+{
+  Font *f = (Font*)RTYPEDDATA(self)->data;
+  if (!f || RB_NIL_P(color)) return Qnil;
+  Color *c = (Color*)RTYPEDDATA(color)->data;
+  GUARD_EXC( f->set_color(*c); )
+  return color;
+}
+
+static VALUE font_set_out_color(VALUE self, VALUE out)
+{
+  Font *f = (Font*)RTYPEDDATA(self)->data;
+  if (!f || RB_NIL_P(out)) return Qnil;
+  Color *c = (Color*)RTYPEDDATA(out)->data;
+  GUARD_EXC( f->set_out_color(*c); )
+  return out;
+}
 
 static VALUE FontGetSize(VALUE self)
 {
@@ -368,7 +394,10 @@ void fontBindingInit()
   rb_define_method(klass, "strikethrough=", RMF(FontSetStrikethrough), 1);
   rb_define_method(klass, "strikethru", RMF(FontGetStrikethrough), 0);
   rb_define_method(klass, "strikethru=", RMF(FontSetStrikethrough), 1);
-  INIT_PROP_BIND(Font, OutColor, "out_color");
-  INIT_PROP_BIND(Font, OutColor, "outline_color");
-  INIT_PROP_BIND(Font, Color, "color");
+  rb_define_method(klass, "color", RMF(font_get_color), 0);
+  rb_define_method(klass, "color=", RMF(font_set_color), 1);
+  rb_define_method(klass, "out_color", RMF(font_get_out_color), 0);
+  rb_define_method(klass, "out_color=", RMF(font_set_out_color), 1);
+  rb_define_method(klass, "outline_color", RMF(font_get_out_color), 0);
+  rb_define_method(klass, "outline_color=", RMF(font_set_out_color), 1);
 }

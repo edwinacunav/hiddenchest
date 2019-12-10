@@ -25,6 +25,13 @@
 #include "util.h"
 #include <ruby/encoding.h>
 #include <ruby/intern.h>
+#include "hcextras.h"
+
+void safe_mkdir(VALUE dir)
+{
+  if (!rb_funcall(rb_cDir, rb_intern("exist?"), 1, dir))
+    rb_funcall(rb_cDir, rb_intern("mkdir"), 1, dir);
+}
 
 static void fileIntFreeInstance(void *inst)
 {
@@ -96,7 +103,7 @@ RB_METHOD(fileIntBinmode)
 static VALUE fileInt_exist(VALUE self, VALUE name)
 {
   const char* fn = StringValueCStr(name);
-  return shState->fileSystem().exists(fn) ? Qtrue : Qfalse;
+  return shState->fileSystem().exists_ext(fn) ? Qtrue : Qfalse;
 }
 
 VALUE kernelLoadDataInt(const char *filename, bool rubyExc)

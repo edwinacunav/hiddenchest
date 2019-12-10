@@ -94,10 +94,8 @@ int rb_get_args(int argc, VALUE *argv, const char *format, ...)
   bool opt = false;
   int argI = 0;
   va_start(ap, format);
-  while ((c = *format++))
-  {
-    switch (c)
-    {
+  while ((c = *format++)) {
+    switch (c) {
     case '|' :
       break;
     default:
@@ -107,8 +105,7 @@ int rb_get_args(int argc, VALUE *argv, const char *format, ...)
       break;
     }
     if (argI >= argc) break;
-    switch (c)
-    {
+    switch (c) {
     case 'o' :
     {
       if (argI >= argc) break;

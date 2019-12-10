@@ -85,6 +85,7 @@ struct Config
   // Game INI contents
   struct {
     std::string scripts;
+    std::string version;
     std::string title;
   } game;
   // Internal

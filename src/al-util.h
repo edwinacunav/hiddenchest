@@ -32,91 +32,87 @@ namespace AL
 #define DEF_AL_ID \
 struct ID \
 { \
-	ALuint al; \
-	explicit ID(ALuint al = 0)  \
-	    : al(al)  \
-	{}  \
-	ID &operator=(const ID &o)  \
-	{  \
-		al = o.al;  \
-		return *this; \
-	}  \
-	bool operator==(const ID &o) const  \
-	{  \
-		return al == o.al;  \
-	}  \
+  ALuint al; \
+  explicit ID(ALuint al = 0) : al(al)  \
+  {}  \
+  ID &operator=(const ID &o)  \
+  {  \
+    al = o.al;  \
+    return *this; \
+  }  \
+  bool operator==(const ID &o) const  \
+  {  \
+    return al == o.al;  \
+  }  \
 };
 
 namespace Buffer
 {
-	DEF_AL_ID
+  DEF_AL_ID
 
-	inline Buffer::ID gen()
-	{
-		Buffer::ID id;
-		alGenBuffers(1, &id.al);
+  inline Buffer::ID gen()
+  {
+    Buffer::ID id;
+    alGenBuffers(1, &id.al);
+    return id;
+  }
 
-		return id;
-	}
+  inline void del(Buffer::ID id)
+  {
+    alDeleteBuffers(1, &id.al);
+  }
 
-	inline void del(Buffer::ID id)
-	{
-		alDeleteBuffers(1, &id.al);
-	}
+  inline void uploadData(Buffer::ID id, ALenum format, const ALvoid *data, ALsizei size, ALsizei freq)
+  {
+    alBufferData(id.al, format, data, size, freq);
+  }
 
-	inline void uploadData(Buffer::ID id, ALenum format, const ALvoid *data, ALsizei size, ALsizei freq)
-	{
-		alBufferData(id.al, format, data, size, freq);
-	}
+  inline ALint getInteger(Buffer::ID id, ALenum prop)
+  {
+    ALint value;
+    alGetBufferi(id.al, prop, &value);
+    return value;
+  }
 
-	inline ALint getInteger(Buffer::ID id, ALenum prop)
-	{
-		ALint value;
-		alGetBufferi(id.al, prop, &value);
+  inline ALint getSize(Buffer::ID id)
+  {
+    return getInteger(id, AL_SIZE);
+  }
 
-		return value;
-	}
+  inline ALint getBits(Buffer::ID id)
+  {
+    return getInteger(id, AL_BITS);
+  }
 
-	inline ALint getSize(Buffer::ID id)
-	{
-		return getInteger(id, AL_SIZE);
-	}
-
-	inline ALint getBits(Buffer::ID id)
-	{
-		return getInteger(id, AL_BITS);
-	}
-
-	inline ALint getChannels(Buffer::ID id)
-	{
-		return getInteger(id, AL_CHANNELS);
-	}
+  inline ALint getChannels(Buffer::ID id)
+  {
+    return getInteger(id, AL_CHANNELS);
+  }
 }
 
 namespace Source
 {
-	DEF_AL_ID
+  DEF_AL_ID
 
-	inline Source::ID gen()
-	{
-		Source::ID id;
-		alGenSources(1, &id.al);
+  inline Source::ID gen()
+  {
+    Source::ID id;
+    alGenSources(1, &id.al);
+    return id;
+  }
 
-		return id;
-	}
+  inline void del(Source::ID id)
+  {
+    alDeleteSources(1, &id.al);
+  }
 
-	inline void del(Source::ID id)
-	{
-		alDeleteSources(1, &id.al);
-	}
+  inline void attachBuffer(Source::ID id, Buffer::ID buffer)
+  {
+    alSourcei(id.al, AL_BUFFER, buffer.al);
+  }
 
-	inline void attachBuffer(Source::ID id, Buffer::ID buffer)
-	{
-		alSourcei(id.al, AL_BUFFER, buffer.al);
-	}
-
-	inline void detachBuffer(Source::ID id)
-	{
+  inline void detachBuffer(Source::ID id)
+  {
     attachBuffer(id, Buffer::ID(0));
   }
 
@@ -201,35 +197,32 @@ inline uint8_t formatSampleSize(int sdlFormat)
   case AUDIO_S16LSB :
   case AUDIO_S16MSB :
     return 2;
-
-	default :
-		assert(!"Unhandled sample format");
-	}
-
-	return 0;
+  default :
+    assert(!"Unhandled sample format");
+  }
+  return 0;
 }
 
 inline ALenum chooseALFormat(int sampleSize, int channelCount)
 {
-	switch (sampleSize)
-	{
-	case 1 :
-		switch (channelCount)
-		{
-		case 1 : return AL_FORMAT_MONO8;
-		case 2 : return AL_FORMAT_STEREO8;
-		}
-	case 2 :
-		switch (channelCount)
-		{
-		case 1 : return AL_FORMAT_MONO16;
-		case 2 : return AL_FORMAT_STEREO16;
-		}
-	default :
-		assert(!"Unhandled sample size / channel count");
-	}
-
-	return 0;
+  switch (sampleSize)
+  {
+  case 1 :
+    switch (channelCount)
+    {
+    case 1 : return AL_FORMAT_MONO8;
+    case 2 : return AL_FORMAT_STEREO8;
+    }
+  case 2 :
+    switch (channelCount)
+    {
+    case 1 : return AL_FORMAT_MONO16;
+    case 2 : return AL_FORMAT_STEREO16;
+    }
+  default :
+    assert(!"Unhandled sample size / channel count");
+  }
+  return 0;
 }
 
 #define AUDIO_SLEEP 10

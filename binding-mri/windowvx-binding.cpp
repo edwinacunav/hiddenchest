@@ -24,7 +24,7 @@
 #include "viewportelement-binding.h"
 #include "binding-util.h"
 #include "bitmap.h"
-#include "hcsymbol.h"
+#include "hcextras.h"
 
 DEF_TYPE_CUSTOMNAME(WindowVX, "Window");
 

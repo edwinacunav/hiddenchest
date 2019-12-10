@@ -61,7 +61,6 @@ public:
   Font(const Font &other);
   ~Font();
   const Font &operator=(const Font &o);
-
   DECL_ATTR( Size,          int    )
   DECL_ATTR( Bold,          bool   )
   DECL_ATTR( Italic,        bool   )
@@ -78,12 +77,12 @@ public:
   DECL_ATTR_STATIC( DefaultStrikethrough, bool   )
   DECL_ATTR_STATIC( DefaultOutline,       bool   )
   DECL_ATTR_STATIC( DefaultOutColor,      Color& )
-  Color& getColor() const;
-  void setColor(Color& value);
-  void setColor(double r, double g, double b, double a = 255.0);
-  Color& getOutColor() const;
-  void setOutColor(Color& value);
-  void setOutColor(double r, double g, double b, double a = 255.0);
+  Color& get_color() const;
+  void set_color(Color& value);
+  void set_color(double r, double g, double b, double a = 255.0);
+  Color& get_out_color() const;
+  void set_out_color(Color& value);
+  void set_out_color(double r, double g, double b, double a = 255.0);
   /* There is no point in providing getters for these,
    * as the bindings will always return the stored native
    * string/array object anyway. It's impossible to mirror

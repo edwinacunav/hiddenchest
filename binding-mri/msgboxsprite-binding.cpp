@@ -20,7 +20,7 @@
 */
 
 #include "disposable.h"
-#include "hcsymbol.h"
+#include "hcextras.h"
 #include "msgboxsprite.h"
 #include "msgboxsprite-binding.h"
 #include "debugwriter.h"

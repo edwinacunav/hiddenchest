@@ -33,99 +33,83 @@
 #include <SDL_thread.h>
 #include <SDL_timer.h>
 
-ALStream::ALStream(LoopMode loopMode,
-		           const std::string &threadId)
-	: looped(loopMode == Looped),
-	  state(Closed),
-	  source(0),
-	  thread(0),
-	  preemptPause(false),
-      pitch(1.0f)
+ALStream::ALStream(LoopMode loopMode, const std::string &threadId)
+: looped(loopMode == Looped),
+  state(Closed),
+  source(0),
+  thread(0),
+  preemptPause(false),
+  pitch(1.0f)
 {
-	alSrc = AL::Source::gen();
-
-	AL::Source::setVolume(alSrc, 1.0f);
-	AL::Source::setPitch(alSrc, 1.0f);
-	AL::Source::detachBuffer(alSrc);
-
-	for (int i = 0; i < STREAM_BUFS; ++i)
-		alBuf[i] = AL::Buffer::gen();
-
-	pauseMut = SDL_CreateMutex();
-
-	threadName = std::string("al_stream (") + threadId + ")";
+  alSrc = AL::Source::gen();
+  AL::Source::setVolume(alSrc, 1.0f);
+  AL::Source::setPitch(alSrc, 1.0f);
+  AL::Source::detachBuffer(alSrc);
+  for (int i = 0; i < STREAM_BUFS; ++i)
+    alBuf[i] = AL::Buffer::gen();
+  pauseMut = SDL_CreateMutex();
+  threadName = std::string("al_stream (") + threadId + ")";
 }
 
 ALStream::~ALStream()
 {
-	close();
-
-	AL::Source::clearQueue(alSrc);
-	AL::Source::del(alSrc);
-
-	for (int i = 0; i < STREAM_BUFS; ++i)
-		AL::Buffer::del(alBuf[i]);
-
-	SDL_DestroyMutex(pauseMut);
+  close();
+  AL::Source::clearQueue(alSrc);
+  AL::Source::del(alSrc);
+  for (int i = 0; i < STREAM_BUFS; ++i)
+    AL::Buffer::del(alBuf[i]);
+  SDL_DestroyMutex(pauseMut);
 }
 
 void ALStream::close()
 {
-	checkStopped();
-
-	switch (state)
-	{
-	case Playing:
-	case Paused:
-		stopStream();
-	case Stopped:
-		closeSource();
-		state = Closed;
-	case Closed:
-		return;
-	}
+  checkStopped();
+  switch (state) {
+  case Playing:
+  case Paused:
+    stopStream();
+  case Stopped:
+    closeSource();
+    state = Closed;
+  case Closed:
+    return;
+  }
 }
 
 void ALStream::open(const std::string &filename)
 {
-	checkStopped();
-
-	switch (state)
-	{
-	case Playing:
-	case Paused:
-		stopStream();
-	case Stopped:
-		closeSource();
-	case Closed:
-		openSource(filename);
-	}
-
-	state = Stopped;
+  checkStopped();
+  switch (state) {
+  case Playing:
+  case Paused:
+    stopStream();
+  case Stopped:
+    closeSource();
+  case Closed:
+    openSource(filename);
+  }
+  state = Stopped;
 }
 
 void ALStream::stop()
 {
-	checkStopped();
-
-	switch (state)
-	{
-	case Closed:
-	case Stopped:
-		return;
-	case Playing:
-	case Paused:
-		stopStream();
-	}
-	state = Stopped;
+  checkStopped();
+  switch (state) {
+  case Closed:
+  case Stopped:
+    return;
+  case Playing:
+  case Paused:
+    stopStream();
+  }
+  state = Stopped;
 }
 
 void ALStream::play(float offset)
 {
   if (!source) return;
   checkStopped();
-  switch (state)
-  {
+  switch (state) {
   case Closed:
   case Playing:
     return;
@@ -141,8 +125,7 @@ void ALStream::play(float offset)
 void ALStream::pause()
 {
   checkStopped();
-  switch (state)
-  {
+  switch (state) {
   case Closed:
   case Stopped:
   case Paused:
@@ -159,9 +142,8 @@ void ALStream::setVolume(float value)
 }
 
 void ALStream::setPitch(float value)
-{
-  /* If the source supports setting pitch natively,
-   * we don't have to do it via OpenAL */
+{/* If the source supports setting pitch natively,
+  * we don't have to do it via OpenAL */
   if (source && source->setPitch(value)) value = 1.0f;
   AL::Source::setPitch(alSrc, value);
 }
@@ -310,9 +292,7 @@ void ALStream::streamData()
   bool firstBuffer = true;
   ALDataSource::Status status;
   if (threadTermReq) return;
-  if (needsRewind) {
-    source->seekToOffset(startOffset);
-  }
+  if (needsRewind) source->seekToOffset(startOffset);
   for (int i = 0; i < STREAM_BUFS; ++i) {
     if (threadTermReq) return;
     AL::Buffer::ID buf = alBuf[i];
@@ -339,8 +319,7 @@ void ALStream::streamData()
       // If something went wrong, try again later
       if (buf == AL::Buffer::ID(0)) break;
       if (buf == lastBuf) {
-      /* Reset the processed sample count so
-       * querying the playback offset returns 0.0 again */
+// Reset processed sample count so querying playback offset returns 0.0 again
         procFrames = source->loopStartFrames();
         lastBuf = AL::Buffer::ID(0);
       } else {
@@ -358,8 +337,7 @@ void ALStream::streamData()
         return;
       }
       AL::Source::queueBuffer(alSrc, buf);
-      /* In case of buffer underrun,
-       * start playing again */
+      // In case of buffer underrun, start playing again
       if (AL::Source::getState(alSrc) == AL_STOPPED)
         AL::Source::play(alSrc);
       /* If this was the last buffer before the data

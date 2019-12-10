@@ -71,9 +71,11 @@ public:
   bool isAlphaPixel(int x, int y) const;
   Color getPixel(int x, int y) const;
   void setPixel(int x, int y, const Color &color);
+  void invert_colors();
   void hueChange(int hue);
   void gray_out();
   void turn_sepia();
+  void pixelate();
   enum TextAlign
   {
     Left = 0,

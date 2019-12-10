@@ -20,7 +20,7 @@
 ** along with mkxp.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "hcsymbol.h"
+#include "hcextras.h"
 #include "graphics.h"
 #include "sharedstate.h"
 #include "binding-util.h"
@@ -162,6 +162,8 @@ static VALUE graphics_snap_to_color_bitmap(VALUE self, VALUE color)
 static VALUE graphics_save_screenshot(VALUE self)
 {
   bool result = false;
+  VALUE set = rb_const_get(rb_cObject, rb_intern("Settings"));
+  safe_mkdir(rb_iv_get(set, "@snapshot_dir"));
   GUARD_EXC( result = shState->graphics().save_screenshot(); );
   return result;
 }

@@ -1,9 +1,9 @@
 #define SET_RES_OPTION 1
-
 #define WIDTH_MAX 1920
 #define HEIGHT_MAX 1080
 
 #if SET_RES_OPTION==1
+
 #define TILE_WIDTH_MAX 26
 #define TILE_HEIGHT_MAX 20
 #define START_WIDTH 800
@@ -25,19 +25,12 @@
 
 #elif SET_RES_OPTION==4
 
-#define TILE_WIDTH_MAX 41
-#define TILE_HEIGHT_MAX 26
-#define START_WIDTH 1280
-#define START_HEIGHT 800
-
-#elif SET_RES_OPTION==5
-
 #define TILE_WIDTH_MAX 53
 #define TILE_HEIGHT_MAX 33
 #define START_WIDTH 1680
 #define START_HEIGHT 1050
 
-#elif SET_RES_OPTION==6
+#elif SET_RES_OPTION==5
 
 #define TILE_WIDTH_MAX 61
 #define TILE_HEIGHT_MAX 34

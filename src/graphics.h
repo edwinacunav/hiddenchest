@@ -49,6 +49,8 @@ public:
   void setFrameCount(int);
   void setBrightness(int);
   void set_screenshot_format(int);
+  void set_screenshot_dir(const std::string);
+  void set_screenshot_fn(const std::string);
   void wait(int duration);
   void fadeout(int duration);
   void fadein(int duration);
@@ -84,6 +86,7 @@ public:
 
 private:
   int screenshot_format;
+  std::string screenshot_dir, screenshot_fn;
   Graphics(RGSSThreadData *data);
   ~Graphics();
   void addDisposable(Disposable *);

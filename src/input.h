@@ -77,7 +77,7 @@ public:
   /* Non-standard extensions */
   int mouseX();
   int mouseY();
-  bool isAnyChar();
+  bool is_any_char();
   char* string();
   void enableMode(bool state);
 

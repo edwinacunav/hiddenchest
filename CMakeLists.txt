@@ -20,14 +20,17 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 IF("${CMAKE_SYSTEM}" MATCHES "Linux")
   SET(LINUX ON)
   set(OS_STRING "linux")
+  set(OS_REAL_STRING "Linux")
 ENDIF()
 
 if (WIN32)
   set(OS_STRING "windows")
+  set(OS_REAL_STRING "Windows")
 endif()
 
 if (APPLE)
   set(OS_STRING "mac")
+  set(OS_REAL_STRING "MacOSX")
 endif()
 
 IF(WORKDIR_CURRENT)
@@ -305,6 +308,7 @@ if (BINDING STREQUAL "MRI")
     binding-mri/viewportelement-binding.h
     binding-mri/flashable-binding.h
     binding-mri/msgboxsprite-binding.h
+    binding-mri/hcextras.h
   )
   set(BINDING_SOURCE
     binding-mri/binding-mri.cpp

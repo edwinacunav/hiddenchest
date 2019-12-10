@@ -28,7 +28,7 @@
 #include "viewportelement-binding.h"
 #include "binding-util.h"
 #include "binding-types.h"
-#include "hcsymbol.h"
+#include "hcextras.h"
 
 rb_data_type_t SpriteType = { "Sprite",
   { 0, freeInstance<Sprite>, 0, { 0, 0 } }, 0, 0, 0 };
@@ -56,7 +56,6 @@ static VALUE SpriteSetBitmap(VALUE self, VALUE bit)
   if ( bit == Qnil ) {
     b = 0;
   } else {
-    bit = rb_obj_dup(bit);
     b = getPrivateDataCheck<Bitmap>(bit, BitmapType);
   }
   GUARD_EXC( s->setBitmap(b); )

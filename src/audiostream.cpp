@@ -60,19 +60,19 @@ AudioStream::~AudioStream()
 }
 
 void AudioStream::play(const std::string &filename,
-                       int volume, int pitch, float offset)
+  int volume, int pitch, float offset)
 {
   finiFadeOutInt();
   lockStream();
   float _volume = clamp<int>(volume, 0, 100) / 100.0f;
-  float _pitch  = clamp<int>(pitch, 50, 150) / 100.0f;
+  float _pitch  = clamp<int>(pitch, 50, 200) / 100.0f;
   ALStream::State sState = stream.queryState();
   /* If all parameters match the current ones and we're
    * still playing, there's nothing to do */
   if (filename == current.filename
-  &&  _volume  == current.volume
-  &&  _pitch   == current.pitch
-  &&  (sState == ALStream::Playing || sState == ALStream::Paused))
+  && _volume  == current.volume
+  && _pitch   == current.pitch
+  && (sState == ALStream::Playing || sState == ALStream::Paused))
   {
     unlockStream();
     return;
@@ -80,8 +80,8 @@ void AudioStream::play(const std::string &filename,
   /* If all parameters except volume match the current ones,
    * we update the volume and continue streaming */
   if (filename == current.filename
-  &&  _pitch   == current.pitch
-  &&  (sState == ALStream::Playing || sState == ALStream::Paused))
+  && _pitch   == current.pitch
+  && (sState == ALStream::Playing || sState == ALStream::Paused))
   {
     setVolume(Base, _volume);
     current.volume = _volume;
@@ -113,8 +113,8 @@ void AudioStream::play(const std::string &filename,
   setVolume(Base, _volume);
   stream.setPitch(_pitch);
   if (offset > 0) {
-      setVolume(FadeIn, 0);
-      startFadeIn();
+    setVolume(FadeIn, 0);
+    startFadeIn();
   }
   current.filename = filename;
   current.volume = _volume;
@@ -201,7 +201,7 @@ void AudioStream::updateVolume()
 {
   float vol = GLOBAL_VOLUME;
   for (size_t i = 0; i < VolumeTypeCount; ++i)
-      vol *= volumes[i];
+    vol *= volumes[i];
   stream.setVolume(vol);
 }
 
@@ -232,67 +232,42 @@ void AudioStream::startFadeIn()
 
 void AudioStream::fadeOutThread()
 {
-  while (true)
-  {
-    /* Just immediately terminate on request */
-    if (fade.reqTerm) break;
-    lockStream();
-    uint32_t curDur = SDL_GetTicks() - fade.startTicks;
-    float resVol = 1.0f - (curDur*fade.msStep);
-      ALStream::State state = stream.queryState();
-      if (state != ALStream::Playing
-      || resVol < 0
-      || fade.reqFini)
-      {
-          if (state != ALStream::Paused)
-              stream.stop();
-			setVolume(FadeOut, 1.0f);
-			unlockStream();
-
-			break;
-		}
-
-		setVolume(FadeOut, resVol);
-
-		unlockStream();
-
-		SDL_Delay(AUDIO_SLEEP);
-	}
-
-	fade.active.clear();
+  while (true) {// Just immediately terminate on request
+  if (fade.reqTerm) break;
+  lockStream();
+  uint32_t curDur = SDL_GetTicks() - fade.startTicks;
+  float resVol = 1.0f - (curDur*fade.msStep);
+    ALStream::State state = stream.queryState();
+    if (state != ALStream::Playing || resVol < 0 || fade.reqFini) {
+      if (state != ALStream::Paused) stream.stop();
+      setVolume(FadeOut, 1.0f);
+      unlockStream();
+      break;
+    }
+    setVolume(FadeOut, resVol);
+    unlockStream();
+    SDL_Delay(AUDIO_SLEEP);
+  }
+  fade.active.clear();
 }
 
 void AudioStream::fadeInThread()
 {
-	while (true)
-	{
-		if (fadeIn.rqTerm)
-			break;
-
-		lockStream();
-
-		/* Fade in duration is always 1 second */
-		uint32_t cur = SDL_GetTicks() - fadeIn.startTicks;
-		float prog = cur / 1000.0f;
-
-		ALStream::State state = stream.queryState();
-
-		if (state != ALStream::Playing
-		||  prog >= 1.0f
-		||  fadeIn.rqFini)
-		{
-			setVolume(FadeIn, 1.0f);
-			unlockStream();
-
-			break;
-		}
-
-		/* Quadratic increase (not really the same as
-		 * in RMVXA, but close enough) */
-		setVolume(FadeIn, prog*prog);
-
-		unlockStream();
-
-		SDL_Delay(AUDIO_SLEEP);
-	}
+  while (true) {
+    if (fadeIn.rqTerm) break;
+    lockStream();
+    /* Fade in duration is always 1 second */
+    uint32_t cur = SDL_GetTicks() - fadeIn.startTicks;
+    float prog = cur / 1000.0f;
+    ALStream::State state = stream.queryState();
+    if (state != ALStream::Playing ||  prog >= 1.0f ||  fadeIn.rqFini) {
+      setVolume(FadeIn, 1.0f);
+      unlockStream();
+      break;
+    }
+  // Quadratic increase (not really the same as in RMVXA, but close enough)
+    setVolume(FadeIn, prog*prog);
+    unlockStream();
+    SDL_Delay(AUDIO_SLEEP);
+  }
 }

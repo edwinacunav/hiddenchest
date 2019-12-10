@@ -19,7 +19,7 @@
 ** along with mkxp.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "hcsymbol.h"
+#include "hcextras.h"
 #include "etc.h"
 #include "binding-util.h"
 #include "serializable-binding.h"

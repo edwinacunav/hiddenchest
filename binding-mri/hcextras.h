@@ -1,5 +1,5 @@
 /*
-** hcsymbol.h
+** hcextras.h
 **
 ** This file is part of HiddenChest.
 **
@@ -19,8 +19,8 @@
 ** along with HiddenChest.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef HCSYMBOL_H
-#define HCSYMBOL_H
+#ifndef HCEXTRAS_H
+#define HCEXTRAS_H
 
 #include <ruby.h>
 
@@ -33,6 +33,8 @@ static VALUE hc_sym2(VALUE str)
 {
   return rb_id2sym(rb_intern_str(str));
 }
+
+void safe_mkdir(VALUE dir);
 
 #define RMF(func) ((VALUE (*)(ANYARGS))(func))
 

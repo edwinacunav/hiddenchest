@@ -25,7 +25,7 @@
 #include "exception.h"
 #include "binding-util.h"
 #include "util.h"
-#include "hcsymbol.h"
+#include "hcextras.h"
 
 static VALUE inputUpdate(VALUE self)
 {

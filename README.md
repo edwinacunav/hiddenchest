@@ -175,9 +175,6 @@ To alleviate possible porting of heavily Win32API reliant scripts, we have added
 * `Window#set_xy(newx, newy)` lets you assign both Carthesian coordinates at the same time.
 * Assign a viewport to any RGSS1 window by using `Window#viewport = some_viewport`
 * They now support additional keys like PrintScreen, Return or Enter or LeftShift or RightAlt or NumPadDivide * or KeyH or KeyM or N1 through N0 series of number keys.
-* The `Input.press?` family of functions accepts three additional button constants: `::MOUSELEFT`, `::MOUSEMIDDLE` and `::MOUSERIGHT` for the respective mouse buttons. But you can also type them as `::MouseLeft`, `::MouseMiddle` and `::MouseRight`.
-* The `Input` module has four additional functions, `mouse_x` and `mouse_y` to query the mouse pointer position relative to the game screen, and `dir4?` and `dir8?` to prevent you from using 4 or even 8 conditional statements in a row.
-* Now the `Input` module offers you some new methods: `left_click?` `middle_click?` and `right_click?`.
 * The `Bitmap`, `Sprite` and `Window` classes now support mouse clicks! Well, they indirectly do it... You got to set the `@area` array with every single x, y, width and height dimensions first. Usually you do that in the `Window_Selectable` and its child classes refresh method. The following script calls might be used in scene scripts:
     - `Bitmap#alpha_pixel?(x, y)` - It's not just for clicks!
     - `Sprite#mouse_above?` alias `Sprite#mouse_inside?`
@@ -195,6 +192,9 @@ To alleviate possible porting of heavily Win32API reliant scripts, we have added
     - `image_format` and `image_format=` let you check out or assign a preferred image format for your screenshots. Available options are:
          - :jpg or 0 for JPG format - default option
          - :png or 1 for PNG format
+    - `snapshot_dir` and `snapshot_filename` define the directory and base name of your screenshots.
+    - `save_dir` and `save_filename` define the directory and base name of your saved games.
+    - `auto_create_dirs` lets you create directories whenever you do not want to use any of the default paths.
 * The `Backdrop` module, available on all RGSS versions, lets you create a temporary snapshot of a previous map to use it in any scene class at will. Use any of the following calls to create the bitmap you will need in your (custom) scene. Later you can assign its bitmap to an instance variable of your choice by calling its `bitmap` or `bitmap_dup` method. After freezing the scene with `Graphics.freeze`, call `clear_bitmap` to dispose it properly or dispose your sprite's bitmap directly in case you want to keep it for later use and you previously used the `bitmap_dup` method.
     - `keep_bitmap` - Your map without any special effects.
     - `gray_bitmap` - Grayish version of your map.
@@ -215,9 +215,22 @@ To alleviate possible porting of heavily Win32API reliant scripts, we have added
 * `FileInt` class allows you to ask if a file `exist?` even if it is compressed.
 * `Audio` module includes more methods like `bgm_volume`, `bgs_volume`, `se_volume` and `me_volume`.
 
+### Input Module
+
+* The `press?` family of functions accepts three additional button constants:
+    - `MOUSELEFT` or `MouseLeft`
+    - `MOUSEMIDDLE` or `MouseMiddle`
+    - `MOUSERIGHT` or `MouseRight`
+* Additional functions:
+    -`mouse_x` and `mouse_y` to query the mouse pointer position relative to the game screen.
+    -`dir4?` and `dir8?` to prevent you from using 4 or even 8 conditional statements in a row.
+    -`press_all?` and `trigger_any?` to save you the effort of typing many conditional statements in a row.
+    -`left_click?`, `middle_click?` and `right_click?`
+* You can now use :symbols in any RGSS version.
+
 ## List of Bug Fixes for HiddenChest
 
 * Fixed error where the windowskin would disappear for all existing windows in the same scene if just one of them was ever disposed.
 * Fixed a bug where you would notice that ALT, CTRL and SHIFT buttons would be polled continually in an undesired fashion for no good reason.
-* Fixed the F12 Reset Bug permanently!
+* Fixed the F12 Reset Bug permanently!!
 * Fixed Sprite class by preventing it from setting a non existing bitmap as the original one whenever it never had been grayed out or used the sepia color effect.

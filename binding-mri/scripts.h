@@ -1,5 +1,5 @@
 /*
-** hcsymbol.h
+** scripts.h
 **
 ** This file is part of HiddenChest.
 **
@@ -40,7 +40,7 @@ static VALUE find_main_script_index(VALUE self)
       break;
     }
   }
-  if (pos > max) pos = max - 1;
+  if (pos >= max) pos = max - 1;
   return RB_INT2FIX(pos);
 }
 

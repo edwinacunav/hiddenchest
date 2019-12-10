@@ -279,6 +279,7 @@ void Config::readGameINI()
   po::options_description podesc;
   podesc.add_options()
     ("Game.Title", po::value<std::string>())
+    ("Game.Version", po::value<std::string>())
     ("Game.Scripts", po::value<std::string>())
     ;
   po::variables_map vm;
@@ -300,8 +301,10 @@ void Config::readGameINI()
     Debug() << "FAILED to open" << iniFilename;
   }
   GUARD_ALL( game.title = vm["Game.Title"].as<std::string>(); );
+  GUARD_ALL( game.version = vm["Game.Version"].as<std::string>(); );
   GUARD_ALL( game.scripts = vm["Game.Scripts"].as<std::string>(); );
   strReplace(game.scripts, '\\', '/');
+  if (game.version.size() == 0) game.version = "1.0.0";
 #ifdef INI_ENCODING
   // Can add more later
   const char *languages[] =

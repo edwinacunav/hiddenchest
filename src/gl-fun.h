@@ -1,22 +1,23 @@
 /*
 ** gl-fun.h
 **
-** This file is part of mkxp.
+** This file is part of HiddenChest and mkxp.
 **
 ** Copyright (C) 2014 Jonas Kulla <Nyocurio@gmail.com>
+** 2019 Extended by Kyonides Arkanthes <kyonides@gmail.com>
 **
-** mkxp is free software: you can redistribute it and/or modify
+** HiddenChest is free software: you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
 ** the Free Software Foundation, either version 2 of the License, or
 ** (at your option) any later version.
 **
-** mkxp is distributed in the hope that it will be useful,
+** HiddenChest is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
 ** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ** GNU General Public License for more details.
 **
 ** You should have received a copy of the GNU General Public License
-** along with mkxp.  If not, see <http://www.gnu.org/licenses/>.
+** along with HiddenChest. If not, see <http://www.gnu.org/licenses/>.
 */
 
 #ifndef GLFUN_H
@@ -88,6 +89,7 @@ typedef void (APIENTRYP _PFNGLGETPROGRAMINFOLOGPROC) (GLuint program, GLsizei bu
 typedef GLint (APIENTRYP _PFNGLGETUNIFORMLOCATIONPROC) (GLuint program, const GLchar* name);
 typedef void (APIENTRYP _PFNGLUNIFORM1FPROC) (GLint location, GLfloat v0);
 typedef void (APIENTRYP _PFNGLUNIFORM2FPROC) (GLint location, GLfloat v0, GLfloat v1);
+typedef void (APIENTRYP _PFNGLUNIFORM3FPROC) (GLint location, GLfloat v0, GLfloat v1, GLfloat v2);
 typedef void (APIENTRYP _PFNGLUNIFORM4FPROC) (GLint location, GLfloat v0, GLfloat v1, GLfloat v2, GLfloat v3);
 typedef void (APIENTRYP _PFNGLUNIFORM1IPROC) (GLint location, GLint v0);
 typedef void (APIENTRYP _PFNGLUNIFORMMATRIX4FVPROC) (GLint location, GLsizei count, GLboolean transpose, const GLfloat* value);
@@ -172,6 +174,7 @@ typedef void (APIENTRYP _PFNGLRELEASESHADERCOMPILERPROC) (void);
   GL_FUN(GetUniformLocation, _PFNGLGETUNIFORMLOCATIONPROC) \
   GL_FUN(Uniform1f, _PFNGLUNIFORM1FPROC) \
   GL_FUN(Uniform2f, _PFNGLUNIFORM2FPROC) \
+  GL_FUN(Uniform3f, _PFNGLUNIFORM3FPROC) \
   GL_FUN(Uniform4f, _PFNGLUNIFORM4FPROC) \
   GL_FUN(Uniform1i, _PFNGLUNIFORM1IPROC) \
   GL_FUN(UniformMatrix4fv, _PFNGLUNIFORMMATRIX4FVPROC) \

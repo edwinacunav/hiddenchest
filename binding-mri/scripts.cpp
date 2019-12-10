@@ -6,7 +6,7 @@
 ** Copyright (C) 2018-2019 Kyonides-Arkanthes
 */
 
-#include "hcsymbol.h"
+#include "hcextras.h"
 #include "scripts.h"
 
 #define CRMF(func) ((int (*)(ANYARGS))(func))

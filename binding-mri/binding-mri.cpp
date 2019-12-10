@@ -133,6 +133,7 @@ static void mriBindingInit()
   rb_define_module_function(mod, "mouse_in_window", RUBY_METHOD_FUNC(HCMouseInWindow), 0);
   VALUE os = rb_define_module("OS");
   rb_define_const(os, "NAME", rb_str_new_cstr(OS_STRING));
+  rb_define_const(os, "REAL_NAME", rb_str_new_cstr(OS_REAL_STRING));
   Init_terms_backdrop();
   if (rgssVer == 1) {
     rb_eval_string(module_rpg1);
@@ -153,6 +154,11 @@ static void mriBindingInit()
     rb_gv_set("TEST", debug);
   }
   rb_gv_set("BTEST", shState->config().editor.battleTest ? Qtrue : Qfalse);
+  VALUE game = rb_define_module("Game");
+  const char* title = shState->config().game.title.c_str();
+  const char* version = shState->config().game.version.c_str();
+  rb_define_const(game, "TITLE", rb_str_new_cstr(title));
+  rb_define_const(game, "VERSION", rb_str_new_cstr(version));
 }
 
 static void showMsg(const std::string &msg)

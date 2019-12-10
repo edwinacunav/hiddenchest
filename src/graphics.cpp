@@ -47,14 +47,6 @@
 #include <iostream>
 // Increased Screen Resolution for RGSS1
 #include "resolution.h"
-#if __cplusplus < 201703L // If the version of C++ is less than 17
-#include <experimental/filesystem>
-  // It was still in the experimental:: namespace
-  namespace fs = std::experimental::filesystem;
-#else
-#include <filesystem>
-  namespace fs = std::filesystem;
-#endif
 #define DEF_FRAMERATE 60 //(rgssVer == 1 ?  40 :  60)
 
 struct PingPong
@@ -602,7 +594,8 @@ struct GraphicsPrivate
   }
 };
 
-Graphics::Graphics(RGSSThreadData *data) : screenshot_format(0)
+Graphics::Graphics(RGSSThreadData *data) :
+  screenshot_format(0), screenshot_dir(""), screenshot_fn("")
 {
   p = new GraphicsPrivate(data);
   if (data->config.syncToRefreshrate) {
@@ -623,6 +616,16 @@ Graphics::~Graphics()
 void Graphics::set_screenshot_format(int format)
 {
   screenshot_format = format;
+}
+
+void Graphics::set_screenshot_dir(const std::string dir)
+{
+  screenshot_dir = dir;
+}
+
+void Graphics::set_screenshot_fn(const std::string fn)
+{
+  screenshot_fn = fn;
 }
 
 void Graphics::update()
@@ -845,14 +848,14 @@ Bitmap *Graphics::snap_to_color_bitmap(int c)
 
 bool Graphics::save_screenshot()
 {
-  fs::create_directory("Screenshots");
   time_t rt = time(NULL);
   tm *tmp = localtime(&rt);
-  char str[100];
-  std::string format;
-  format += screenshot_format == 0 ? "jpg" : "png";
-  sprintf(str, "Screenshots/shot_%d-%02d-%02d%02d_%02d%02d.%s", tmp->tm_year+1900,
-          tmp->tm_mon+1, tmp->tm_mday, tmp->tm_hour, tmp->tm_min, tmp->tm_sec, format.c_str());
+  char str[500];
+  std::string format = screenshot_format == 0 ? "jpg" : "png";
+  sprintf(str, "%s/%s_%d-%02d-%02d_%02dh%02dm%02ds.%s",
+          screenshot_dir.c_str(), screenshot_fn.c_str(),
+          tmp->tm_year+1900, tmp->tm_mon+1, tmp->tm_mday,
+          tmp->tm_hour, tmp->tm_min, tmp->tm_sec, format.c_str());
   Bitmap *bmp = snapToBitmap();
   SDL_Surface *surf = bmp->surface();//Fast
   SDL_LockSurface(surf);

@@ -575,25 +575,18 @@ struct InputPrivate
 
   void poll_alt_ctrl_shift()
   {
-    bool ctrl_active, alt_active, shift_active;
-    ctrl_active = getState(Input::LeftCtrl).pressed ||
-      getState(Input::RightCtrl).pressed;
-    getState(Input::Ctrl).pressed = ctrl_active;
-    alt_active = getState(Input::LeftAlt).pressed ||
+    getState(Input::Alt).pressed = getState(Input::LeftAlt).pressed ||
       getState(Input::RightAlt).pressed;
-    getState(Input::Alt).pressed = alt_active;
-    shift_active = getState(Input::LeftShift).pressed ||
+    getState(Input::Ctrl).pressed = getState(Input::LeftCtrl).pressed ||
+      getState(Input::RightCtrl).pressed;
+    getState(Input::Shift).pressed = getState(Input::LeftShift).pressed ||
       getState(Input::RightShift).pressed;
-    getState(Input::Shift).pressed = shift_active;
-    ctrl_active = getState(Input::LeftCtrl).triggered ||
-      getState(Input::RightCtrl).triggered;
-    getState(Input::Ctrl).triggered = ctrl_active;
-    alt_active = getState(Input::LeftAlt).triggered ||
+    getState(Input::Alt).triggered = getState(Input::LeftAlt).triggered ||
       getState(Input::RightAlt).triggered;
-    getState(Input::Alt).triggered = alt_active;
-    shift_active = getState(Input::LeftShift).triggered ||
+    getState(Input::Ctrl).triggered = getState(Input::LeftCtrl).triggered ||
+      getState(Input::RightCtrl).triggered;
+    getState(Input::Shift).triggered = getState(Input::LeftShift).triggered ||
       getState(Input::RightShift).triggered;
-    getState(Input::Shift).triggered = shift_active;
   }
 };
 
@@ -714,7 +707,7 @@ int Input::mouseY()
   return (EventThread::mouseState.y - rtData.screenOffset.y) * rtData.sizeResoRatio.y;
 }
 
-bool Input::isAnyChar()
+bool Input::is_any_char()
 {
   return shState->rtData().any_char_found;
 }

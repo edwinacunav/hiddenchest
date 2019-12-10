@@ -36,6 +36,8 @@
 #include "gray.frag.xxd"
 #include "basic_color.frag.xxd"
 #include "sepia.frag.xxd"
+#include "pixel.frag.xxd"
+#include "tex_comb.frag.xxd"
 //#include "oil.frag.xxd"
 #include "flatColor.frag.xxd"
 #include "simple.frag.xxd"
@@ -54,6 +56,8 @@
 #include "blurH.vert.xxd"
 #include "blurV.vert.xxd"
 #include "tilemapvx.vert.xxd"
+#include "tex.vert.xxd"
+#include "tex_comb.vert.xxd"
 
 #define INIT_SHADER(vert, frag, name) \
 { \
@@ -463,6 +467,24 @@ BasicColorShader::BasicColorShader()
   GET_U(blue);
 }
 
+PixelateShader::PixelateShader()
+{
+  INIT_SHADER(tex, pixel, PixelateShader);
+  ShaderBase::init();
+}
+
+TexCombShader::TexCombShader()
+{
+  /*INIT_SHADER(tex_comb, tex_comb, TexCombShader);
+  ShaderBase::init();
+  GET_U(light_dir);*/
+}
+
+void TexCombShader::set_light_dir(Vec3 dir)
+{
+  //gl.Uniform3f(u_light_dir, dir.x, dir.y, dir.z);
+}
+
 /*OilShader::OilShader()
 {
   INIT_SHADER(simpleMatrix, oil, OilShader);
@@ -506,7 +528,6 @@ void FlashMapShader::setAlpha(float value)
   gl.Uniform1f(u_alpha, value);
 }
 
-
 HueShader::HueShader()
 {
   INIT_SHADER(simple, hue, HueShader);
@@ -518,7 +539,6 @@ void HueShader::setHueAdjust(float value)
 {
   gl.Uniform1f(u_hueAdjust, value);
 }
-
 
 SimpleMatrixShader::SimpleMatrixShader()
 {
