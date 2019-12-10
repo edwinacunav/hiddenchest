@@ -24,6 +24,11 @@
 
 #include <ruby.h>
 
+#define rb_ary_c_ary(a) RARRAY(a)->as.heap.ptr
+
+#define ARRAY_TYPE_P(obj) (!RB_SPECIAL_CONST_P(obj) && \
+  RB_BUILTIN_TYPE(obj) == RUBY_T_ARRAY)
+
 static VALUE hc_sym(const char* str)
 {
   return rb_id2sym(rb_intern(str));
