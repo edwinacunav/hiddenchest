@@ -16,10 +16,14 @@ La documentación de mkxp aún es válida en buena medida por lo que podrían re
 
 Está bajo la licencia GNU General Public License v2+.
 
-## Binarios Precompilados con 640px de Ancho
+## mkxp: Binarios Precompilados con 640px de Ancho
 [**Linux (32bit/64bit)**](http://ancurio.bplaced.net/mkxp/generic/)
 [**OSX**](https://app.box.com/mkxpmacbuilds) por Ali
 [**Windows (mingw-w64 32bit)**](http://ancurio.bplaced.net/mkxp/mingw32/)
+
+## HiddenChest: Binarios Precompilados con +800px de Ancho
+[**Ubuntu or Fedora 64bit**](https://app.box.com/s/8956vvm2spfx5sdmeo2jrrtanawsoj1j)
+[**Windows 64bit**](https://app.box.com/s/65lwn59sk7lm25hqrlws2lq5r5ye4yod)
 
 Si planeas depender de juegos con un ancho de 640 píxeles wide games, deberían de ir tras mkxp.
 

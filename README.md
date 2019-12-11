@@ -16,12 +16,16 @@ mkxp Documentation is still valid so do not forget to check it out!
 
 It is licensed under the GNU General Public License v2+.
 
-## 640px Wide Prebuilt binaries
+## mkxp 640px Wide Prebuilt Binaries
 [**Linux (32bit/64bit)**](http://ancurio.bplaced.net/mkxp/generic/)
 [**OSX**](https://app.box.com/mkxpmacbuilds) by Ali
 [**Windows (mingw-w64 32bit)**](http://ancurio.bplaced.net/mkxp/mingw32/)
 
 If you are planning to sport 640 pixel wide games, you should go for mkxp instead.
+
+## HiddenChest +800px Wide Prebuilt Binaries
+[**Ubuntu or Fedora 64bit**](https://app.box.com/s/8956vvm2spfx5sdmeo2jrrtanawsoj1j)
+[**Windows 64bit**](https://app.box.com/s/65lwn59sk7lm25hqrlws2lq5r5ye4yod)
 
 ## Bindings
 Bindings provide the glue code for an interpreted language environment to run game scripts in. Currently there are three bindings:
