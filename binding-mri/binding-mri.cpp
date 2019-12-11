@@ -267,7 +267,6 @@ void process_main_script_reset()
   shState->graphics().repaintWait(shState->rtData().rqResetFinish, false);
   VALUE string = newStringUTF8(RSTRING_PTR(script), RSTRING_LEN(script));
   evalString(string, fname, &state);
-  return;
 }
 
 RB_METHOD(mriRgssMain)
@@ -415,12 +414,11 @@ static void runRMXPScripts(BacktraceData &btData)
     evalString(string, fname, &state);
     if (state) break;
   }
-  exc = rb_gv_get("$!");
-  if (rb_obj_class(exc) != getRbData()->exc[Reset]) return;
+  if (rb_obj_class(rb_gv_get("$!")) != getRbData()->exc[Reset]) return;
   while (true) {
+    if (rb_gv_get("$scene") == Qnil) break;
+    if (rb_obj_class(rb_gv_get("$!")) != getRbData()->exc[Reset]) break;
     process_main_script_reset();
-    exc = rb_gv_get("$!");
-    if (rb_obj_class(exc) != getRbData()->exc[Reset]) break;
   }
 }
 
@@ -467,6 +465,12 @@ static void showExc(VALUE exc, const BacktraceData &btData)
   showMsg(ms);
 }
 
+static VALUE hc_module_iv_get(char* modname, char* iv)
+{
+  VALUE mod = rb_const_get(rb_cObject, rb_intern(modname));
+  return rb_iv_get(mod, iv);
+}
+
 static void mriBindingExecute()
 {/* Normally only a ruby executable would do a sysinit,
  * but not doing it will lead to crashes due to closed
@@ -498,7 +502,9 @@ static void mriBindingExecute()
     runCustomScript(customScript);
   else
     runRMXPScripts(btData);
-  VALUE exc = rb_errinfo();
+  VALUE scene_test = rgssVer < 3 ? rb_gv_get("$scene") :
+    hc_module_iv_get("SceneManager", "@scene");
+  VALUE exc = scene_test == Qnil ? Qnil : rb_errinfo();
   if (!RB_NIL_P(exc) && !rb_obj_is_kind_of(exc, rb_eSystemExit))
     showExc(exc, btData);
   ruby_cleanup(0);
