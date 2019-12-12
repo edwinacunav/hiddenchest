@@ -59,6 +59,7 @@ public:
   bool getMirrorY() const;
   void setX(int);
   void setY(int);
+  void set_xy(int, int);
   void setOX(int);
   void setOY(int);
   void setZoomX(float);

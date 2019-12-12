@@ -125,9 +125,9 @@ int rgssThreadFun(void *userdata)
 static void printRgssVersion(int ver)
 {
   Debug() << "HiddenChest The RGSS 1 2 & 3 Player Engine";
-  Debug() << "Author:" << HIDDENAUTHOR;
+  Debug() << "Author:\t\t" << HIDDENAUTHOR;
   Debug() << "HiddenChest Engine Version:" << HIDDENVERSION;
-  Debug() << "Release Date:" << HIDDENDATE;
+  Debug() << "Release Date\t\t:" << HIDDENDATE;
   const char *const makers[] = { "HiddenChest", "XP", "VX", "VX Ace" };
   //char buf[128];snprintf(buf, sizeof(buf),  %d (%s)", ver, makers[ver]);
   Debug() << "Using RGSS Version" << ver << "(" << makers[ver] << ")";
@@ -207,11 +207,16 @@ int main(int argc, char *argv[])
     SDL_Quit();
     return 0;
   }
+  SDL_DisplayMode scr;
+  if (SDL_GetDesktopDisplayMode(0, &scr) != 0) {
+    SDL_Log("SDL_GetDesktopDisplayMode failed: %s", SDL_GetError());
+    return 1;
+  }
   SDL_Window *win;
   Uint32 winFlags = SDL_WINDOW_OPENGL | SDL_WINDOW_INPUT_FOCUS;
   if (conf.winResizable)
     winFlags |= SDL_WINDOW_RESIZABLE;
-  if (conf.fullscreen)
+  if ((conf.defScreenW == scr.w && conf.defScreenH == scr.h) || conf.fullscreen)
     winFlags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
   win = SDL_CreateWindow(conf.windowTitle.c_str(),
                          SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,

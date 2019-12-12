@@ -10,11 +10,11 @@ mkxp developed by Ancurio.
 
 Files included in this ZIP file
 
-hiddenchest800.bin
+h800 or h800.exe
   Resolution 800*608 and includes extra buttons not found in vanilla RGSS games
   plus tons of other features already described in README.md
-hiddenchest*anyotherwidth*.bin
-  Possible resolutions 800*608, 960*736, 1280*768, 1680*1050 and 1920*1080
+h*anyotherwidth or h*anyotherwidth*.exe
+  Possible resolutions 800*608, 960*736, 1088*608, 1280*768, 1680*1050 and 1920*1080
   Includes extra buttons not found in vanilla RGSS games
 MapCustomResFixes.rb
   A Ruby script you can open with your favorite text editor to

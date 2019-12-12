@@ -83,7 +83,7 @@ Este binding solo existe para propósito de pruebas y no hace nada (el engine se
 HiddenChest y mkxp pueden emplear el sistema de compilación qmake de Qt, así que necesitarán instalarlo de antemano. Alternativamente pueden compilarlo con cmake con éxito y hasta compilarlo para otros sistemas operativos.
 
 
-qmake usará pkg-config para localizar las respectivas direcciones de include y lib. Si han instalado algunas dependencias con prefijos no estándares, asegúrense de ajustar su variable `PKG_CONFIG_PATH` a sus necesidades.
+qmake usará pkg-config para localizar las respectivas rutas de include y lib. Si han instalado algunas dependencias con prefijos no estándares, asegúrense de ajustar su variable `PKG_CONFIG_PATH` a sus necesidades.
 
 Sobre Boost sírvanse leer la sección de Boost en esta guía.
 
@@ -109,7 +109,7 @@ La excepción es boost, lo que es raro porque aún no ha logrado que incorporen 
 
 El soporte de Midi está habilitado por defecto y requiere de fluidsynth a la hora de ejecución (no para compilarlo). Si HiddenChest no puede hallarlo al ejecutarse, la reproducción de midi se deshabilita. Buscará `libfluidsynth.so.1` en Linux, `libfluidsynth.dylib.1` en OSX y `fluidsynth.dll` en Windows, así que asegúrense de tener uno en la configuración de sus directorios. Si necesitan que fluidsynth sea enlazado estrechamente al engine al compilarlo, incluyan `CONFIG+=SHARED_FLUID`. De compilar fluidsynth por ustedes mismos, pueden deshabilitar casi todas las opciones (controladores de audio, etc.) ya que no se usarán. Noten que upstream fluidsynth ofrece soporte de compartir datos de un soundfont entre sintetizadores (HiddenChest usa múltiples sintetizadores), por lo que si su consumo de memoria llega a ser muy alto, podrían querer compilar fluidsynth desde su git master.
 
-Por defecto HiddenChest cambia a la carpeta donde su binario se halla y entonces allí comienza a leer la configuración y resuelve las direcciones relativas. En el caso de que eso sea indeseable como cuando el binario debe de instalarse globalmente, en una ubicación de solo lectura, puede ser deshabilitada al agregar `DEFINES+=WORKDIR_CURRENT` a los argumentos de qmake.
+Por defecto HiddenChest cambia a la carpeta donde su binario se halla y entonces allí comienza a leer la configuración y resuelve las rutas relativas. En el caso de que eso sea indeseable como cuando el binario debe de instalarse globalmente, en una ubicación de solo lectura, puede ser deshabilitada al agregar `DEFINES+=WORKDIR_CURRENT` a los argumentos de qmake.
 
 Para detectar automáticamente el encoding del título del juego en `Game.ini` y convertirlo automáticamente a UTF-8, compilen con `CONFIG+=INI_ENCODING`. Requiere de una implementación de iconv y libguess. Si el encoding es detectado incorrectamente, pueden fijar la seña "titleLanguage" en el archivo hiddenchest.conf.
 
@@ -131,7 +131,7 @@ Para simplificar el hackeo, Ancurio ha ensamblado un paquete que contiene todas 
 
 ## Configuración
 
-HiddenChest lee los datos de configuración del archivo "hiddenchest.conf". El formato es de tipo ini. *No* usen comillas alrededor de las direcciones de archivos (los espacios no lo interrumpen). Las líneas que comienzan con '#' son simples comentarios. Vean 'hiddenchest.conf.sample' para una lista de entradas aceptables.
+HiddenChest lee los datos de configuración del archivo "hiddenchest.conf". El formato es de tipo ini. *No* usen comillas alrededor de las rutas de archivos (los espacios no lo interrumpen). Las líneas que comienzan con '#' son simples comentarios. Vean 'hiddenchest.conf.sample' para una lista de entradas aceptables.
 
 All option entries can alternatively be specified as command line options. Any options that are not arrays (eg. RTP paths) specified as command line options will override entries in hiddenchest.conf. Note that you will have to wrap values containing spaces in quotes (unlike in hiddenchest.conf).
 
@@ -167,6 +167,7 @@ Para aliviar la posible incorporación de scripts demasiado dependientes de la c
 * Un módulo especial ha sido incluido, es `HIDDENCHEST`. Sus constantes consisten de `AUTHOR`, `VERSION`, `RELEASE_DATE`, y `DESCRIPTION`.
 * La constante `OS::NAME` permitirá a scripts de Ruby saber si su Sistema Operativo es una distribución de Linux o Windows.
 * Expandidos tilesets de RGSS1 para llenar la pantalla con una mayor resolución de pantalla y adapta las configuraciones de Window_Message a dicho tamaño.
+* Cuando se ejecutaba un exe de Windows que tenía una resolución idéntica a la del sistema operativo, el juego automáticamente corría en modo de pantalla completa. Ese no era el caso de los binarios de Linux. HiddenChest ahora soporta este comportamiento en todas las plataformas.
 * Implementación de window openness (apertura y cierre de ventanas) en juegos de RMXP sin afectar las que existieran en VX y VX Ace. Funciona de una forma algo diferente a la de VX Ace como el uso de valores en un rango de 0 a 100 cuando en VX Ace se requería de un máximo de 255.
 * Hay 4 modos disponibles para asignar a la opción `self.open_mode` como lo son:
     - nil o false o true - nada pasa jamás
@@ -176,7 +177,7 @@ Para aliviar la posible incorporación de scripts demasiado dependientes de la c
         - Tengan en cuenta que la orden `Window#open` será ignorada si un valor booleano es fijado como valor actual de `Window#open_mode`.
         - Pueden fijar el valor de `Window#open_mode=` antes o después de que la ventana haya llamado a su superclase via `super` al inicializarse o crearse dicha ventana.
         - Solo el último valor asignado a `Window#open_mode=` será tomado en cuenta por el engine.
-* `Window#set_xy(newx, newy)` permite asignar ambas coordenadas cartesianas al mismo tiempo.
+* Tanto `Window#set_xy(newx, newy)` como `Sprite#set_xy(newx, newy)` les permiten asignar ambas coordenadas cartesianas al mismo tiempo.
 * Asignen un Viewport a cualquier ventana de RGSS1 usando `Window#viewport = un_viewport`
 * Se soportan muchas más teclas como PrintScreen, Return o Enter o LeftShift o RightAlt o NumPadDivide * o KeyH o KeyM o desde N1 hasta N0 para los números ubicados sobre las letras comunes como N y muchas más.
 * Clases `Bitmap`, `Sprite` y `Window` ahora soportan clics del ratón! Bueno lo hacen indirectamente... Necesitarán usar el arreglo `@area` con cada una de las dimensiones x, y, ancho y altura. Usualmente lo harían en `Window_Selectable` y sus subclases en el método refresh. Los siguientes llamados a script pueden ser utilizados en scripts de escenas:

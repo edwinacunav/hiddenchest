@@ -249,6 +249,13 @@ static VALUE SpriteSetY(VALUE self, VALUE y)
   return RB_INT2FIX( s->getY() );
 }
 
+static VALUE sprite_set_xy(VALUE self, VALUE x, VALUE y)
+{
+  Sprite *s = static_cast<Sprite*>(RTYPEDDATA_DATA(self));
+  GUARD_EXC( s->set_xy( RB_FIX2INT(x), RB_FIX2INT(y) ); )
+  return rb_ary_new3(2, x, y);
+}
+
 static VALUE SpriteGetOX(VALUE self)
 {
   Sprite *s = static_cast<Sprite*>(RTYPEDDATA_DATA(self));
@@ -595,6 +602,7 @@ void SpriteBindingInit() {
   rb_define_method(RSprite, "x=", RMF(SpriteSetX), 1);
   rb_define_method(RSprite, "y", RMF(SpriteGetY), 0);
   rb_define_method(RSprite, "y=", RMF(SpriteSetY), 1);
+  rb_define_method(RSprite, "set_xy", RMF(sprite_set_xy), 2);
   rb_define_method(RSprite, "ox", RMF(SpriteGetOX), 0);
   rb_define_method(RSprite, "ox=", RMF(SpriteSetOX), 1);
   rb_define_method(RSprite, "oy", RMF(SpriteGetOY), 0);

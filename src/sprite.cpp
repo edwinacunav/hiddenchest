@@ -454,21 +454,31 @@ void Sprite::pixelate()
   p->bitmap->pixelate();
 }
 
-void Sprite::setX(int value)
+void Sprite::setX(int nx)
 {
   guardDisposed();
-  if (p->trans.getPosition().x == value) return;
-  p->trans.setPosition(Vec2(value, getY()));
+  if (p->trans.getPosition().x == nx) return;
+  p->trans.setPosition(Vec2(nx, getY()));
 }
 
-void Sprite::setY(int value)
+void Sprite::setY(int ny)
 {
   guardDisposed();
-  if (p->trans.getPosition().y == value) return;
-  p->trans.setPosition(Vec2(getX(), value));
+  if (p->trans.getPosition().y == ny) return;
+  p->trans.setPosition(Vec2(getX(), ny));
   if (!p->wave.active) return;//rgssVer >= 2) {
   p->wave.dirty = true;
-  setSpriteY(value);
+  setSpriteY(ny);
+}
+
+void Sprite::set_xy(int nx, int ny)
+{
+  guardDisposed();
+  if (p->trans.getPosition().x != nx || p->trans.getPosition().y != ny)
+    p->trans.setPosition(Vec2(nx, ny));
+  if (!p->wave.active) return;
+  p->wave.dirty = true;
+  setSpriteY(ny);
 }
 
 void Sprite::setOX(int value)

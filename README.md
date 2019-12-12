@@ -167,6 +167,7 @@ To alleviate possible porting of heavily Win32API reliant scripts, we have added
 * A special module has been included, namely `HIDDENCHEST`. Its constants consist of `AUTHOR`, `VERSION`, `RELEASE_DATE`, and `DESCRIPTION`.
 * The constant `OS::NAME` will let Ruby scripts know if the current OS is either a Linux distro or Windows.
 * Expand RGSS1 tilesets to fill the enlarged screen and adapts the Window_Message settings to the increased screen resolutions.
+* While running Windows executables that had a resolution that matched the operating system's, the game would automatically run in fullscreen mode. That was not the case with Linux binaries. HiddenChest now supports this behavior on all platforms.
 * Implementation of window openness feature in RMXP games without affecting VX and VX Ace ones. It works in a different fashion in VX Ace like using a 0 through 100 value range while VX Ace requires a maximum value of 255.
 * There are 4 modes available to assign to the `self.open_mode` option, i.e.
     - nil or false or true - nothing ever happens
@@ -176,7 +177,7 @@ To alleviate possible porting of heavily Win32API reliant scripts, we have added
         - Keep in mind that the `Window#open` command will be ignored if a boolean value is set as the current `Window#open_mode` value.
         - You can set `Window#open_mode=` value before or after the window has called its superclass via `super` to initialize or create that window.
         - Only the last assignment to `Window#open_mode=` will be taken in consideration by the engine.
-* `Window#set_xy(newx, newy)` lets you assign both Carthesian coordinates at the same time.
+* `Window#set_xy(newx, newy)` and `Sprite#set_xy(newx, newy)` let you assign both Carthesian coordinates at the same time.
 * Assign a viewport to any RGSS1 window by using `Window#viewport = some_viewport`
 * They now support additional keys like PrintScreen, Return or Enter or LeftShift or RightAlt or NumPadDivide * or KeyH or KeyM or N1 through N0 series of number keys.
 * The `Bitmap`, `Sprite` and `Window` classes now support mouse clicks! Well, they indirectly do it... You got to set the `@area` array with every single x, y, width and height dimensions first. Usually you do that in the `Window_Selectable` and its child classes refresh method. The following script calls might be used in scene scripts:
