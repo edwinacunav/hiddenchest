@@ -258,8 +258,7 @@ void process_main_script_reset()
 {// Find Main Script Index and Execute Main
   shState->rtData().rqReset.clear();
   VALUE mod = rb_const_get(rb_cObject, rb_intern("Scripts"));
-  VALUE rb_index = rb_iv_get(mod, "@main_index");
-  int state, index = RB_FIX2INT(rb_index);
+  int state, index = RB_FIX2INT(rb_iv_get(mod, "@main_index"));
   Debug() << "Reloading Main Script";
   VALUE script_section = rb_ary_entry(script_ary, index);
   VALUE fname = rb_ary_entry(script_section, 1);
@@ -420,6 +419,7 @@ static void runRMXPScripts(BacktraceData &btData)
     if (rb_obj_class(rb_gv_get("$!")) != getRbData()->exc[Reset]) break;
     process_main_script_reset();
   }
+  shState->rtData().rqReset.clear();
 }
 
 static void showExc(VALUE exc, const BacktraceData &btData)
@@ -465,12 +465,6 @@ static void showExc(VALUE exc, const BacktraceData &btData)
   showMsg(ms);
 }
 
-static VALUE hc_module_iv_get(char* modname, char* iv)
-{
-  VALUE mod = rb_const_get(rb_cObject, rb_intern(modname));
-  return rb_iv_get(mod, iv);
-}
-
 static void mriBindingExecute()
 {/* Normally only a ruby executable would do a sysinit,
  * but not doing it will lead to crashes due to closed
@@ -502,9 +496,8 @@ static void mriBindingExecute()
     runCustomScript(customScript);
   else
     runRMXPScripts(btData);
-  VALUE scene_test = rgssVer < 3 ? rb_gv_get("$scene") :
-    hc_module_iv_get("SceneManager", "@scene");
-  VALUE exc = scene_test == Qnil ? Qnil : rb_errinfo();
+  VALUE exc = rb_errinfo();
+  if (rb_obj_class(exc) == getRbData()->exc[Reset]) exc = Qnil;
   if (!RB_NIL_P(exc) && !rb_obj_is_kind_of(exc, rb_eSystemExit))
     showExc(exc, btData);
   ruby_cleanup(0);

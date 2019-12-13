@@ -216,12 +216,11 @@ Para aliviar la posible incorporación de scripts demasiado dependientes de la c
     - `colors_inverted?` - Por si neceistan verificar si los colores fueron invertidos
 * Usen el método `module_accessor` para crear métodos de módulo, getters y setters ¡todo en uno! Ejemplo: `module_attr_accessor :meow` creará los métodos `self.meow` y `self.meow=(valor)` en un solo paso. Sus setter y getter son `module_writer` y `module_reader` respectivamente.
 * Módulo `Scripts` permite que guarden en una cadena de texto o String de Ruby o en un símbolo como un ID de script via `Scripts << :nombre_script`. Una vez que sean guardados allí, podrán llamar métodos como `Scripts.all` o `Scripts.include?(:nombre_script)` para acceder a los IDs de arreglos (arrays) o confirmar si ya los han incluido.
-* Clase `Font` permite usar `underline` (subrayar) y `strikethrough` o `strikethru` (tachar) así como se usan `bold` (negrita) o `italic` (itálica).
 * `RPG::Weather.sprite_max = numero`. donde numero es un número entero positivo, permite que definan el máximo de sprites de clima como los de efectos de lluvia o tormenta o nieve. Actualmente está fijado en 400 sprites, pero puede ser elevado o disminuido cuando sea necesario.
 * Clase `FileInt` permite que pregunten si un archivo existe `exist?` incluso si está comprimido en el RGSSAD.
 * Módulo `Audio` incluye más métodos como `bgm_volume`, `bgs_volume`, `se_volume` y `me_volume`.
 
-### Input Module
+### Módulo Input
 
 * La familia de funciones `Input.press?` acepta varias constantes adicionales:
     - `MOUSELEFT` o `MouseLeft`
@@ -234,6 +233,14 @@ Para aliviar la posible incorporación de scripts demasiado dependientes de la c
          - Pueden pasar un argumento tras otro o pasar un Array alias arreglo.
     - `left_click?`, `middle_click?` y `right_click?`
 * Se pueden usar :símbolos en todas las versiones de RGSS.
+
+## Clase Font
+
+* Les permite usar varios métodos nuevos que manejan valores booleanos (true o false) y tamaños (Integer o entero)
+    - `underline` - booleano - subrayado
+    - `strikethrough` o `strikethru` - booleano - tachado
+    - `no_squeeze` - booleano, valor por defecto: false
+    - `outline_size` - entero entre 1 y 8 - grosor del contorno
 
 ## Lista de Arreglos de Errores en HiddenChest
 

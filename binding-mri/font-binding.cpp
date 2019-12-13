@@ -144,110 +144,138 @@ static VALUE font_set_out_color(VALUE self, VALUE out)
   return out;
 }
 
-static VALUE FontGetSize(VALUE self)
+static VALUE font_get_size(VALUE self)
 {
   Font *f = getPrivateData<Font>(self);
-  int value = 0;
-  GUARD_EXC( value = f->getSize(); )
-  return RB_INT2FIX(value);
+  if (!f) return RB_INT2FIX(0);
+  return RB_INT2FIX(f->get_size());
 }
 
-static VALUE FontSetSize(VALUE self, VALUE size)
+static VALUE font_set_size(VALUE self, VALUE size)
 {
   Font *f = getPrivateData<Font>(self);
-  int value = 0;
-  GUARD_EXC( f->setSize(RB_FIX2INT(size)); )
-  GUARD_EXC( value = f->getSize(); )
-  return RB_INT2FIX(value);
+  if (!f) return RB_INT2FIX(0);
+  f->set_size(RB_FIX2INT(size));
+  return RB_INT2FIX(f->get_size());
+}
+
+static VALUE font_get_outline_size(VALUE self)
+{
+  Font *f = getPrivateData<Font>(self);
+  if (!f) return RB_INT2FIX(0);
+  return RB_INT2FIX(f->get_outline_size());
+}
+
+static VALUE font_set_outline_size(VALUE self, VALUE size)
+{
+  Font *f = getPrivateData<Font>(self);
+  if (!f) return RB_INT2FIX(0);
+  f->set_outline_size(RB_FIX2INT(size));
+  return RB_INT2FIX(f->get_outline_size());
+}
+
+static VALUE font_get_no_squeeze(VALUE self)
+{
+  Font *f = getPrivateData<Font>(self);
+  if (!f) return Qnil;
+  return f->get_no_squeeze() ? Qtrue : Qfalse;
+}
+
+static VALUE font_set_no_squeeze(VALUE self, VALUE boolean)
+{
+  Font *f = getPrivateData<Font>(self);
+  if (!f) return Qnil;
+  f->set_no_squeeze(boolean == Qtrue);
+  return f->get_no_squeeze() ? Qtrue : Qfalse;
 }
 
 static VALUE FontGetBold(VALUE self)
 {
   Font *f = getPrivateData<Font>(self);
-  bool value = 0;
-  GUARD_EXC( value = f->getBold(); )
-  return value == true ? Qtrue : Qfalse;
+  if (!f) return Qnil;
+  return f->getBold() ? Qtrue : Qfalse;
 }
 
 static VALUE FontSetBold(VALUE self, VALUE boolean)
 {
   Font *f = getPrivateData<Font>(self);
-  GUARD_EXC( f->setBold(boolean == Qtrue ? true : false); )
+  if (!f) return Qnil;
+  f->setBold(boolean == Qtrue);
   return boolean;
 }
 
 static VALUE FontGetItalic(VALUE self)
 {
   Font *f = getPrivateData<Font>(self);
-  bool value = 0;
-  GUARD_EXC( value = f->getItalic(); )
-  return value == true ? Qtrue : Qfalse;
+  if (!f) return Qnil;
+  return f->getItalic() ? Qtrue : Qfalse;
 }
 
 static VALUE FontSetItalic(VALUE self, VALUE boolean)
 {
   Font *f = getPrivateData<Font>(self);
-  GUARD_EXC( f->setItalic(boolean == Qtrue ? true : false); )
+  if (!f) return Qnil;
+  f->setItalic(boolean == Qtrue);
   return boolean;
 }
 
 static VALUE FontGetShadow(VALUE self)
 {
   Font *f = getPrivateData<Font>(self);
-  bool value = 0;
-  GUARD_EXC( value = f->getShadow(); )
-  return value == true ? Qtrue : Qfalse;
+  if (!f) return Qnil;
+  return f->getShadow() ? Qtrue : Qfalse;
 }
 
 static VALUE FontSetShadow(VALUE self, VALUE boolean)
 {
   Font *f = getPrivateData<Font>(self);
-  GUARD_EXC( f->setShadow(boolean == Qtrue ? true : false); )
+  if (!f) return Qnil;
+  f->setShadow(boolean == Qtrue);
   return boolean;
 }
 
 static VALUE FontGetOutline(VALUE self)
 {
   Font *f = getPrivateData<Font>(self);
-  bool value = 0;
-  GUARD_EXC( value = f->getOutline(); )
-  return value == true ? Qtrue : Qfalse;
+  if (!f) return Qnil;
+  return f->getOutline() ? Qtrue : Qfalse;
 }
 
 static VALUE FontSetOutline(VALUE self, VALUE boolean)
 {
   Font *f = getPrivateData<Font>(self);
-  GUARD_EXC( f->setOutline(boolean == Qtrue ? true : false); )
+  if (!f) return Qnil;
+  f->setOutline(boolean == Qtrue);
   return boolean;
 }
 
-static VALUE FontGetUnderline(VALUE self)
+static VALUE font_get_underline(VALUE self)
 {
   Font *f = getPrivateData<Font>(self);
-  bool value = 0;
-  GUARD_EXC( value = f->getUnderline(); )
-  return value == true ? Qtrue : Qfalse;
+  if (!f) return Qnil;
+  return f->get_underline() ? Qtrue : Qfalse;
 }
 
-static VALUE FontSetUnderline(VALUE self, VALUE boolean)
+static VALUE font_set_underline(VALUE self, VALUE boolean)
 {
   Font *f = getPrivateData<Font>(self);
-  GUARD_EXC( f->setUnderline(boolean == Qtrue ? true : false); )
+  if (!f) return Qnil;
+  f->set_underline(boolean == Qtrue);
   return boolean;
 }
 
-static VALUE FontGetStrikethrough(VALUE self)
+static VALUE font_get_strikethrough(VALUE self)
 {
   Font *f = getPrivateData<Font>(self);
-  bool value = 0;
-  GUARD_EXC( value = f->getStrikethrough(); )
-  return value == true ? Qtrue : Qfalse;
+  if (!f) return Qnil;
+  return f->get_strikethrough() ? Qtrue : Qfalse;
 }
 
-static VALUE FontSetStrikethrough(VALUE self, VALUE boolean)
+static VALUE font_set_strikethrough(VALUE self, VALUE boolean)
 {
   Font *f = getPrivateData<Font>(self);
-  GUARD_EXC( f->setStrikethrough(boolean == Qtrue ? true : false); )
+  if (!f) return Qnil;
+  f->set_strikethrough(boolean == Qtrue);
   return boolean;
 }
 
@@ -281,28 +309,44 @@ DEF_KLASS_PROP(Font, bool, DefaultBold,    "b", rb_bool_new)
 DEF_KLASS_PROP(Font, bool, DefaultItalic,  "b", rb_bool_new)
 DEF_KLASS_PROP(Font, bool, DefaultShadow,  "b", rb_bool_new)
 DEF_KLASS_PROP(Font, bool, DefaultOutline, "b", rb_bool_new)
-DEF_KLASS_PROP(Font, bool, DefaultUnderline, "b", rb_bool_new)
-DEF_KLASS_PROP(Font, bool, DefaultStrikethrough,  "b", rb_bool_new)
 
-RB_METHOD(FontGetDefaultOutColor)
+static VALUE font_get_default_underline(VALUE self)
 {
-  RB_UNUSED_PARAM;
-  return rb_iv_get(self, "default_out_color");
+  return rb_iv_get(self, "default_underline");
 }
 
-RB_METHOD(FontSetDefaultOutColor)
+static VALUE font_get_default_strikethrough(VALUE self)
 {
-  RB_UNUSED_PARAM;
-  VALUE colorObj;
-  rb_get_args(argc, argv, "o", &colorObj RB_ARG_END);
-  Color *c = getPrivateDataCheck<Color>(colorObj, ColorType);
-  Font::setDefaultOutColor(*c);
-  return colorObj;
+  return rb_iv_get(self, "default_strikethrough");
+}
+
+static VALUE FontGetDefaultOutColor(VALUE self)
+{
+  return rb_iv_get(self, "default_out_color");
 }
 
 static VALUE FontGetDefaultName(VALUE self)
 {
   return rb_iv_get(self, "default_name");
+}
+
+static VALUE FontSetDefaultOutColor(VALUE self, VALUE color)
+{
+  Color *c = getPrivateDataCheck<Color>(color, ColorType);
+  Font::setDefaultOutColor(*c);
+  return color;
+}
+
+static VALUE font_set_default_underline(VALUE self, VALUE boolean)
+{
+  Font::set_default_underline(boolean == Qtrue);
+  return rb_iv_set(self, "default_underline", boolean);
+}
+
+static VALUE font_set_default_strikethrough(VALUE self, VALUE boolean)
+{
+  Font::set_default_strikethrough(boolean == Qtrue);
+  return rb_iv_set(self, "default_strikethrough", boolean);
 }
 
 RB_METHOD(FontSetDefaultName)
@@ -316,20 +360,16 @@ RB_METHOD(FontSetDefaultName)
   return argv[0];
 }
 
-RB_METHOD(FontGetDefaultColor)
+static VALUE FontGetDefaultColor(VALUE self)
 {
-  RB_UNUSED_PARAM;
   return rb_iv_get(self, "default_color");
 }
 
-RB_METHOD(FontSetDefaultColor)
+static VALUE FontSetDefaultColor(VALUE self, VALUE color)
 {
-  RB_UNUSED_PARAM;
-  VALUE colorObj;
-  rb_get_args(argc, argv, "o", &colorObj RB_ARG_END);
-  Color *c = getPrivateDataCheck<Color>(colorObj, ColorType);
+  Color *c = getPrivateDataCheck<Color>(color, ColorType);
   Font::setDefaultColor(*c);
-  return colorObj;
+  return color;
 }
 
 void fontBindingInit()
@@ -357,29 +397,33 @@ void fontBindingInit()
   rb_define_singleton_method(klass, "default_bold=", RMF(FontSetDefaultBold), 1);
   rb_define_singleton_method(klass, "default_italic", RMF(FontGetDefaultItalic), 0);
   rb_define_singleton_method(klass, "default_italic=", RMF(FontSetDefaultItalic), 1);
-  rb_define_singleton_method(klass, "default_color", RMF(FontGetDefaultColor), -1);
-  rb_define_singleton_method(klass, "default_color=", RMF(FontSetDefaultColor), -1);
-  rb_define_singleton_method(klass, "default_outline", RMF(FontGetDefaultOutline), -1);
-  rb_define_singleton_method(klass, "default_outline=", RMF(FontSetDefaultOutline), -1);
-  rb_define_singleton_method(klass, "default_out_color", RMF(FontGetDefaultOutColor), -1);
-  rb_define_singleton_method(klass, "default_out_color=", RMF(FontSetDefaultOutColor), -1);
-  rb_define_singleton_method(klass, "default_outline_color", RMF(FontGetDefaultOutColor), -1);
-  rb_define_singleton_method(klass, "default_outline_color=", RMF(FontSetDefaultOutColor), -1);
-  rb_define_singleton_method(klass, "default_shadow", RMF(FontGetDefaultShadow), -1);
-  rb_define_singleton_method(klass, "default_shadow=", RMF(FontSetDefaultShadow), -1);
-  rb_define_singleton_method(klass, "default_underline", RMF(FontGetDefaultUnderline), -1);
-  rb_define_singleton_method(klass, "default_underline=", RMF(FontSetDefaultUnderline), -1);
-  rb_define_singleton_method(klass, "default_strikethrough", RMF(FontGetDefaultStrikethrough), -1);
-  rb_define_singleton_method(klass, "default_strikethrough=", RMF(FontSetDefaultStrikethrough), -1);
-  rb_define_singleton_method(klass, "default_strikethru", RMF(FontGetDefaultStrikethrough), -1);
-  rb_define_singleton_method(klass, "default_strikethru=", RMF(FontSetDefaultStrikethrough), -1);
+  rb_define_singleton_method(klass, "default_color", RMF(FontGetDefaultColor), 0);
+  rb_define_singleton_method(klass, "default_color=", RMF(FontSetDefaultColor), 1);
+  rb_define_singleton_method(klass, "default_outline", RMF(FontGetDefaultOutline), 0);
+  rb_define_singleton_method(klass, "default_outline=", RMF(FontSetDefaultOutline), 1);
+  rb_define_singleton_method(klass, "default_out_color", RMF(FontGetDefaultOutColor), 0);
+  rb_define_singleton_method(klass, "default_out_color=", RMF(FontSetDefaultOutColor), 1);
+  rb_define_singleton_method(klass, "default_outline_color", RMF(FontGetDefaultOutColor), 0);
+  rb_define_singleton_method(klass, "default_outline_color=", RMF(FontSetDefaultOutColor), 1);
+  rb_define_singleton_method(klass, "default_shadow", RMF(FontGetDefaultShadow), 0);
+  rb_define_singleton_method(klass, "default_shadow=", RMF(FontSetDefaultShadow), 1);
+  rb_define_singleton_method(klass, "default_underline", RMF(font_get_default_underline), 0);
+  rb_define_singleton_method(klass, "default_underline=", RMF(font_set_default_underline), 1);
+  rb_define_singleton_method(klass, "default_strikethrough", RMF(font_get_default_strikethrough), 0);
+  rb_define_singleton_method(klass, "default_strikethrough=", RMF(font_set_default_strikethrough), 1);
+  rb_define_singleton_method(klass, "default_strikethru", RMF(font_get_default_strikethrough), 0);
+  rb_define_singleton_method(klass, "default_strikethru=", RMF(font_set_default_strikethrough), 1);
   rb_define_class_method(klass, "exist?", fontDoesExist);
   _rb_define_method(klass, "initialize",      fontInitialize);
   _rb_define_method(klass, "initialize_copy", fontInitializeCopy);
   rb_define_method(klass, "name", RMF(FontGetName), 0);
   rb_define_method(klass, "name=", RMF(FontSetName), -1);
-  rb_define_method(klass, "size", RMF(FontGetSize), 0);
-  rb_define_method(klass, "size=", RMF(FontSetSize), 1);
+  rb_define_method(klass, "size", RMF(font_get_size), 0);
+  rb_define_method(klass, "size=", RMF(font_set_size), 1);
+  rb_define_method(klass, "outline_size", RMF(font_get_outline_size), 0);
+  rb_define_method(klass, "outline_size=", RMF(font_set_outline_size), 1);
+  rb_define_method(klass, "no_squeeze", RMF(font_get_no_squeeze), 0);
+  rb_define_method(klass, "no_squeeze=", RMF(font_set_no_squeeze), 1);
   rb_define_method(klass, "bold", RMF(FontGetBold), 0);
   rb_define_method(klass, "bold=", RMF(FontSetBold), 1);
   rb_define_method(klass, "italic", RMF(FontGetItalic), 0);
@@ -388,12 +432,12 @@ void fontBindingInit()
   rb_define_method(klass, "shadow=", RMF(FontSetShadow), 1);
   rb_define_method(klass, "outline", RMF(FontGetOutline), 0);
   rb_define_method(klass, "outline=", RMF(FontSetOutline), 1);
-  rb_define_method(klass, "underline", RMF(FontGetUnderline), 0);
-  rb_define_method(klass, "underline=", RMF(FontSetUnderline), 1);
-  rb_define_method(klass, "strikethrough", RMF(FontGetStrikethrough), 0);
-  rb_define_method(klass, "strikethrough=", RMF(FontSetStrikethrough), 1);
-  rb_define_method(klass, "strikethru", RMF(FontGetStrikethrough), 0);
-  rb_define_method(klass, "strikethru=", RMF(FontSetStrikethrough), 1);
+  rb_define_method(klass, "underline", RMF(font_get_underline), 0);
+  rb_define_method(klass, "underline=", RMF(font_set_underline), 1);
+  rb_define_method(klass, "strikethrough", RMF(font_get_strikethrough), 0);
+  rb_define_method(klass, "strikethrough=", RMF(font_set_strikethrough), 1);
+  rb_define_method(klass, "strikethru", RMF(font_get_strikethrough), 0);
+  rb_define_method(klass, "strikethru=", RMF(font_set_strikethrough), 1);
   rb_define_method(klass, "color", RMF(font_get_color), 0);
   rb_define_method(klass, "color=", RMF(font_set_color), 1);
   rb_define_method(klass, "out_color", RMF(font_get_out_color), 0);

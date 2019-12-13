@@ -56,28 +56,37 @@ class Font
 {
 public:
   static bool doesExist(const char *name);
+  static bool get_default_underline();
+  static bool get_default_strikethrough();
+  static void set_default_underline(bool value);
+  static void set_default_strikethrough(bool value);
   Font(const std::vector<std::string> *names = 0, int size = 0);
   /* Clone constructor */
   Font(const Font &other);
   ~Font();
   const Font &operator=(const Font &o);
-  DECL_ATTR( Size,          int    )
-  DECL_ATTR( Bold,          bool   )
-  DECL_ATTR( Italic,        bool   )
-  DECL_ATTR( Shadow,        bool   )
-  DECL_ATTR( Underline,     bool   )
-  DECL_ATTR( Strikethrough, bool   )
-  DECL_ATTR( Outline,       bool   )
+  int get_size() const;
+  int get_outline_size() const;
+  bool get_no_squeeze() const;
+  bool get_underline() const;
+  bool get_strikethrough() const;
+  Color& get_color() const;
+  DECL_ATTR( Outline,       bool )
+  DECL_ATTR( Bold,          bool )
+  DECL_ATTR( Italic,        bool )
+  DECL_ATTR( Shadow,        bool )
   DECL_ATTR_STATIC( DefaultSize,          int    )
   DECL_ATTR_STATIC( DefaultBold,          bool   )
   DECL_ATTR_STATIC( DefaultItalic,        bool   )
   DECL_ATTR_STATIC( DefaultColor,         Color& )
   DECL_ATTR_STATIC( DefaultShadow,        bool   )
-  DECL_ATTR_STATIC( DefaultUnderline,     bool   )
-  DECL_ATTR_STATIC( DefaultStrikethrough, bool   )
   DECL_ATTR_STATIC( DefaultOutline,       bool   )
   DECL_ATTR_STATIC( DefaultOutColor,      Color& )
-  Color& get_color() const;
+  void set_size(int);
+  void set_outline_size(int);
+  void set_no_squeeze(bool);
+  void set_underline(bool);
+  void set_strikethrough(bool);
   void set_color(Color& value);
   void set_color(double r, double g, double b, double a = 255.0);
   Color& get_out_color() const;

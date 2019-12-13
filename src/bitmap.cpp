@@ -4,6 +4,7 @@
 ** This file is part of mkxp.
 **
 ** Copyright (C) 2013 Jonas Kulla <Nyocurio@gmail.com>
+** (C) 2018-2019 Kyonides Arkanthes <kyonides@gmail.com>
 **
 ** mkxp is free software: you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -54,8 +55,6 @@ else*/
     throw Exception(Exception::HIDDENCHESTError, \
                     "Operation not supported for mega surfaces"); \
 }
-
-#define OUTLINE_SIZE 1
 
 // Normalize (= ensure width and height are positive)
 static IntRect normalizedRect(const IntRect &rect)
@@ -879,13 +878,14 @@ void Bitmap::drawText(const IntRect &rect, const char *str, int align)
     co.a = 255;
     SDL_Surface *outline;
     /* set the next font render to render the outline */
-    TTF_SetFontOutline(font, OUTLINE_SIZE);
+    int osize = p->font->get_outline_size();
+    TTF_SetFontOutline(font, osize);
     if (shState->rtData().config.solidFonts)
       outline = TTF_RenderUTF8_Solid(font, str, co);
     else
       outline = TTF_RenderUTF8_Blended(font, str, co);
-    p->ensureFormat(outline, SDL_PIXELFORMAT_ABGR8888);
-    SDL_Rect outRect = {OUTLINE_SIZE, OUTLINE_SIZE, txtSurf->w, txtSurf->h};
+    //p->ensureFormat(outline, SDL_PIXELFORMAT_ABGR8888);
+    SDL_Rect outRect = {osize, osize, txtSurf->w, txtSurf->h};
     SDL_SetSurfaceBlendMode(txtSurf, SDL_BLENDMODE_BLEND);
     SDL_BlitSurface(txtSurf, NULL, outline, &outRect);
     SDL_FreeSurface(txtSurf);
@@ -908,7 +908,7 @@ void Bitmap::drawText(const IntRect &rect, const char *str, int align)
   if (alignX < rect.x) alignX = rect.x;
   int alignY = rect.y + (rect.h - rawTxtSurfH) / 2;
   float squeeze = (float) rect.w / txtSurf->w;
-  if (squeeze > 1) squeeze = 1;
+  if (p->font->get_no_squeeze() || squeeze > 1) squeeze = 1;
   FloatRect posRect(alignX, alignY, txtSurf->w * squeeze, txtSurf->h);
   Vec2i gpTexSize;
   shState->ensureTexSize(txtSurf->w, txtSurf->h, gpTexSize);
@@ -930,13 +930,12 @@ void Bitmap::drawText(const IntRect &rect, const char *str, int align)
       txtRect.w = posRect.w;
       txtRect.h = posRect.h;
       SDL_Rect inters;
-      /* If we have no intersection at all,
-       * there's nothing to upload to begin with */
+      // There's nothing to upload if there's no intersection
       if (SDL_IntersectRect(&btmRect, &txtRect, &inters)) {
         bool subImage = false;
         int subSrcX = 0, subSrcY = 0;
         if (inters.w != txtRect.w || inters.h != txtRect.h) {
-          /* Clip the text surface */
+          // Clip the text surface
           subSrcX = inters.x - txtRect.x;
           subSrcY = inters.y - txtRect.y;
           subImage = true;
@@ -947,13 +946,11 @@ void Bitmap::drawText(const IntRect &rect, const char *str, int align)
         }
         TEX::bind(p->gl.tex);
         if (!subImage) {
-          TEX::uploadSubImage(posRect.x, posRect.y,
-                              posRect.w, posRect.h,
+          TEX::uploadSubImage(posRect.x, posRect.y, posRect.w, posRect.h,
                               txtSurf->pixels, GL_RGBA);
         } else {
           GLMeta::subRectImageUpload(txtSurf->w, subSrcX, subSrcY,
-                                     posRect.x, posRect.y,
-                                     posRect.w, posRect.h,
+                                     posRect.x, posRect.y, posRect.w, posRect.h,
                                      txtSurf, GL_RGBA);
           GLMeta::subRectImageEnd();
         }
@@ -996,8 +993,7 @@ void Bitmap::drawText(const IntRect &rect, const char *str, int align)
     p->blitQuad(quad);
     p->popViewport();
   }
-  SDL_FreeSurface(txtSurf);
-  p->addTaintedArea(posRect);
+  SDL_FreeSurface(txtSurf);//p->addTaintedArea(posRect);
   p->onModified();
 }
 /* http://www.lemoda.net/c/utf8-to-ucs2/index.html */

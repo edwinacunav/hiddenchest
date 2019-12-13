@@ -215,7 +215,6 @@ To alleviate possible porting of heavily Win32API reliant scripts, we have added
     - `colors_inverted?` - In case you need to verify if they were inverted already
 * Use the `module_accessor` method to create module methods, getters and setters all in one! Example: `module_attr_accessor :meow` will create the `self.meow` and `self.meow=(value)` methods in a single step. Its setter and getter are `module_writer` and `module_reader` respectively.
 * The `Scripts` module allows you to store a Ruby string or symbol as a script ID via `Scripts << :script_name`. Once it has been stored there, you can call its methods, i.e. `Scripts.all` or `Scripts.include?(:script_name)` to access the Scripts IDs Array and confirm if it has been included respectively.
-* `Font` class now lets you use its `underline` and `strikethrough` or `strikethru` options the same way you used `bold` or `italic`.
 * `RPG::Weather.sprite_max = Number`. where Number is a positive integer number, lets you define the upper limit of the weather sprites like rain or storm or snow effects. Currently it is set at 400 sprites, but it could handle even more if deemed necessary.
 * `FileInt` class allows you to ask if a file `exist?` even if it is compressed.
 * `Audio` module includes more methods like `bgm_volume`, `bgs_volume`, `se_volume` and `me_volume`.
@@ -233,6 +232,14 @@ To alleviate possible porting of heavily Win32API reliant scripts, we have added
          - You can pass them one argument after another or pass an array.
     - `left_click?`, `middle_click?` and `right_click?`
 * You can now use :symbols in any RGSS version.
+
+## Font Class
+
+* It now lets you use several new methods that handle boolean values (true or false) and sizes (Integer)
+    - `underline` - boolean
+    - `strikethrough` or `strikethru` - boolean
+    - `no_squeeze` - boolean, default value: false
+    - `outline_size` - Integer 1 through 8
 
 ## List of Bug Fixes for HiddenChest
 
