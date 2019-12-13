@@ -55,43 +55,67 @@ struct FontPrivate;
 class Font
 {
 public:
-  static bool doesExist(const char *name);
+  static bool does_exist(const char *name);
+  static Color& get_default_color();
+  static Color& get_default_out_color();
+  static Color& get_default_shadow_color();
+  static int  get_default_size();
+  static bool get_default_bold();
+  static bool get_default_italic();
+  static bool get_default_outline();
+  static bool get_default_shadow();
   static bool get_default_underline();
   static bool get_default_strikethrough();
+  static void set_default_name(const std::vector<std::string> &names,
+                               const SharedFontState &sfs);
+  static void set_default_size(int value);
+  static void set_default_bold(bool value);
+  static void set_default_italic(bool value);
+  static void set_default_outline(bool value);
+  static void set_default_shadow(bool value);
   static void set_default_underline(bool value);
   static void set_default_strikethrough(bool value);
+  static void set_default_color(Color& value);
+  static void set_default_out_color(Color& value);
+  static void set_default_shadow_color(Color& value);
+  static void set_default_color(double r, double g, double b, double a = 255.0);
+  static void set_default_out_color(double r, double g, double b, double a = 255.0);
+  static void set_default_shadow_color(double r, double g, double b, double a = 255.0);
   Font(const std::vector<std::string> *names = 0, int size = 0);
   /* Clone constructor */
   Font(const Font &other);
   ~Font();
   const Font &operator=(const Font &o);
-  int get_size() const;
-  int get_outline_size() const;
+  int  get_size() const;
+  int  get_outline_size() const;
+  int  get_shadow_size() const;
   bool get_no_squeeze() const;
+  bool get_bold() const;
+  bool get_italic() const;
+  bool get_outline() const;
+  bool get_shadow() const;
   bool get_underline() const;
   bool get_strikethrough() const;
-  Color& get_color() const;
-  DECL_ATTR( Outline,       bool )
-  DECL_ATTR( Bold,          bool )
-  DECL_ATTR( Italic,        bool )
-  DECL_ATTR( Shadow,        bool )
-  DECL_ATTR_STATIC( DefaultSize,          int    )
-  DECL_ATTR_STATIC( DefaultBold,          bool   )
-  DECL_ATTR_STATIC( DefaultItalic,        bool   )
-  DECL_ATTR_STATIC( DefaultColor,         Color& )
-  DECL_ATTR_STATIC( DefaultShadow,        bool   )
-  DECL_ATTR_STATIC( DefaultOutline,       bool   )
-  DECL_ATTR_STATIC( DefaultOutColor,      Color& )
+  Color& get_color();
+  Color& get_out_color();
+  Color& get_shadow_color();
+  void set_name(const std::vector<std::string> &names);
   void set_size(int);
   void set_outline_size(int);
+  void set_shadow_size(int);
   void set_no_squeeze(bool);
+  void set_bold(bool);
+  void set_italic(bool);
+  void set_outline(bool);
+  void set_shadow(bool);
   void set_underline(bool);
   void set_strikethrough(bool);
   void set_color(Color& value);
   void set_color(double r, double g, double b, double a = 255.0);
-  Color& get_out_color() const;
   void set_out_color(Color& value);
   void set_out_color(double r, double g, double b, double a = 255.0);
+  void set_shadow_color(Color& value);
+  void set_shadow_color(double r, double g, double b, double a = 255.0);
   /* There is no point in providing getters for these,
    * as the bindings will always return the stored native
    * string/array object anyway. It's impossible to mirror

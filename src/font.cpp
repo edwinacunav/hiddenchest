@@ -179,6 +179,7 @@ struct FontPrivate
   std::string name;
   int size;
   int outline_size;
+  int shadow_size;
   bool bold;
   bool italic;
   bool outline;
@@ -187,21 +188,25 @@ struct FontPrivate
   bool strikethrough;
   bool no_squeeze;
   Color *color;
-  Color *outColor;
-  Color colorTmp;
-  Color outColorTmp;
-  static std::string defaultName;
-  static int defaultSize;
-  static bool defaultBold;
-  static bool defaultItalic;
-  static bool defaultOutline;
-  static bool defaultShadow;
+  Color *out_color;
+  Color *shadow_color;
+  Color color_tmp;
+  Color out_color_tmp;
+  Color shadow_color_tmp;
+  static std::string default_name;
+  static int default_size;
+  static bool default_bold;
+  static bool default_italic;
+  static bool default_outline;
+  static bool default_shadow;
   static bool default_underline;
   static bool default_strikethrough;
-  static Color *defaultColor;
-  static Color *defaultOutColor;
-  static Color defaultColorTmp;
-  static Color defaultOutColorTmp;
+  static Color *default_color;
+  static Color *default_out_color;
+  static Color *default_shadow_color;
+  static Color default_color_tmp;
+  static Color default_out_color_tmp;
+  static Color default_shadow_color_tmp;
   static std::vector<std::string> initialDefaultNames;
   // The actual font is opened as late as possible
   // (when it is queried by a Bitmap), prior it is set to null
@@ -210,17 +215,20 @@ struct FontPrivate
   FontPrivate(int size)
   : size(size),
     outline_size(1),
+    shadow_size(1),
     no_squeeze(false),
-    bold(defaultBold),
-    italic(defaultItalic),
-    outline(defaultOutline),
-    shadow(defaultShadow),
+    bold(default_bold),
+    italic(default_italic),
+    outline(default_outline),
+    shadow(default_shadow),
     underline(default_underline),
     strikethrough(default_strikethrough),
-    color(&colorTmp),
-    outColor(&outColorTmp),
-    colorTmp(*defaultColor),
-    outColorTmp(*defaultOutColor),
+    color(&color_tmp),
+    color_tmp(*default_color),
+    out_color(&out_color_tmp),
+    out_color_tmp(*default_out_color),
+    shadow_color(&shadow_color_tmp),
+    shadow_color_tmp(*default_shadow_color),
     sdlFont(0)
   {}
 
@@ -228,6 +236,7 @@ struct FontPrivate
   : name(other.name),
     size(other.size),
     outline_size(other.outline_size),
+    shadow_size(other.shadow_size),
     no_squeeze(other.no_squeeze),
     bold(other.bold),
     italic(other.italic),
@@ -235,10 +244,12 @@ struct FontPrivate
     shadow(other.shadow),
     underline(other.underline),
     strikethrough(other.strikethrough),
-    color(&colorTmp),
-    outColor(&outColorTmp),
-    colorTmp(*other.color),
-    outColorTmp(*other.outColor),
+    color(&color_tmp),
+    out_color(&out_color_tmp),
+    shadow_color(&shadow_color_tmp),
+    color_tmp(*other.color),
+    out_color_tmp(*other.out_color),
+    shadow_color_tmp(*other.shadow_color),
     sdlFont(other.sdlFont)
   {}
 
@@ -247,6 +258,7 @@ struct FontPrivate
     name          =  o.name;
     size          =  o.size;
     outline_size  =  o.outline_size;
+    shadow_size   =  o.shadow_size;
     no_squeeze    =  o.no_squeeze;
     bold          =  o.bold;
     italic        =  o.italic;
@@ -255,26 +267,29 @@ struct FontPrivate
     underline     =  o.underline;
     strikethrough =  o.strikethrough;
     *color        = *o.color;
-    *outColor     = *o.outColor;
+    *out_color    = *o.out_color;
+    *shadow_color = *o.shadow_color;
     sdlFont = 0;
   }
 };
 
-std::string FontPrivate::defaultName     = "Arial";
-int         FontPrivate::defaultSize     = 22;
-bool        FontPrivate::defaultBold     = false;
-bool        FontPrivate::defaultItalic   = false;
-bool        FontPrivate::defaultOutline  = false; /* Inited at runtime */
-bool        FontPrivate::defaultShadow   = false; /* Inited at runtime */
-bool        FontPrivate::default_underline     = false;
+std::string FontPrivate::default_name = "Arial";
+int         FontPrivate::default_size = 22;
+bool        FontPrivate::default_bold = false;
+bool        FontPrivate::default_italic = false;
+bool        FontPrivate::default_outline = false; /* Inited at runtime */
+bool        FontPrivate::default_shadow = false; /* Inited at runtime */
+bool        FontPrivate::default_underline = false;
 bool        FontPrivate::default_strikethrough = false;
-Color      *FontPrivate::defaultColor    = &FontPrivate::defaultColorTmp;
-Color      *FontPrivate::defaultOutColor = &FontPrivate::defaultOutColorTmp;
-Color FontPrivate::defaultColorTmp(255, 255, 255, 255);
-Color FontPrivate::defaultOutColorTmp(0, 0, 0, 128);
+Color *FontPrivate::default_color = &FontPrivate::default_color_tmp;
+Color *FontPrivate::default_out_color = &FontPrivate::default_out_color_tmp;
+Color *FontPrivate::default_shadow_color = &FontPrivate::default_shadow_color_tmp;
+Color FontPrivate::default_color_tmp(255, 255, 255, 255);
+Color FontPrivate::default_out_color_tmp(0, 0, 0, 128);
+Color FontPrivate::default_shadow_color_tmp(0, 0, 0, 160);
 std::vector<std::string> FontPrivate::initialDefaultNames;
 
-bool Font::doesExist(const char *name)
+bool Font::does_exist(const char *name)
 {
   if (!name) return false;
   return shState->fontState().fontPresent(name);
@@ -282,11 +297,11 @@ bool Font::doesExist(const char *name)
 
 Font::Font(const std::vector<std::string> *names, int size)
 {
-  p = new FontPrivate(size ? size : FontPrivate::defaultSize);
+  p = new FontPrivate(size ? size : FontPrivate::default_size);
   if (names)
-    setName(*names);
+    set_name(*names);
   else
-    p->name = FontPrivate::defaultName;
+    p->name = FontPrivate::default_name;
 }
 
 Font::Font(const Font &other)
@@ -305,12 +320,6 @@ const Font &Font::operator=(const Font &o)
   return o;
 }
 
-void Font::setName(const std::vector<std::string> &names)
-{
-  pickExistingFontName(names, p->name, shState->fontState());
-  p->sdlFont = 0;
-}
-
 static void guardDisposed() {}
 
 int Font::get_size() const
@@ -325,10 +334,40 @@ int Font::get_outline_size() const
   return p->outline_size;
 }
 
+int Font::get_shadow_size() const
+{
+  guardDisposed();
+  return p->shadow_size;
+}
+
 bool Font::get_no_squeeze() const
 {
   guardDisposed();
   return p->no_squeeze;
+}
+
+bool Font::get_bold() const
+{
+  guardDisposed();
+  return p->bold;
+}
+
+bool Font::get_italic() const
+{
+  guardDisposed();
+  return p->italic;
+}
+
+bool Font::get_outline() const
+{
+  guardDisposed();
+  return p->outline;
+}
+
+bool Font::get_shadow() const
+{
+  guardDisposed();
+  return p->shadow;
 }
 
 bool Font::get_underline() const
@@ -343,6 +382,54 @@ bool Font::get_strikethrough() const
   return p->strikethrough;
 }
 
+Color& Font::get_color()
+{
+  guardDisposed();
+  return *p->color;
+}
+
+Color& Font::get_out_color()
+{
+  guardDisposed();
+  return *p->out_color;
+}
+
+Color& Font::get_shadow_color()
+{
+  guardDisposed();
+  return *p->shadow_color;
+}
+
+int Font::get_default_size()
+{
+  guardDisposed();
+  return FontPrivate::default_size;
+}
+
+bool Font::get_default_bold()
+{
+  guardDisposed();
+  return FontPrivate::default_bold;
+}
+
+bool Font::get_default_italic()
+{
+  guardDisposed();
+  return FontPrivate::default_italic;
+}
+
+bool Font::get_default_outline()
+{
+  guardDisposed();
+  return FontPrivate::default_outline;
+}
+
+bool Font::get_default_shadow()
+{
+  guardDisposed();
+  return FontPrivate::default_shadow;
+}
+
 bool Font::get_default_underline()
 {
   guardDisposed();
@@ -355,29 +442,29 @@ bool Font::get_default_strikethrough()
   return FontPrivate::default_strikethrough;
 }
 
-Color& Font::get_color() const
+Color& Font::get_default_color()
 {
   guardDisposed();
-  return *p->color;
+  return *FontPrivate::default_color;
 }
 
-Color& Font::get_out_color() const
+Color& Font::get_default_out_color()
 {
   guardDisposed();
-  return *p->outColor;
+  return *FontPrivate::default_out_color;
 }
 
-DEF_ATTR_SIMPLE(Font, Bold,    bool, p->bold)
-DEF_ATTR_SIMPLE(Font, Italic,  bool, p->italic)
-DEF_ATTR_SIMPLE(Font, Shadow,  bool, p->shadow)
-DEF_ATTR_SIMPLE(Font, Outline, bool, p->outline)
-DEF_ATTR_SIMPLE_STATIC(Font, DefaultSize,        int, FontPrivate::defaultSize)
-DEF_ATTR_SIMPLE_STATIC(Font, DefaultBold,       bool, FontPrivate::defaultBold)
-DEF_ATTR_SIMPLE_STATIC(Font, DefaultItalic,     bool, FontPrivate::defaultItalic)
-DEF_ATTR_SIMPLE_STATIC(Font, DefaultShadow,     bool, FontPrivate::defaultShadow)
-DEF_ATTR_SIMPLE_STATIC(Font, DefaultOutline,    bool, FontPrivate::defaultOutline)
-DEF_ATTR_SIMPLE_STATIC(Font, DefaultColor,    Color&, *FontPrivate::defaultColor)
-DEF_ATTR_SIMPLE_STATIC(Font, DefaultOutColor, Color&, *FontPrivate::defaultOutColor)
+Color& Font::get_default_shadow_color()
+{
+  guardDisposed();
+  return *FontPrivate::default_shadow_color;
+}
+
+void Font::set_name(const std::vector<std::string> &names)
+{
+  pickExistingFontName(names, p->name, shState->fontState());
+  p->sdlFont = 0;
+}
 
 void Font::set_size(int value)
 {
@@ -389,15 +476,47 @@ void Font::set_size(int value)
 void Font::set_outline_size(int value)
 {
   if (p->outline_size == value) return;
-  p->outline_size = (value < 1 || value > 8)? 1 : value;
+  if (value < 1) value = 1;
+  p->outline_size = (value > 8)? 8 : value;
+  p->sdlFont = 0;
+}
+
+void Font::set_shadow_size(int value)
+{
+  if (p->shadow_size == value) return;
+  if (value < 1) value = 1;
+  p->shadow_size = (value > 3)? 3 : value;
   p->sdlFont = 0;
 }
 
 void Font::set_no_squeeze(bool value)
 {
-  if (p->no_squeeze == value) return;
   p->no_squeeze = value;
   p->sdlFont = 0;
+}
+
+void Font::set_bold(bool value)
+{
+  guardDisposed();
+  p->bold = value;
+}
+
+void Font::set_italic(bool value)
+{
+  guardDisposed();
+  p->italic = value;
+}
+
+void Font::set_outline(bool value)
+{
+  guardDisposed();
+  p->outline = value;
+}
+
+void Font::set_shadow(bool value)
+{
+  guardDisposed();
+  p->shadow = value;
 }
 
 void Font::set_underline(bool value)
@@ -410,6 +529,36 @@ void Font::set_strikethrough(bool value)
 {
   guardDisposed();
   p->strikethrough = value;
+}
+
+void Font::set_default_size(int value)
+{
+  guardDisposed();
+  FontPrivate::default_size = value;
+}
+
+void Font::set_default_bold(bool value)
+{
+  guardDisposed();
+  FontPrivate::default_bold = value;
+}
+
+void Font::set_default_italic(bool value)
+{
+  guardDisposed();
+  FontPrivate::default_italic = value;
+}
+
+void Font::set_default_shadow(bool value)
+{
+  guardDisposed();
+  FontPrivate::default_shadow = value;
+}
+
+void Font::set_default_outline(bool value)
+{
+  guardDisposed();
+  FontPrivate::default_outline = value;
 }
 
 void Font::set_default_underline(bool value)
@@ -439,19 +588,67 @@ void Font::set_color(double r, double g, double b, double a)
 void Font::set_out_color(Color& value)
 {
   guardDisposed();
-  *p->outColor = value;
+  *p->out_color = value;
 }
 
 void Font::set_out_color(double r, double g, double b, double a)
 {
   guardDisposed();
-  p->outColor->set(r, g, b, a);
+  p->out_color->set(r, g, b, a);
 }
 
-void Font::setDefaultName(const std::vector<std::string> &names,
+void Font::set_shadow_color(Color& value)
+{
+  guardDisposed();
+  *p->shadow_color = value;
+}
+
+void Font::set_shadow_color(double r, double g, double b, double a)
+{
+  guardDisposed();
+  p->shadow_color->set(r, g, b, a);
+}
+
+void Font::set_default_color(Color& value)
+{
+  guardDisposed();
+  *FontPrivate::default_color = value;
+}
+
+void Font::set_default_color(double r, double g, double b, double a)
+{
+  guardDisposed();
+  FontPrivate::default_color->set(r, g, b, a);
+}
+
+void Font::set_default_out_color(Color& value)
+{
+  guardDisposed();
+  *FontPrivate::default_out_color = value;
+}
+
+void Font::set_default_out_color(double r, double g, double b, double a)
+{
+  guardDisposed();
+  FontPrivate::default_out_color->set(r, g, b, a);
+}
+
+void Font::set_default_shadow_color(Color& value)
+{
+  guardDisposed();
+  *FontPrivate::default_shadow_color = value;
+}
+
+void Font::set_default_shadow_color(double r, double g, double b, double a)
+{
+  guardDisposed();
+  FontPrivate::default_shadow_color->set(r, g, b, a);
+}
+
+void Font::set_default_name(const std::vector<std::string> &names,
                           const SharedFontState &sfs)
 {
-  pickExistingFontName(names, FontPrivate::defaultName, sfs);
+  pickExistingFontName(names, FontPrivate::default_name, sfs);
 }
 
 const std::vector<std::string> &Font::getInitialDefaultNames()
@@ -461,14 +658,16 @@ const std::vector<std::string> &Font::getInitialDefaultNames()
 
 void Font::initDynAttribs()
 {
-  p->color = new Color(p->colorTmp);
-  p->outColor = new Color(p->outColorTmp);;
+  p->color = new Color(p->color_tmp);
+  p->out_color = new Color(p->out_color_tmp);
+  p->shadow_color = new Color(p->shadow_color_tmp);
 }
 
 void Font::initDefaultDynAttribs()
 {
-  FontPrivate::defaultColor = new Color(FontPrivate::defaultColorTmp);
-  FontPrivate::defaultOutColor = new Color(FontPrivate::defaultOutColorTmp);
+  FontPrivate::default_color = new Color(FontPrivate::default_color_tmp);
+  FontPrivate::default_out_color = new Color(FontPrivate::default_out_color_tmp);
+  FontPrivate::default_shadow_color = new Color(FontPrivate::default_shadow_color_tmp);
 }
 
 void Font::initDefaults(const SharedFontState &sfs)
@@ -488,9 +687,9 @@ void Font::initDefaults(const SharedFontState &sfs)
   case 3 :
     names.push_back("VL Gothic");
   }
-  setDefaultName(names, sfs);
-  FontPrivate::defaultOutline = true;
-  FontPrivate::defaultShadow  = false;
+  set_default_name(names, sfs);
+  FontPrivate::default_outline = true;
+  FontPrivate::default_shadow  = false;
 }
 
 _TTF_Font *Font::getSdlFont()

@@ -241,6 +241,8 @@ Para aliviar la posible incorporación de scripts demasiado dependientes de la c
     - `strikethrough` o `strikethru` - booleano - tachado
     - `no_squeeze` - booleano, valor por defecto: false
     - `outline_size` - entero entre 1 y 8 - grosor del contorno
+    - `shadow_size` - entero entre 1 y 3 - grosor del contorno
+    - `shadow_color` - Color en formato RGBA (Rojo Verde Azul Alfa)
 
 ## Lista de Arreglos de Errores en HiddenChest
 

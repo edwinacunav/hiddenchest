@@ -785,67 +785,22 @@ static std::string fixupString(const char *str)
   return s;
 }
 
-static void applyShadow(SDL_Surface *&in, const SDL_PixelFormat &fm, const SDL_Color &c)
-{
-  SDL_Surface *out = SDL_CreateRGBSurface
-      (0, in->w+1, in->h+1, fm.BitsPerPixel, fm.Rmask, fm.Gmask, fm.Bmask, fm.Amask);
-  float fr = c.r / 255.0f;
-  float fg = c.g / 255.0f;
-  float fb = c.b / 255.0f;
-  /* We allocate an output surface one pixel wider and higher than the input,
-   * (implicitly) blit a copy of the input with RGB values set to black into
-   * it with x/y offset by 1, then blend the input surface over it at origin
-   * (0,0) using the bitmap blit equation (see shader/bitmapBlit.frag) */
-  for (int y = 0; y < in->h+1; ++y) {
-    for (int x = 0; x < in->w+1; ++x) { /* src: input pixel, shd: shadow pixel */
-      uint32_t src = 0, shd = 0;
-      /* Output pixel location */
-      uint32_t *outP = ((uint32_t*) ((uint8_t*) out->pixels + y*out->pitch)) + x;
-      if (y < in->h && x < in->w)
-        src = ((uint32_t*) ((uint8_t*) in->pixels + y*in->pitch))[x];
-      if (y > 0 && x > 0)
-        shd = ((uint32_t*) ((uint8_t*) in->pixels + (y-1)*in->pitch))[x-1];
-      /* Set shadow pixel RGB values to 0 (black) */
-      shd &= fm.Amask;
-      if (x == 0 || y == 0) {
-        *outP = src;
-        continue;
-      }
-      if (x == in->w || y == in->h) {
-        *outP = shd;
-        continue;
-      }
-      /* Input and shadow alpha values */
-      uint8_t srcA, shdA;
-      srcA = (src & fm.Amask) >> fm.Ashift;
-      shdA = (shd & fm.Amask) >> fm.Ashift;
-      if (srcA == 255 || shdA == 0) {
-        *outP = src;
-        continue;
-      }
-      if (srcA == 0 && shdA == 0) {
-        *outP = 0;
-        continue;
-      }
-      float fSrcA = srcA / 255.0f;
-      float fShdA = shdA / 255.0f;
-      /* Because opacity == 1, co1 == fSrcA */
-      float co2 = fShdA * (1.0f - fSrcA);
-      /* Result alpha */
-      float fa = fSrcA + co2;
-      /* Temp value to simplify arithmetic below */
-      float co3 = fSrcA / fa;
-      /* Result colors */
-      uint8_t r, g, b, a;
-      r = clamp<float>(fr * co3, 0, 1) * 255.0f;
-      g = clamp<float>(fg * co3, 0, 1) * 255.0f;
-      b = clamp<float>(fb * co3, 0, 1) * 255.0f;
-      a = clamp<float>(fa, 0, 1) * 255.0f;
-      *outP = SDL_MapRGBA(&fm, r, g, b, a);
-    }
-  }// Store new surface in the input pointer
-  SDL_FreeSurface(in);
-  in = out;
+void apply_outline(SDL_Surface *&surf, int size, TTF_Font* font,
+                   const char* str, const SDL_Color &co)
+{// set the next font render to render the outline
+  SDL_Surface *other;
+  TTF_SetFontOutline(font, size);
+  if (shState->rtData().config.solidFonts)
+    other = TTF_RenderUTF8_Solid(font, str, co);
+  else
+    other = TTF_RenderUTF8_Blended(font, str, co);
+  //p->ensureFormat(outline, SDL_PIXELFORMAT_ABGR8888);
+  SDL_Rect outRect = {size, size, surf->w, surf->h};
+  SDL_SetSurfaceBlendMode(surf, SDL_BLENDMODE_BLEND);
+  SDL_BlitSurface(surf, NULL, other, &outRect);
+  SDL_FreeSurface(surf);
+  surf = other;
+  TTF_SetFontOutline(font, 0);// reset outline to 0
 }
 
 void Bitmap::drawText(const IntRect &rect, const char *str, int align)
@@ -859,38 +814,35 @@ void Bitmap::drawText(const IntRect &rect, const char *str, int align)
   TTF_Font *font = p->font->getSdlFont();
   const Color &fontColor = p->font->get_color();
   const Color &outColor = p->font->get_out_color();
-  SDL_Color c = fontColor.toSDLColor();
-  c.a = 255;
+  SDL_Color c = fontColor.toSDLColor();//c.a = 255;
   float txtAlpha = fontColor.norm.w;
   SDL_Surface *txtSurf;
   if (shState->rtData().config.solidFonts)
     txtSurf = TTF_RenderUTF8_Solid(font, str, c);
   else
     txtSurf = TTF_RenderUTF8_Blended(font, str, c);
-  p->ensureFormat(txtSurf, SDL_PIXELFORMAT_ABGR8888);
+  //p->ensureFormat(txtSurf, SDL_PIXELFORMAT_ABGR8888);
   int rawTxtSurfH = txtSurf->h;
-  if (p->font->getShadow())
-    applyShadow(txtSurf, *p->format, c);
+  if (p->font->get_shadow()) {//applyShadow(txtSurf, *p->format, c, sc);
+    SDL_Surface *shadow;
+    SDL_Color sc = p->font->get_shadow_color().toSDLColor();//sc.a = 255;
+    int size = p->font->get_shadow_size() - 1;
+    if (shState->rtData().config.solidFonts)
+      shadow = TTF_RenderUTF8_Solid(font, str, sc);
+    else
+      shadow = TTF_RenderUTF8_Blended(font, str, sc);//txtSurf->x+txtSurf->y+
+    if (size > 0) apply_outline(shadow, size, font, str, sc);
+    SDL_Rect shadow_rect = {-1, -1, txtSurf->w, txtSurf->h};
+    SDL_SetSurfaceBlendMode(txtSurf, SDL_BLENDMODE_BLEND);
+    SDL_BlitSurface(txtSurf, NULL, shadow, &shadow_rect);
+    SDL_FreeSurface(txtSurf);
+    txtSurf = shadow;
+  }
   /* outline using TTF_Outline and blending it together with SDL_BlitSurface
    * FIXME: outline is forced to have the same opacity as the font color */
-  if (p->font->getOutline()) {
-    SDL_Color co = outColor.toSDLColor();
-    co.a = 255;
-    SDL_Surface *outline;
-    /* set the next font render to render the outline */
-    int osize = p->font->get_outline_size();
-    TTF_SetFontOutline(font, osize);
-    if (shState->rtData().config.solidFonts)
-      outline = TTF_RenderUTF8_Solid(font, str, co);
-    else
-      outline = TTF_RenderUTF8_Blended(font, str, co);
-    //p->ensureFormat(outline, SDL_PIXELFORMAT_ABGR8888);
-    SDL_Rect outRect = {osize, osize, txtSurf->w, txtSurf->h};
-    SDL_SetSurfaceBlendMode(txtSurf, SDL_BLENDMODE_BLEND);
-    SDL_BlitSurface(txtSurf, NULL, outline, &outRect);
-    SDL_FreeSurface(txtSurf);
-    txtSurf = outline;
-    TTF_SetFontOutline(font, 0);// reset outline to 0
+  if (p->font->get_outline()) {
+    int size = p->font->get_outline_size();
+    apply_outline(txtSurf, size, font, str, outColor.toSDLColor());
   }
   int alignX = rect.x;
   switch (align)
@@ -1035,7 +987,7 @@ IntRect Bitmap::textSize(const char *str)
   uint16_t ucs2 = utf8_to_ucs2(str, &endPtr);
   /* For cursive characters, returning the advance
    * as width yields better results */
-  if (p->font->getItalic() && *endPtr == '\0')
+  if (p->font->get_italic() && *endPtr == '\0')
     TTF_GlyphMetrics(font, ucs2, 0, 0, 0, 0, &w);
   return IntRect(0, 0, w, h);
 }
@@ -1054,7 +1006,7 @@ int Bitmap::textWidth(const char *str)
   uint16_t ucs2 = utf8_to_ucs2(str, &endPtr);
   /* For cursive characters, returning the advance
    * as width yields better results */
-  if (p->font->getItalic() && *endPtr == '\0')
+  if (p->font->get_italic() && *endPtr == '\0')
     TTF_GlyphMetrics(font, ucs2, 0, 0, 0, 0, &w);
   return w;
 }

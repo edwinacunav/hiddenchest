@@ -240,6 +240,8 @@ To alleviate possible porting of heavily Win32API reliant scripts, we have added
     - `strikethrough` or `strikethru` - boolean
     - `no_squeeze` - boolean, default value: false
     - `outline_size` - Integer 1 through 8
+    - `shadow_size` - Integer 1 through 3
+    - `shadow_color` - Color in RGBA format
 
 ## List of Bug Fixes for HiddenChest
 
