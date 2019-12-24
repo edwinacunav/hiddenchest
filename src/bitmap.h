@@ -38,25 +38,21 @@ class Bitmap : public Disposable
 {
 public:
   Bitmap(const char *filename);
+  Bitmap(int none);
   Bitmap(int width, int height);
-  /* Clone constructor */
+  // Clone constructor
   Bitmap(const Bitmap &other);
   ~Bitmap();
   int width()  const;
   int height() const;
   IntRect rect() const;
-  void blt(int x, int y,
-           const Bitmap &source, IntRect rect,
-           int opacity = 255);
+  void blt(int x, int y, const Bitmap &source, IntRect rect, int opacity = 255);
   void stretchBlt(const IntRect &destRect,
                   const Bitmap &source, const IntRect &sourceRect,
                   int opacity = 255);
-  void fillRect(int x, int y,
-                int width, int height,
-                const Vec4 &color);
+  void fillRect(int x, int y, int width, int height, const Vec4 &color);
   void fillRect(const IntRect &rect, const Vec4 &color);
-  void gradientFillRect(int x, int y,
-                        int width, int height,
+  void gradientFillRect(int x, int y, int width, int height,
                         const Vec4 &color1, const Vec4 &color2,
                         bool vertical = false);
   void gradientFillRect(const IntRect &rect,
@@ -68,7 +64,7 @@ public:
   void radialBlur(int angle, int divisions);
   void clear();
   void makeSurface() const;
-  bool isAlphaPixel(int x, int y) const;
+  bool is_alpha_pixel(int x, int y) const;
   Color getPixel(int x, int y) const;
   void setPixel(int x, int y, const Color &color);
   void invert_colors();
@@ -103,6 +99,7 @@ public:
   sigc::signal<void> modified;
 
 private:
+  SDL_Surface* render_str(bool is_solid, const char *str, SDL_Color c);
   void apply_this_shader(ShaderBase &shader, bool enable, Vec4 vec);
   void releaseResources();
   const char *klassName() const { return "Bitmap"; }

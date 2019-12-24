@@ -4,7 +4,7 @@
 ** This file is part of HiddenChest and mkxp.
 **
 ** Copyright (C) 2013 Jonas Kulla <Nyocurio@gmail.com>
-** Extended 2019 by Kyonides Arkanthers <kyonides@gmail.com>
+** Extended 2019 by Kyonides Arkanthes <kyonides@gmail.com>
 **
 ** HiddenChest is free software: you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by

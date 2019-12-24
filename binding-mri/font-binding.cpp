@@ -4,6 +4,7 @@
 ** This file is part of mkxp.
 **
 ** Copyright (C) 2013 Jonas Kulla <Nyocurio@gmail.com>
+** Extended (C) 2019 Kyonides Arkanthes <kyonides@gmail.com>
 **
 ** mkxp is free software: you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -137,7 +138,7 @@ static VALUE font_get_shadow_size(VALUE self)
 {
   Font *f = getPrivateData<Font>(self);
   if (!f) return RB_INT2FIX(0);
-  return RB_INT2FIX(f->get_outline_size());
+  return RB_INT2FIX(f->get_shadow_size());
 }
 
 static VALUE font_get_no_squeeze(VALUE self)
@@ -187,6 +188,12 @@ static VALUE font_get_strikethrough(VALUE self)
   Font *f = getPrivateData<Font>(self);
   if (!f) return Qnil;
   return f->get_strikethrough() ? Qtrue : Qfalse;
+}
+
+static VALUE font_get_shadow_mode(VALUE self)
+{
+  Font *f = getPrivateData<Font>(self);
+  return f ? rb_iv_get(self, "shadow_mode") : Qnil;
 }
 
 static VALUE font_set_name(int argc, VALUE* argv, VALUE self)
@@ -305,6 +312,14 @@ static VALUE font_set_strikethrough(VALUE self, VALUE boolean)
   if (!f) return Qnil;
   f->set_strikethrough(boolean == Qtrue);
   return boolean;
+}
+
+static VALUE font_set_shadow_mode(VALUE self, VALUE mode)
+{
+  Font *f = getPrivateData<Font>(self);
+  if (!f) return Qnil;
+  f->set_shadow_mode(RB_FIX2INT(mode));
+  return rb_iv_set(self, "shadow_mode", mode);
 }
 
 static VALUE font_get_default_size(VALUE self)
@@ -517,4 +532,6 @@ void fontBindingInit()
   rb_define_method(klass, "outline_color=", RMF(font_set_out_color), 1);
   rb_define_method(klass, "shadow_color", RMF(font_get_shadow_color), 0);
   rb_define_method(klass, "shadow_color=", RMF(font_set_shadow_color), 1);
+  rb_define_method(klass, "shadow_mode", RMF(font_get_shadow_mode), 0);
+  rb_define_method(klass, "shadow_mode=", RMF(font_set_shadow_mode), 1);
 }

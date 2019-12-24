@@ -4,6 +4,7 @@
 ** This file is part of mkxp.
 **
 ** Copyright (C) 2013 Jonas Kulla <Nyocurio@gmail.com>
+** Extended (C) 2019 Kyonides Arkantehs <kyonides@gmail.com>
 **
 ** mkxp is free software: you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -493,7 +494,7 @@ void FileSystem::openRead(OpenHandler &handler, const char *filename)
   if (p->havePathCache)
     for (size_t i = 0; i < len; ++i)
       buffer[i] = tolower(buffer[i]);
-/* Find the deliminator separating directory and file name */
+// Find the deliminator separating directory and file name
   for (delim = buffer + len; delim > buffer; --delim)
     if (*delim == '/') break;
   const bool root = (delim == buffer);

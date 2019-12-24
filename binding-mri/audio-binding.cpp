@@ -4,7 +4,7 @@
 ** This file is part of hiddenchest and mkxp.
 **
 ** Copyright (C) 2013 Jonas Kulla <Nyocurio@gmail.com>
-** Modified by Kyonides Arkanthes (C) 2018
+** 2018 (C) Modified by Kyonides Arkanthes <kyonides@gmail.com>
 **
 ** mkxp is free software: you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -155,7 +155,8 @@ static VALUE audio_play_se(int argc, VALUE* argv, VALUE self)
   if (RB_NIL_P(name) || RSTRING_LEN(name) == 0) return Qnil;
   name = rb_str_plus(rb_str_new_cstr("Audio/SE/"), name);
   const char *fn = StringValueCStr(name);
-  int vol = RB_NIL_P(volume) ? 100 : RB_FIX2INT(volume);
+  int vol = RB_NIL_P(volume) ? RB_FIX2INT(rb_iv_get(self, "@se_volume")) :
+            RB_FIX2INT(volume);
   int pit = RB_NIL_P(pitch) ? 100 : RB_FIX2INT(pitch);
   try {
     shState->audio().sePlay(fn, vol, pit);

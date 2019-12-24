@@ -4,6 +4,7 @@
 ** This file is part of mkxp.
 **
 ** Copyright (C) 2013 Jonas Kulla <Nyocurio@gmail.com>
+** Extended (C) 2019 Kyonides Arkanthes <kyonides@gmail.com>
 **
 ** mkxp is free software: you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -264,15 +265,14 @@ static std::string baseName(const std::string &path)
 
 static void setupScreenSize(Config &conf)
 {
-  if (conf.defScreenW < 1) conf.defScreenW = START_WIDTH; //WIDTH_MAX;
-  if (conf.defScreenH < 1) conf.defScreenH = START_HEIGHT; //HEIGHT_MAX;
+  if (conf.defScreenW < 1) conf.defScreenW = START_WIDTH;
+  if (conf.defScreenH < 1) conf.defScreenH = START_HEIGHT;
 }
 
 void Config::readGameINI()
 {
   if (!customScript.empty()) {
-    game.title = baseName(customScript);
-    //if (rgssVersion == 0) rgssVersion = 1;
+    game.title = baseName(customScript);//if (rgssVersion == 0) rgssVersion = 1;
     setupScreenSize(*this);
     return;
   }
@@ -286,18 +286,13 @@ void Config::readGameINI()
   std::string iniFilename = execName + ".ini";
   SDLRWStream iniFile(iniFilename.c_str(), "r");
   if (iniFile) {
-    try
-    {
+    try {
       po::store(po::parse_config_file(iniFile.stream(), podesc, true), vm);
       po::notify(vm);
-    }
-    catch (po::error &error)
-    {
+    } catch (po::error &error) {
       Debug() << iniFilename + ":" << error.what();
     }
-  }
-  else
-  {
+  } else {
     Debug() << "FAILED to open" << iniFilename;
   }
   GUARD_ALL( game.title = vm["Game.Title"].as<std::string>(); );
@@ -353,7 +348,7 @@ void Config::readGameINI()
   if (game.title.empty())
     game.title = baseName(gameFolder);
   if (rgssVersion == 0) {
-    /* Try to guess RGSS version based on Data/Scripts extension */
+    // Try to guess RGSS version based on Data/Scripts extension
     if (!game.scripts.empty()) {
       const char *p = &game.scripts[game.scripts.size()];
       const char *head = &game.scripts[0];
@@ -365,6 +360,8 @@ void Config::readGameINI()
         rgssVersion = 2;
       else if (!strcmp(p, ".rvdata2"))
         rgssVersion = 3;
+    } else {
+      game.title = "HiddenChest Engine";
     }
   }
   setupScreenSize(*this);

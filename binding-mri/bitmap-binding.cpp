@@ -48,17 +48,30 @@ void bitmapInitProps(Bitmap *b, VALUE self)
 static VALUE bitmapInitialize(int argc, VALUE* argv, VALUE self)
 {
   Bitmap *b = 0;
-  if (argc == 1) {
-    VALUE fn;
-    rb_scan_args(argc, argv, "1", &fn);
-    GUARD_EXC( b = new Bitmap(StringValueCStr(fn)); )
+  if (argc == 0) {
+    GUARD_EXC( b = new Bitmap(1); )
+  } else if (argc == 1) {
+    GUARD_EXC( b = new Bitmap(StringValueCStr(argv[0])); )
   } else {
-    int width, height;
-    rb_get_args(argc, argv, "ii", &width, &height RB_ARG_END);
+    int width = RB_FIX2INT(argv[0]), height = RB_FIX2INT(argv[1]);
     GUARD_EXC( b = new Bitmap(width, height); )
   }
-  setPrivateData(self, b);//RTYPEDDATA_DATA(self) = b;
+  setPrivateData(self, b);
   bitmapInitProps(b, self);
+  return self;
+}
+
+static VALUE bitmapInitializeCopy(int argc, VALUE* argv, VALUE self)
+{
+  rb_check_argc(argc, 1);
+  VALUE origObj = argv[0];
+  if (!OBJ_INIT_COPY(self, origObj)) return self;
+  Bitmap *orig = getPrivateData<Bitmap>(origObj);
+  Bitmap *b = 0;
+  GUARD_EXC( b = new Bitmap(*orig); );
+  bitmapInitProps(b, self);
+  b->setFont(orig->getFont());
+  setPrivateData(self, b);
   return self;
 }
 
@@ -178,7 +191,7 @@ static VALUE bitmap_is_alpha_pixel(VALUE self, VALUE rx, VALUE ry)
 {
   Bitmap *b = getPrivateData<Bitmap>(self);
   if (!b) return Qnil;
-  return b->isAlphaPixel(RB_FIX2INT(rx), RB_FIX2INT(ry)) ? Qtrue : Qfalse;
+  return b->is_alpha_pixel(RB_FIX2INT(rx), RB_FIX2INT(ry)) ? Qtrue : Qfalse;
 }
 
 static VALUE bitmapGetPixel(VALUE self, VALUE rx, VALUE ry)
@@ -388,20 +401,6 @@ static VALUE bitmapRadialBlur(VALUE self, VALUE angle, VALUE divisions)
   Bitmap *b = getPrivateData<Bitmap>(self);
   b->radialBlur(NUM2INT(angle), NUM2INT(divisions));
   return Qnil;
-}
-
-static VALUE bitmapInitializeCopy(int argc, VALUE* argv, VALUE self)
-{
-  rb_check_argc(argc, 1);
-  VALUE origObj = argv[0];
-  if (!OBJ_INIT_COPY(self, origObj)) return self;
-  Bitmap *orig = getPrivateData<Bitmap>(origObj);
-  Bitmap *b = 0;
-  GUARD_EXC( b = new Bitmap(*orig); );
-  bitmapInitProps(b, self);
-  b->setFont(orig->getFont());
-  setPrivateData(self, b);
-  return self;
 }
 
 static VALUE bitmapStormFillRect(VALUE self, VALUE i)

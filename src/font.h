@@ -4,6 +4,7 @@
 ** This file is part of mkxp.
 **
 ** Copyright (C) 2013 Jonas Kulla <Nyocurio@gmail.com>
+** Extended (C) 2019 Kyonides Arkanthes <kyonides@gmail.com>
 **
 ** mkxp is free software: you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -89,6 +90,7 @@ public:
   int  get_size() const;
   int  get_outline_size() const;
   int  get_shadow_size() const;
+  int  get_shadow_mode() const;
   bool get_no_squeeze() const;
   bool get_bold() const;
   bool get_italic() const;
@@ -103,6 +105,7 @@ public:
   void set_size(int);
   void set_outline_size(int);
   void set_shadow_size(int);
+  void set_shadow_mode(int);
   void set_no_squeeze(bool);
   void set_bold(bool);
   void set_italic(bool);

@@ -559,7 +559,7 @@ bool MsgBoxSprite::isMouseAboveColorFound()
   int y = p->trans.getPosition().y;
   if (my < y) return false;
   if (my > y + p->srcRect->height) return false;
-  return !p->bitmap->isAlphaPixel(mx - x, my - y);
+  return !p->bitmap->is_alpha_pixel(mx - x, my - y);
 }
 
 bool MsgBoxSprite::isMouseAboveCloseIcon()
@@ -574,7 +574,7 @@ bool MsgBoxSprite::isMouseAboveCloseIcon()
   int y = p->trans.getPosition().y + 2;
   if (my < y) return false;
   if (my > y + 24) return false;
-  return !p->bitmap->isAlphaPixel(mx - x, my - y);
+  return !p->bitmap->is_alpha_pixel(mx - x, my - y);
 }
 
 void MsgBoxSprite::initDynAttribs()

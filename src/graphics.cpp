@@ -4,7 +4,7 @@
 ** This file is part of mkxpplus and mkxp.
 **
 ** Copyright (C) 2013 Jonas Kulla <Nyocurio@gmail.com>
-** 2018 Modified by Kyonides-Arkanthes
+** 2018-2019 (C) Modified by Kyonides-Arkanthes
 **
 ** mkxp is free software: you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by

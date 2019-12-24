@@ -125,9 +125,9 @@ int rgssThreadFun(void *userdata)
 static void printRgssVersion(int ver)
 {
   Debug() << "HiddenChest The RGSS 1 2 & 3 Player Engine";
-  Debug() << "Author:\t\t" << HIDDENAUTHOR;
-  Debug() << "HiddenChest Engine Version:" << HIDDENVERSION;
-  Debug() << "Release Date\t\t:" << HIDDENDATE;
+  Debug() << "Developer:                  " << HIDDENAUTHOR;
+  Debug() << "HiddenChest Engine Version: " << HIDDENVERSION;
+  Debug() << "Release Date:               " << HIDDENDATE;
   const char *const makers[] = { "HiddenChest", "XP", "VX", "VX Ace" };
   //char buf[128];snprintf(buf, sizeof(buf),  %d (%s)", ver, makers[ver]);
   Debug() << "Using RGSS Version" << ver << "(" << makers[ver] << ")";
@@ -147,10 +147,9 @@ static void setupWindowIcon(const Config &conf, SDL_Window *win)
   else
     iconSrc = SDL_RWFromFile(conf.iconPath.c_str(), "rb");
   SDL_Surface *iconImg = IMG_Load_RW(iconSrc, SDL_TRUE);
-  if (iconImg) {
-    SDL_SetWindowIcon(win, iconImg);
-    SDL_FreeSurface(iconImg);
-  }
+  if (!iconImg) return;
+  SDL_SetWindowIcon(win, iconImg);
+  SDL_FreeSurface(iconImg);
 }
 
 int main(int argc, char *argv[])

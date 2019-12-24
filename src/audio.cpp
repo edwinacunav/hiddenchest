@@ -29,7 +29,7 @@
 #include <string>
 #include <SDL_thread.h>
 #include <SDL_timer.h>
-
+//#include "ok_ogg.xxd"#include "wrong_ogg.xxd"
 struct AudioPrivate
 {
   AudioStream bgm;
@@ -37,11 +37,9 @@ struct AudioPrivate
   AudioStream me;
   SoundEmitter se;
   SyncPoint &syncPoint;
-  /* The 'MeWatch' is responsible for detecting
-   * a playing ME, quickly fading out the BGM and
-   * keeping it paused/stopped while the ME plays,
-   * and unpausing/fading the BGM back in again
-   * afterwards */
+  /* The 'MeWatch' is responsible for detecting a playing ME, quickly fading out
+   * the BGM and keeping it paused/stopped while the ME plays, and unpausing /
+   * fading the BGM back in again afterwards */
   enum MeWatchState
   {
     MeNotPlaying,

@@ -669,18 +669,17 @@ bool Sprite::isMouseAboveColorFound()
   if (my < y) return false;
   if (my > y + p->srcRect->height) return false;
   int ax = mx - x, ay = my - y;
-  return !p->bitmap->isAlphaPixel(ax, ay);
+  return !p->bitmap->is_alpha_pixel(ax, ay);
 }
 
 #define DEF_WAVE_SETTER(Name, name, type) \
-	void Sprite::setWave##Name(type value) \
-	{ \
-		guardDisposed(); \
-		if (p->wave.name == value) \
-			return; \
-		p->wave.name = value; \
-		p->wave.dirty = true; \
-	}
+void Sprite::setWave##Name(type value) \
+{ \
+  guardDisposed(); \
+  if (p->wave.name == value) return; \
+  p->wave.name = value; \
+  p->wave.dirty = true; \
+}
 
 DEF_WAVE_SETTER(Amp,    amp,    int)
 DEF_WAVE_SETTER(Length, length, int)

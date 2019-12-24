@@ -41,6 +41,7 @@
 #include "font.h"
 #include "eventthread.h"
 #include "debugwriter.h"
+#include "app_logo.png.xxd"
 
 /*ifdef GLES2_HEADER// I added these lines
 include <SDL_opengles2.h>
@@ -246,6 +247,22 @@ Bitmap::Bitmap(const char *filename)
     TEX::uploadImage(p->gl.width, p->gl.height, imgSurf->pixels, GL_RGBA);
     SDL_FreeSurface(imgSurf);
   }
+  p->addTaintedArea(rect());
+}
+
+Bitmap::Bitmap(int none)
+{
+  SDL_RWops *src = SDL_RWFromConstMem(assets_app_logo_png, assets_app_logo_png_len);
+  if (!src) Debug() << "No source!";
+  SDL_Surface *surface = IMG_Load_RW(src, SDL_TRUE);
+  if (!surface) Debug() << "No surface";
+  p = new BitmapPrivate(this);
+  p->ensureFormat(surface, SDL_PIXELFORMAT_ABGR8888);
+  TEXFBO tex = shState->texPool().request(surface->w, surface->h);
+  p->gl = tex;
+  TEX::bind(p->gl.tex);
+  TEX::uploadImage(p->gl.width, p->gl.height, surface->pixels, GL_RGBA);
+  SDL_FreeSurface(surface);
   p->addTaintedArea(rect());
 }
 
@@ -590,7 +607,7 @@ void Bitmap::makeSurface() const
   glState.viewport.pop();
 }
 
-bool Bitmap::isAlphaPixel(int x, int y) const
+bool Bitmap::is_alpha_pixel(int x, int y) const
 {
   guardDisposed();
   GUARD_MEGA;
@@ -743,28 +760,7 @@ void Bitmap::turn_sepia()
   apply_this_shader(shader);
 }
 
-void Bitmap::pixelate()
-{
-  return;
-  /*guardDisposed();
-  TexCombShader &shader = shState->shaders().tex_comb;//pixel;Pixelate
-  TEXFBO text = shState->texPool().request(p->gl.width, p->gl.height);
-  Quad &quad = shState->gpQuad();
-  FloatRect r(IntRect(0, 0, p->gl.width, p->gl.height));
-  quad.setTexPosRect(r, r);
-  //enable ? quad.setColor(vec) : quad.setColor(Vec4(1, 1, 1, 1));
-  shader.set_light_dir(Vec3(0.5, 0.5, 0.5));
-  shader.bind();
-  FBO::bind(text.fbo);
-  p->pushSetViewport(shader);
-  p->bindTexture(shader);
-  p->blitQuad(quad);
-  p->popViewport();
-  TEX::unbind();
-  shState->texPool().release(p->gl);
-  p->gl = text;
-  p->onModified();*/
-}
+void Bitmap::pixelate() {}
 
 void Bitmap::drawText(int x, int y, int width, int height,
                       const char *str, int align)
@@ -785,22 +781,12 @@ static std::string fixupString(const char *str)
   return s;
 }
 
-void apply_outline(SDL_Surface *&surf, int size, TTF_Font* font,
-                   const char* str, const SDL_Color &co)
-{// set the next font render to render the outline
-  SDL_Surface *other;
-  TTF_SetFontOutline(font, size);
-  if (shState->rtData().config.solidFonts)
-    other = TTF_RenderUTF8_Solid(font, str, co);
+SDL_Surface* Bitmap::render_str(bool is_solid, const char *str, SDL_Color c)
+{
+  if (is_solid)
+    return TTF_RenderUTF8_Solid(p->font->getSdlFont(), str, c);
   else
-    other = TTF_RenderUTF8_Blended(font, str, co);
-  //p->ensureFormat(outline, SDL_PIXELFORMAT_ABGR8888);
-  SDL_Rect outRect = {size, size, surf->w, surf->h};
-  SDL_SetSurfaceBlendMode(surf, SDL_BLENDMODE_BLEND);
-  SDL_BlitSurface(surf, NULL, other, &outRect);
-  SDL_FreeSurface(surf);
-  surf = other;
-  TTF_SetFontOutline(font, 0);// reset outline to 0
+    return TTF_RenderUTF8_Blended(p->font->getSdlFont(), str, c);
 }
 
 void Bitmap::drawText(const IntRect &rect, const char *str, int align)
@@ -811,111 +797,124 @@ void Bitmap::drawText(const IntRect &rect, const char *str, int align)
   str = fixed.c_str();
   if (*str == '\0') return;
   if (str[0] == ' ' && str[1] == '\0') return;
-  TTF_Font *font = p->font->getSdlFont();
-  const Color &fontColor = p->font->get_color();
-  const Color &outColor = p->font->get_out_color();
-  SDL_Color c = fontColor.toSDLColor();//c.a = 255;
+  bool is_solid = shState->rtData().config.solidFonts;
+  Font *f = p->font;
+  TTF_Font *font = f->getSdlFont();
+  const Color &fontColor = f->get_color();
+  SDL_Color c = fontColor.toSDLColor();
   float txtAlpha = fontColor.norm.w;
-  SDL_Surface *txtSurf;
-  if (shState->rtData().config.solidFonts)
-    txtSurf = TTF_RenderUTF8_Solid(font, str, c);
-  else
-    txtSurf = TTF_RenderUTF8_Blended(font, str, c);
-  //p->ensureFormat(txtSurf, SDL_PIXELFORMAT_ABGR8888);
-  int rawTxtSurfH = txtSurf->h;
-  if (p->font->get_shadow()) {//applyShadow(txtSurf, *p->format, c, sc);
-    SDL_Surface *shadow;
-    SDL_Color sc = p->font->get_shadow_color().toSDLColor();//sc.a = 255;
-    int size = p->font->get_shadow_size() - 1;
-    if (shState->rtData().config.solidFonts)
-      shadow = TTF_RenderUTF8_Solid(font, str, sc);
-    else
-      shadow = TTF_RenderUTF8_Blended(font, str, sc);//txtSurf->x+txtSurf->y+
-    if (size > 0) apply_outline(shadow, size, font, str, sc);
-    SDL_Rect shadow_rect = {-1, -1, txtSurf->w, txtSurf->h};
-    SDL_SetSurfaceBlendMode(txtSurf, SDL_BLENDMODE_BLEND);
-    SDL_BlitSurface(txtSurf, NULL, shadow, &shadow_rect);
-    SDL_FreeSurface(txtSurf);
-    txtSurf = shadow;
-  }
-  /* outline using TTF_Outline and blending it together with SDL_BlitSurface
-   * FIXME: outline is forced to have the same opacity as the font color */
-  if (p->font->get_outline()) {
-    int size = p->font->get_outline_size();
-    apply_outline(txtSurf, size, font, str, outColor.toSDLColor());
+  SDL_Surface *surf = render_str(is_solid, str, c);
+  p->ensureFormat(surf, SDL_PIXELFORMAT_ABGR8888);
+  int shapx = f->get_shadow_size();
+  bool is_shadow = f->get_shadow();
+  if (is_shadow) {
+    const char *temp_str;
+    SDL_Rect tmp;
+    SDL_Surface *large, *shade;
+    SDL_Color sc = f->get_shadow_color().toSDLColor();
+    const SDL_PixelFormat* fmt = p->format;
+    int sx = 0, mode = f->get_shadow_mode();
+    for (int n = 0; n < shapx; n++) {
+      shade = TTF_RenderUTF8_Solid(font, str, sc);
+      p->ensureFormat(shade, SDL_PIXELFORMAT_ABGR8888);
+      large = SDL_CreateRGBSurface(0, shade->w + shapx * 2, shade->h + shapx * 2,
+        fmt->BitsPerPixel, fmt->Rmask, fmt->Gmask, fmt->Bmask, fmt->Amask);
+      if (mode == 2) sx = n + 1;
+      tmp = { sx, 1, large->w, large->h };
+      SDL_SetSurfaceBlendMode(shade, SDL_BLENDMODE_BLEND);
+      SDL_BlitSurface(shade, 0, large, &tmp);
+      SDL_FreeSurface(shade);
+      if (mode == 0) tmp.y += 1;
+      else if (mode == 1) tmp.x += 1;
+      else tmp.x -= n + 1;
+      SDL_SetSurfaceBlendMode(surf, SDL_BLENDMODE_BLEND);
+      SDL_BlitSurface(surf, 0, large, &tmp);
+      SDL_FreeSurface(surf);
+      surf = large;
+    }
+  }// outline using TTF_Outline and blending it together
+  if (f->get_outline()) {
+    int size = f->get_outline_size();
+    SDL_Surface *outline;
+    SDL_Color out_color = f->get_out_color().toSDLColor();
+    TTF_SetFontOutline(font, size);
+    outline = render_str(is_solid, str, out_color);
+    p->ensureFormat(outline, SDL_PIXELFORMAT_ABGR8888);
+    SDL_Rect outRect = { size, size, surf->w, surf->h };
+    SDL_SetSurfaceBlendMode(surf, SDL_BLENDMODE_BLEND);
+    SDL_BlitSurface(surf, NULL, outline, &outRect);
+    SDL_FreeSurface(surf);
+    surf = outline;
+    TTF_SetFontOutline(font, 0);
   }
   int alignX = rect.x;
-  switch (align)
-  {
+  switch (align) {
   default:
   case Left :
     break;
   case Center :
-    alignX += (rect.w - txtSurf->w) / 2;
+    alignX += (rect.w - surf->w) / 2;
     break;
   case Right :
-    alignX += rect.w - txtSurf->w;
+    alignX += rect.w - surf->w;
     break;
   }
   if (alignX < rect.x) alignX = rect.x;
-  int alignY = rect.y + (rect.h - rawTxtSurfH) / 2;
-  float squeeze = (float) rect.w / txtSurf->w;
+  int alignY = rect.y + (rect.h - surf->h) / 2;
+  float squeeze = (float) rect.w / surf->w;
   if (p->font->get_no_squeeze() || squeeze > 1) squeeze = 1;
-  FloatRect posRect(alignX, alignY, txtSurf->w * squeeze, txtSurf->h);
+  FloatRect posRect(alignX, alignY, surf->w, surf->h);
+  IntRect irect(alignX, alignY, surf->w, surf->h);
   Vec2i gpTexSize;
-  shState->ensureTexSize(txtSurf->w, txtSurf->h, gpTexSize);
+  shState->ensureTexSize(surf->w, surf->h, gpTexSize);
   bool fastBlit = !p->touchesTaintedArea(posRect) && txtAlpha == 1.0f;
-  if (fastBlit) {
+  if (fastBlit) {//Debug() << "Fast Blit";
     if (squeeze == 1.0f && !shState->config().subImageFix) {
-      /* Even faster: upload directly to bitmap texture.
-       * We have to make sure the posRect lies within the texture
-       * boundaries or texSubImage will generate errors.
-       * If it partly lies outside bounds we have to upload
-       * the clipped visible part of it. */
-      SDL_Rect btmRect;
-      btmRect.x = btmRect.y = 0;
-      btmRect.w = width();
-      btmRect.h = height();
-      SDL_Rect txtRect;
-      txtRect.x = posRect.x;
-      txtRect.y = posRect.y;
-      txtRect.w = posRect.w;
-      txtRect.h = posRect.h;
+      // Even faster: upload directly to bitmap texture.
+      // We have to make sure the posRect lies within the texture
+      // boundaries or texSubImage will generate errors.
+      // If it partly lies outside bounds we have to upload
+      // the clipped visible part of it.  Debug() << "Squeeze is equal to 1";
+      SDL_Rect btmRect = { 0, 0, width(), height() };
+      SDL_Rect txtRect = { irect.x, irect.y, irect.w, irect.h };
       SDL_Rect inters;
       // There's nothing to upload if there's no intersection
       if (SDL_IntersectRect(&btmRect, &txtRect, &inters)) {
         bool subImage = false;
         int subSrcX = 0, subSrcY = 0;
         if (inters.w != txtRect.w || inters.h != txtRect.h) {
-          // Clip the text surface
+          // Clip the text surface Debug() << "Clipped!";
           subSrcX = inters.x - txtRect.x;
           subSrcY = inters.y - txtRect.y;
           subImage = true;
-          posRect.x = inters.x;
-          posRect.y = inters.y;
-          posRect.w = inters.w;
-          posRect.h = inters.h;
+          irect = IntRect(inters.x, inters.y, inters.w, inters.h);
         }
         TEX::bind(p->gl.tex);
-        if (!subImage) {
-          TEX::uploadSubImage(posRect.x, posRect.y, posRect.w, posRect.h,
-                              txtSurf->pixels, GL_RGBA);
+        if (!subImage) {// Debug() << "No subimage";
+          TEX::uploadSubImage(irect.x, irect.y, irect.w, irect.h,
+                              surf->pixels, GL_RGBA);
         } else {
-          GLMeta::subRectImageUpload(txtSurf->w, subSrcX, subSrcY,
-                                     posRect.x, posRect.y, posRect.w, posRect.h,
-                                     txtSurf, GL_RGBA);
+          GLMeta::subRectImageUpload(surf->w, subSrcX, subSrcY,
+            irect.x, irect.y, irect.w, irect.h, surf, GL_RGBA);
           GLMeta::subRectImageEnd();
         }
       }
-    } else {
-      // Squeezing involved: need to use intermediary TexFBO
-      TEXFBO &gpTF = shState->gpTexFBO(txtSurf->w, txtSurf->h);
-      TEX::bind(gpTF.tex);
-      TEX::uploadSubImage(0, 0, txtSurf->w, txtSurf->h, txtSurf->pixels, GL_RGBA);
-      GLMeta::blitBegin(p->gl);
-      GLMeta::blitSource(gpTF);
-      GLMeta::blitRectangle(IntRect(0, 0, txtSurf->w, txtSurf->h), posRect, true);
-      GLMeta::blitEnd();
+    } else {// Squeezing involved: need to use intermediary TexFBO Debug() << "Squeezed!";
+      SDL_Rect btmRect = { 0, 0, width(), height() };
+      SDL_Rect txtRect = { irect.x, irect.y, irect.w, irect.h };
+      SDL_Rect inters;
+      if (SDL_IntersectRect(&btmRect, &txtRect, &inters)) {
+        int subSrcX = 0, subSrcY = 0;
+        if (inters.w != txtRect.w || inters.h != txtRect.h) {
+          subSrcX = inters.x - txtRect.x;
+          subSrcY = inters.y - txtRect.y;
+          irect = IntRect(inters.x, inters.y, inters.w, inters.h);
+        }
+        TEX::bind(p->gl.tex);
+        GLMeta::subRectImageUpload(surf->w, subSrcX, subSrcY,
+          irect.x, irect.y, irect.w, irect.h, surf, GL_RGBA);
+        GLMeta::subRectImageEnd();
+      }
     }
   } else {
     // Acquire partial copy of the destination buffer we're about to render to
@@ -924,8 +923,7 @@ void Bitmap::drawText(const IntRect &rect, const char *str, int align)
     GLMeta::blitSource(p->gl);
     GLMeta::blitRectangle(posRect, Vec2i());
     GLMeta::blitEnd();
-    FloatRect bltRect(0, 0,
-                      (float) (gpTexSize.x * squeeze) / gpTex2.width,
+    FloatRect bltRect(0, 0, (float) (gpTexSize.x * squeeze) / gpTex2.width,
                       (float) gpTexSize.y / gpTex2.height);
     BltShader &shader = shState->shaders().blt;
     shader.bind();
@@ -935,17 +933,17 @@ void Bitmap::drawText(const IntRect &rect, const char *str, int align)
     shader.setSubRect(bltRect);
     shader.setOpacity(txtAlpha);
     shState->bindTex();
-    TEX::uploadSubImage(0, 0, txtSurf->w, txtSurf->h, txtSurf->pixels, GL_RGBA);
+    TEX::uploadSubImage(0, 0, surf->w, surf->h, surf->pixels, GL_RGBA);
     TEX::setSmooth(true);
     Quad &quad = shState->gpQuad();
-    quad.setTexRect(FloatRect(0, 0, txtSurf->w, txtSurf->h));
+    quad.setTexRect(FloatRect(0, 0, surf->w, surf->h));
     quad.setPosRect(posRect);
     p->bindFBO();
     p->pushSetViewport(shader);
     p->blitQuad(quad);
     p->popViewport();
   }
-  SDL_FreeSurface(txtSurf);//p->addTaintedArea(posRect);
+  SDL_FreeSurface(surf);//p->addTaintedArea(posRect);
   p->onModified();
 }
 /* http://www.lemoda.net/c/utf8-to-ucs2/index.html */

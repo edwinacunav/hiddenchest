@@ -180,6 +180,7 @@ struct FontPrivate
   int size;
   int outline_size;
   int shadow_size;
+  int shadow_mode;
   bool bold;
   bool italic;
   bool outline;
@@ -216,6 +217,7 @@ struct FontPrivate
   : size(size),
     outline_size(1),
     shadow_size(1),
+    shadow_mode(0),
     no_squeeze(false),
     bold(default_bold),
     italic(default_italic),
@@ -237,6 +239,7 @@ struct FontPrivate
     size(other.size),
     outline_size(other.outline_size),
     shadow_size(other.shadow_size),
+    shadow_mode(other.shadow_mode),
     no_squeeze(other.no_squeeze),
     bold(other.bold),
     italic(other.italic),
@@ -259,6 +262,7 @@ struct FontPrivate
     size          =  o.size;
     outline_size  =  o.outline_size;
     shadow_size   =  o.shadow_size;
+    shadow_mode    =  o.shadow_mode;
     no_squeeze    =  o.no_squeeze;
     bold          =  o.bold;
     italic        =  o.italic;
@@ -285,7 +289,7 @@ Color *FontPrivate::default_color = &FontPrivate::default_color_tmp;
 Color *FontPrivate::default_out_color = &FontPrivate::default_out_color_tmp;
 Color *FontPrivate::default_shadow_color = &FontPrivate::default_shadow_color_tmp;
 Color FontPrivate::default_color_tmp(255, 255, 255, 255);
-Color FontPrivate::default_out_color_tmp(0, 0, 0, 128);
+Color FontPrivate::default_out_color_tmp(0, 0, 0, 255);
 Color FontPrivate::default_shadow_color_tmp(0, 0, 0, 160);
 std::vector<std::string> FontPrivate::initialDefaultNames;
 
@@ -338,6 +342,12 @@ int Font::get_shadow_size() const
 {
   guardDisposed();
   return p->shadow_size;
+}
+
+int Font::get_shadow_mode() const
+{
+  guardDisposed();
+  return p->shadow_mode;
 }
 
 bool Font::get_no_squeeze() const
@@ -477,7 +487,7 @@ void Font::set_outline_size(int value)
 {
   if (p->outline_size == value) return;
   if (value < 1) value = 1;
-  p->outline_size = (value > 8)? 8 : value;
+  p->outline_size = (value > 10)? 10 : value;
   p->sdlFont = 0;
 }
 
@@ -485,7 +495,15 @@ void Font::set_shadow_size(int value)
 {
   if (p->shadow_size == value) return;
   if (value < 1) value = 1;
-  p->shadow_size = (value > 3)? 3 : value;
+  p->shadow_size = (value > 8)? 8 : value;
+  p->sdlFont = 0;
+}
+
+void Font::set_shadow_mode(int value)
+{
+  if (p->shadow_mode == value) return;
+  if (value < 0) value = 0;
+  p->shadow_mode = (value > 2)? 2 : value;
   p->sdlFont = 0;
 }
 

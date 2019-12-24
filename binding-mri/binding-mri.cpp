@@ -40,9 +40,12 @@
 #include <SDL_filesystem.h>
 #include "scripts.h"
 
+#define rb_str(x) rb_str_new_cstr(x)
+
 extern const char module_rpg1[];
 extern const char module_rpg2[];
 extern const char module_rpg3[];
+extern const char module_hc[];
 static void mriBindingExecute();
 static void mriBindingTerminate();
 static void mriBindingReset();
@@ -116,24 +119,25 @@ static void mriBindingInit()
   if (rgssVer >= 3) {
     rb_define_module_function(rb_mKernel, "rgss_main", RUBY_METHOD_FUNC(mriRgssMain), -1);
     rb_define_module_function(rb_mKernel, "rgss_stop", RUBY_METHOD_FUNC(mriRgssStop), -1);
-    rb_define_global_const("RGSS_VERSION", rb_str_new_cstr("3.0.1"));
+    rb_define_global_const("RGSS_VERSION", rb_str("3.0.1"));
   } else {
     rb_define_alias(rb_singleton_class(rb_mKernel), "_HC_kernel_caller_alias", "caller");
     rb_define_module_function(rb_mKernel, "caller", RUBY_METHOD_FUNC(_kernelCaller), -1);
   }
   VALUE mod = rb_define_module("HIDDENCHEST");
-  rb_define_const(mod, "AUTHOR", rb_str_new_cstr(HIDDENAUTHOR));
-  rb_define_const(mod, "VERSION", rb_str_new_cstr(HIDDENVERSION));
-  rb_define_const(mod, "RELEASE_DATE", rb_str_new_cstr(HIDDENDATE));
+  rb_define_const(mod, "LOGO", rb_str("app_logo"));
+  rb_define_const(mod, "AUTHOR", rb_str(HIDDENAUTHOR));
+  rb_define_const(mod, "VERSION", rb_str(HIDDENVERSION));
+  rb_define_const(mod, "RELEASE_DATE", rb_str(HIDDENDATE));
   rb_define_const(mod, "DESCRIPTION",
-    rb_str_new_cstr("An RGSS based engine derived from mkxp developed by Ancurio"));
+    rb_str("An RGSS based engine derived from mkxp developed by Ancurio"));
   rb_define_module_function(mod, "data_directory", RUBY_METHOD_FUNC(HCDataDirectory), -1);
   rb_define_module_function(mod, "puts", RUBY_METHOD_FUNC(HCPuts), -1);
   rb_define_module_function(mod, "raw_key_states", RUBY_METHOD_FUNC(HCRawKeyStates), -1);
   rb_define_module_function(mod, "mouse_in_window", RUBY_METHOD_FUNC(HCMouseInWindow), 0);
   VALUE os = rb_define_module("OS");
-  rb_define_const(os, "NAME", rb_str_new_cstr(OS_STRING));
-  rb_define_const(os, "REAL_NAME", rb_str_new_cstr(OS_REAL_STRING));
+  rb_define_const(os, "NAME", rb_str(OS_STRING));
+  rb_define_const(os, "REAL_NAME", rb_str(OS_REAL_STRING));
   Init_terms_backdrop();
   if (rgssVer == 1) {
     rb_eval_string(module_rpg1);
@@ -143,11 +147,12 @@ static void mriBindingInit()
   } else if (rgssVer == 3) {
     rb_eval_string(module_rpg3);
   } else {
-    assert(!"unreachable");
+    rb_p(rb_str("Before HiddenChest Module"));
+    rb_eval_string(module_hc);
   }
   // Load global constants
   rb_gv_set("HIDDENCHEST", Qtrue);
-  VALUE debug = rb_bool_new(shState->config().editor.debug);
+  VALUE debug = shState->config().editor.debug ? Qtrue : Qfalse;
   if (rgssVer == 1) {
     rb_gv_set("DEBUG", debug);
   } else if (rgssVer >= 2) {
@@ -157,8 +162,8 @@ static void mriBindingInit()
   VALUE game = rb_define_module("Game");
   const char* title = shState->config().game.title.c_str();
   const char* version = shState->config().game.version.c_str();
-  rb_define_const(game, "TITLE", rb_str_new_cstr(title));
-  rb_define_const(game, "VERSION", rb_str_new_cstr(version));
+  rb_define_const(game, "TITLE", rb_str(title));
+  rb_define_const(game, "VERSION", rb_str(version));
 }
 
 static void showMsg(const std::string &msg)
@@ -194,7 +199,7 @@ static VALUE HCDataDirectory(int argc, VALUE* argv, VALUE self)
 {
   const std::string &path = shState->config().customDataPath;
   const char *s = path.empty() ? "." : path.c_str();
-  return rb_str_new_cstr(s);
+  return rb_str(s);
 }
 
 static VALUE HCPuts(int argc, VALUE* argv, VALUE self)
@@ -307,7 +312,7 @@ RB_METHOD(_kernelCaller)
   len -= 2;
   if (len == 0) return trace;
   // RMXP does this, not sure if specific or 1.8 related
-  VALUE args[] = { rb_str_new_cstr(":in `<main>'"), rb_str_new_cstr("") };
+  VALUE args[] = { rb_str(":in `<main>'"), rb_str("") };
   rb_funcall2(rb_ary_entry(trace, len-1), rb_intern("gsub!"), 2, args);
   return trace;
 }
@@ -334,6 +339,10 @@ struct BacktraceData
 
 static void runRMXPScripts(BacktraceData &btData)
 {
+  if (rgssVer == 0) {
+    Debug() << "Error: No game file was found!";
+    return;
+  }
   const Config &conf = shState->rtData().config;
   const std::string &scriptPack = conf.game.scripts;
   if (scriptPack.empty()) {
@@ -387,7 +396,7 @@ static void runRMXPScripts(BacktraceData &btData)
       showMsg(buffer);
       break;
     }
-    rb_ary_store(script, 3, rb_str_new_cstr(decodeBuffer.c_str()));
+    rb_ary_store(script, 3, rb_str(decodeBuffer.c_str()));
   } // Execute preloaded scripts
   for (std::set<std::string>::iterator i = conf.preloadScripts.begin();
       i != conf.preloadScripts.end(); ++i)
